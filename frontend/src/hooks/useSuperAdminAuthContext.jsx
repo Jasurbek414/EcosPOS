@@ -18,11 +18,24 @@ export function SuperAdminAuthProvider({ children }) {
     setAuth(null);
   }, []);
 
+  // Superadmin o'z profilini (F.I.O.) Profil sahifasida o'zgartirganda saqlangan auth
+  // obyektini joyida yangilash uchun — logout/login qilmasdan sidebar darhol yangi
+  // qiymatni ko'rsatishi uchun kerak (tenant useTenantAuthContext'dagi bilan bir xil naqsh).
+  const updateUser = useCallback((partial) => {
+    setAuth((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...partial };
+      setPlatformAuth(next);
+      return next;
+    });
+  }, []);
+
   const value = {
     user: auth,
     loading: false,
     login,
     logout,
+    updateUser,
   };
 
   return <SuperAdminAuthContext.Provider value={value}>{children}</SuperAdminAuthContext.Provider>;

@@ -35,4 +35,14 @@ public class PlatformUserRepository {
     public List<PlatformUser> findAll() {
         return jdbc.query("SELECT * FROM platform_users ORDER BY created_at DESC", MAPPER);
     }
+
+    /** Superadminning o'z to'liq ismini o'zgartirish (o'z-o'ziga xizmat ko'rsatish profili). */
+    public void updateFullName(Long id, String fullName) {
+        jdbc.update("UPDATE platform_users SET full_name = ? WHERE id = ?", fullName, id);
+    }
+
+    /** Superadminning o'z parolini o'zgartirish (o'z-o'ziga xizmat ko'rsatish profili). */
+    public void updatePassword(Long id, String encodedPassword) {
+        jdbc.update("UPDATE platform_users SET password = ? WHERE id = ?", encodedPassword, id);
+    }
 }

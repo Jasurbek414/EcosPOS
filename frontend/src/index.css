@@ -679,3 +679,46 @@ tbody tr:hover td { background: #fafafa; }
   border: 1.5px solid rgba(255, 255, 255, 0.3);
 }
 .settings-avatar-square { border-radius: 1rem; }
+.settings-card-banner-amber {
+  background: linear-gradient(120deg, #92400e, #b45309 55%, #d97706);
+}
+
+/* ============= SUPERADMIN (PLATFORMA) PANELI ============= */
+/* Tenant sidebar bilan bir xil vizual til (sidebar-link/sidebar-avatar shakllari),
+   lekin doimiy (fixed emas) joylashuv va amber (qorong'i to'q sariq) urg'u rangi bilan —
+   platforma admin rejimini tenant rejimidan ko'zga tashlanadigan qilib ajratish uchun. */
+.superadmin-sidebar {
+  width: 17rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-right: 1px solid var(--border-color);
+}
+.superadmin-logo-mark {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  box-shadow: 0 3px 10px -2px rgba(217, 119, 6, 0.45);
+}
+.superadmin-avatar {
+  background: linear-gradient(135deg, #b45309, #f59e0b);
+}
+.superadmin-link-active {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  font-weight: 600;
+}
+.superadmin-link-active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: #d97706;
+}
+.superadmin-link-active .sidebar-link-icon {
+  background: #d97706;
+  color: #fff;
+}

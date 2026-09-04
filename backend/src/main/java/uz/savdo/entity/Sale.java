@@ -44,4 +44,13 @@ public class Sale extends BaseEntity {
     @Column(name = "change_amount", nullable = false, precision = 14, scale = 2)
     @Builder.Default
     private BigDecimal changeAmount = BigDecimal.ZERO;
+
+    /**
+     * MIXED to'lovda karta bilan qoplangan qism. CASH uchun 0, CARD uchun totalAmount'ga
+     * teng (qarang: SaleService#createSale). amountPaid semantikasi bu maydon bilan
+     * o'zgarmaydi — u har doim mijoz bergan NAQD summani bildiradi.
+     */
+    @Column(name = "card_amount", nullable = false, precision = 14, scale = 2)
+    @Builder.Default
+    private BigDecimal cardAmount = BigDecimal.ZERO;
 }

@@ -30,74 +30,79 @@ export default function CompanyCreatePage() {
     toast.success(`${label}: ${t('common.copied')}`);
   };
 
+  // Kenglik nuqsoni tuzatildi: sahifa o'rovchisi endi max-w-lg mx-auto bilan
+  // cheklanmaydi (to'liq kenglikda) — faqat forma/karta o'zi max-w-2xl bilan
+  // o'qish uchun qulay kenglikda ushlab turiladi.
   if (result) {
     return (
-      <div className="max-w-lg mx-auto flex flex-col gap-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={26} className="text-emerald-600" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">{t('superadmin.createSuccess')}</h2>
-            <p className="text-slate-500 text-sm mt-0.5">
-              {result.name} <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded ml-1">{result.slug}</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="card border-amber-200" style={{ borderColor: '#fde68a' }}>
-          <div className="p-6 flex flex-col gap-5">
-            <div className="flex items-start gap-3">
-              <ShieldAlert size={22} className="text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-amber-800 text-sm font-medium leading-relaxed">{t('superadmin.credentialsWarning')}</p>
+      <div className="flex flex-col gap-8">
+        <div className="max-w-2xl w-full flex flex-col gap-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={26} className="text-emerald-600" />
             </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
-                  <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => copy(result.adminUsername, t('superadmin.adminUsername'))}
-                  className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
-                >
-                  <Copy size={16} />
-                </button>
-              </div>
-
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
-                  <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => copy(result.adminPassword, t('auth.password'))}
-                  className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
-                >
-                  <Copy size={16} />
-                </button>
-              </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">{t('superadmin.createSuccess')}</h2>
+              <p className="text-slate-500 text-sm mt-0.5">
+                {result.name} <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded ml-1">{result.slug}</span>
+              </p>
             </div>
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => navigate(`/spd/companies/${result.id}`)}
-          className="btn w-full justify-center"
-          style={{ background: '#d97706', color: '#fff' }}
-        >
-          {t('superadmin.goToDetail')}
-        </button>
+          <div className="card border-amber-200" style={{ borderColor: '#fde68a' }}>
+            <div className="p-6 flex flex-col gap-5">
+              <div className="flex items-start gap-3">
+                <ShieldAlert size={22} className="text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-amber-800 text-sm font-medium leading-relaxed">{t('superadmin.credentialsWarning')}</p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
+                    <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copy(result.adminUsername, t('superadmin.adminUsername'))}
+                    className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+                  >
+                    <Copy size={16} />
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
+                    <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copy(result.adminPassword, t('auth.password'))}
+                    className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+                  >
+                    <Copy size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate(`/spd/companies/${result.id}`)}
+            className="btn w-full justify-center"
+            style={{ background: '#d97706', color: '#fff' }}
+          >
+            {t('superadmin.goToDetail')}
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto flex flex-col gap-8">
+    <div className="flex flex-col gap-8">
       <button
         type="button"
         onClick={() => navigate('/spd/companies')}
@@ -109,9 +114,10 @@ export default function CompanyCreatePage() {
 
       <div>
         <h1 className="text-xl font-bold text-slate-900">{t('superadmin.newCompany')}</h1>
+        <p className="text-slate-500 text-sm mt-1">{t('superadmin.createSubtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="card p-7 flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="card p-7 flex flex-col gap-4 max-w-2xl">
         <div>
           <label className="field-label">{t('superadmin.name')}</label>
           <input

@@ -67,4 +67,10 @@ export const auditLogService = {
   list: (companyId) => platformApi.get('/audit-log', { params: companyId ? { companyId } : {} }),
 };
 
+export const platformProfileService = {
+  get: () => platformApi.get('/profile'),
+  update: (data) => platformApi.put('/profile', data),
+  changePassword: (data) => platformApi.post('/profile/change-password', data),
+};
+
 export default platformApi;

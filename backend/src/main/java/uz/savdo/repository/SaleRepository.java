@@ -30,4 +30,15 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             "where s.cashShiftId = :cashShiftId and s.paymentMethod = :paymentMethod and s.isDeleted = false")
     BigDecimal sumTotalAmountByCashShiftIdAndPaymentMethod(@Param("cashShiftId") Long cashShiftId,
                                                              @Param("paymentMethod") PaymentMethod paymentMethod);
+
+    /**
+     * Bitta kassa smenasi doirasida MIXED to'lovli sotuvlarning naqd bilan qoplangan
+     * qismi (totalAmount - cardAmount) yig'indisi — CashShiftService#closeShift'da
+     * expectedCash hisoblash uchun (kassa qutisiga faqat shu qism tushadi, karta
+     * qismi drawer'ga hech qachon tegmaydi).
+     */
+    @Query("select coalesce(sum(s.totalAmount - s.cardAmount), 0) from Sale s " +
+            "where s.cashShiftId = :cashShiftId and s.paymentMethod = uz.savdo.enums.PaymentMethod.MIXED " +
+            "and s.isDeleted = false")
+    BigDecimal sumCashPortionByCashShiftIdForMixed(@Param("cashShiftId") Long cashShiftId);
 }

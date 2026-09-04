@@ -73,9 +73,18 @@ public class CashShiftService {
         // olsa), kassaga aslida faqat 80000 (= totalAmount) qo'shiladi, chunki qaytim
         // (changeAmount) drawer'dan darhol chiqib ketadi. Shu sababli
         // expectedCash = openingCash + SUM(totalAmount), amountPaid emas.
+        //
+        // MIXED sotuvlarda kassaga faqat naqd bilan qoplangan qism tushadi — karta qismi
+        // (cardAmount) drawer'ga hech qachon tegmaydi. Shu qism aynan (totalAmount -
+        // cardAmount) ga teng — xuddi CASH uchun yuqoridagi mulohaza kabi, mijozning
+        // naqd to'lovi va unga berilgan qaytim neti ham aynan shu summaga teng bo'ladi.
+        // Shu sababli MIXED uchun to'liq totalAmount QO'SHILMAYDI (bu karta qismini ham
+        // hisobga olib yuborardi) va MIXED e'tiborsiz ham qoldirilmaydi (bu naqd qismini
+        // butunlay tushirib qoldirardi).
         BigDecimal cashSalesTotal = saleRepository.sumTotalAmountByCashShiftIdAndPaymentMethod(
                 shift.getId(), PaymentMethod.CASH);
-        BigDecimal expectedCash = shift.getOpeningCash().add(cashSalesTotal);
+        BigDecimal mixedCashPortion = saleRepository.sumCashPortionByCashShiftIdForMixed(shift.getId());
+        BigDecimal expectedCash = shift.getOpeningCash().add(cashSalesTotal).add(mixedCashPortion);
 
         shift.setClosingCash(closingCash);
         shift.setExpectedCash(expectedCash);

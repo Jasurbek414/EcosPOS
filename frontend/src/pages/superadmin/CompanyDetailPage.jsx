@@ -5,12 +5,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History } from 'lucide-react';
 import { companyService } from '../../services/platformApi';
-
-const STATUS_BADGE = {
-  ACTIVE: 'badge badge-green',
-  BLOCKED: 'badge badge-slate',
-  SUSPENDED_UNPAID: 'badge badge-amber',
-};
+import { STATUS_BADGE } from './constants';
 
 function Field({ label, value }) {
   return (
@@ -197,7 +192,7 @@ export default function CompanyDetailPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <button
         type="button"
         onClick={() => navigate('/spd/companies')}
@@ -208,7 +203,10 @@ export default function CompanyDetailPage() {
       </button>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="card py-16 flex flex-col items-center gap-3">
+          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-slate-400 text-sm">{t('common.loading')}</p>
+        </div>
       ) : notFound || !company ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
@@ -218,70 +216,87 @@ export default function CompanyDetailPage() {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
-              <Building2 size={22} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">{company.name}</h1>
-              <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{company.slug}</span>
+          {/* Kompaniya banneri — settings-card-banner-dark shakli, SettingsPage.jsx'dagi
+              CompanyCard bilan bir xil, holat belgisi bilan boyitilgan */}
+          <div className="card overflow-hidden">
+            <div className="settings-card-banner settings-card-banner-dark">
+              <div className="settings-avatar settings-avatar-square">
+                <Building2 size={22} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-white font-bold text-lg truncate">{company.name}</h1>
+                  <span
+                    className={STATUS_BADGE[company.status] || 'badge badge-slate'}
+                    style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}
+                  >
+                    {company.status}
+                  </span>
+                </div>
+                <span className="font-mono text-xs text-slate-300 bg-white/10 px-1.5 py-0.5 rounded mt-1 inline-block">{company.slug}</span>
+              </div>
             </div>
           </div>
 
-          <div className="card p-7 grid grid-cols-2 gap-6">
-            <Field label={t('superadmin.id')} value={company.id} />
-            <Field
-              label={t('common.status')}
-              value={<span className={STATUS_BADGE[company.status] || 'badge badge-slate'}>{company.status}</span>}
-            />
-            <Field label={t('superadmin.plan')} value={company.plan} />
-            <Field
-              label={t('common.createdAt')}
-              value={company.createdAt ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
-            />
-            {(company.blockedAt || company.blockedReason) && (
-              <>
+          {/* Kenglik nuqsoni tuzatildi: sahifa endi max-w-lg bilan cheklanmaydi — katta
+              ekranlarda ma'lumot va amallar ikki ustunga yoyiladi. */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <div className="card p-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Field label={t('superadmin.id')} value={company.id} />
+                <Field label={t('superadmin.plan')} value={company.plan} />
                 <Field
-                  label={t('superadmin.blockedAt')}
-                  value={company.blockedAt ? new Date(company.blockedAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                  label={t('common.createdAt')}
+                  value={company.createdAt ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                 />
-                <Field label={t('superadmin.blockedReason')} value={company.blockedReason} />
-              </>
-            )}
-          </div>
+                {(company.blockedAt || company.blockedReason) && (
+                  <>
+                    <Field
+                      label={t('superadmin.blockedAt')}
+                      value={company.blockedAt ? new Date(company.blockedAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                    />
+                    <Field label={t('superadmin.blockedReason')} value={company.blockedReason} />
+                  </>
+                )}
+              </div>
 
-          <div className="card p-6 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold text-slate-900 text-sm">{t('superadmin.actions')}</h2>
+              {adminCreds && <AdminCredentialsPanel result={adminCreds} onClose={() => setAdminCreds(null)} />}
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <div className="card p-6 flex flex-col gap-3">
+                <h2 className="font-bold text-slate-900 text-sm">{t('superadmin.actions')}</h2>
+                <div className="flex flex-col gap-2">
+                  {company.status === 'ACTIVE' && (
+                    <button type="button" onClick={() => setBlockModalOpen(true)} className="btn btn-danger w-full justify-center">
+                      <Ban size={16} />
+                      {t('superadmin.blockBtn')}
+                    </button>
+                  )}
+                  {company.status === 'BLOCKED' && (
+                    <button type="button" onClick={handleUnblock} className="btn btn-outline w-full justify-center">
+                      <Unlock size={16} />
+                      {t('superadmin.unblockBtn')}
+                    </button>
+                  )}
+                  <button type="button" onClick={handleResetAdminPassword} className="btn btn-outline w-full justify-center">
+                    <KeyRound size={16} />
+                    {t('superadmin.resetAdminPasswordBtn')}
+                  </button>
+                </div>
+              </div>
+
               <Link
                 to={`/spd/audit-log?companyId=${company.id}`}
-                className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-xs font-medium"
+                className="card p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors"
               >
-                <History size={14} />
-                {t('superadmin.viewAuditLog')}
+                <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                  <History size={16} />
+                </div>
+                <span className="text-slate-700 text-sm font-medium">{t('superadmin.viewAuditLog')}</span>
               </Link>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {company.status === 'ACTIVE' && (
-                <button type="button" onClick={() => setBlockModalOpen(true)} className="btn btn-danger">
-                  <Ban size={16} />
-                  {t('superadmin.blockBtn')}
-                </button>
-              )}
-              {company.status === 'BLOCKED' && (
-                <button type="button" onClick={handleUnblock} className="btn btn-outline">
-                  <Unlock size={16} />
-                  {t('superadmin.unblockBtn')}
-                </button>
-              )}
-              <button type="button" onClick={handleResetAdminPassword} className="btn btn-outline">
-                <KeyRound size={16} />
-                {t('superadmin.resetAdminPasswordBtn')}
-              </button>
-            </div>
           </div>
-
-          {adminCreds && <AdminCredentialsPanel result={adminCreds} onClose={() => setAdminCreds(null)} />}
         </>
       )}
 

@@ -77,16 +77,34 @@ public class SaleService {
 
         BigDecimal amountPaid;
         BigDecimal changeAmount;
+        BigDecimal cardAmount;
         if (request.getPaymentMethod() == PaymentMethod.CARD) {
             // Client'dan kelgan amountPaid CARD uchun e'tiborga olinmaydi — har doim totalAmount'ga teng.
             amountPaid = totalAmount;
             changeAmount = BigDecimal.ZERO;
+            cardAmount = totalAmount;
+        } else if (request.getPaymentMethod() == PaymentMethod.MIXED) {
+            if (request.getCardAmount() == null
+                    || request.getCardAmount().compareTo(BigDecimal.ZERO) <= 0
+                    || request.getCardAmount().compareTo(totalAmount) >= 0) {
+                throw new BadRequestException(
+                        "MIXED to'lovda karta summasi 0 dan katta va umumiy summadan kichik bo'lishi kerak"
+                                + " — aks holda CARD yoki CASH usulidan foydalaning");
+            }
+            cardAmount = request.getCardAmount();
+            BigDecimal cashDue = totalAmount.subtract(cardAmount);
+            if (request.getAmountPaid() == null || request.getAmountPaid().compareTo(cashDue) < 0) {
+                throw new BadRequestException("To'langan naqd summa yetarli emas");
+            }
+            amountPaid = request.getAmountPaid();
+            changeAmount = amountPaid.subtract(cashDue);
         } else {
             if (request.getAmountPaid() == null || request.getAmountPaid().compareTo(totalAmount) < 0) {
                 throw new BadRequestException("To'langan summa yetarli emas");
             }
             amountPaid = request.getAmountPaid();
             changeAmount = amountPaid.subtract(totalAmount);
+            cardAmount = BigDecimal.ZERO;
         }
 
         Sale sale = Sale.builder()
@@ -97,6 +115,7 @@ public class SaleService {
                 .paymentMethod(request.getPaymentMethod())
                 .amountPaid(amountPaid)
                 .changeAmount(changeAmount)
+                .cardAmount(cardAmount)
                 .build();
         sale = saleRepository.save(sale);
 

@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { History } from 'lucide-react';
+import { History, X } from 'lucide-react';
 import { auditLogService } from '../../services/platformApi';
 
 const ACTION_KEYS = ['COMPANY_CREATED', 'COMPANY_BLOCKED', 'COMPANY_UNBLOCKED', 'ADMIN_PASSWORD_RESET'];
 
+const ACTION_BADGE = {
+  COMPANY_CREATED: 'badge badge-green',
+  COMPANY_BLOCKED: 'badge badge-amber',
+  COMPANY_UNBLOCKED: 'badge badge-blue',
+  ADMIN_PASSWORD_RESET: 'badge badge-slate',
+};
+
 export default function AuditLogPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('companyId') || undefined;
   const [entries, setEntries] = useState([]);
@@ -36,13 +44,28 @@ export default function AuditLogPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-900">{t('auditLog.title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('auditLog.subtitle')}</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">{t('auditLog.title')}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t('auditLog.subtitle')}</p>
+        </div>
+        {companyId && (
+          <button
+            type="button"
+            onClick={() => navigate('/spd/audit-log')}
+            className="flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer hover:bg-amber-100"
+          >
+            {t('superadmin.filteredByCompany')}
+            <X size={13} />
+          </button>
+        )}
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="card py-16 flex flex-col items-center gap-3">
+          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-slate-400 text-sm">{t('common.loading')}</p>
+        </div>
       ) : entries.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
@@ -70,7 +93,7 @@ export default function AuditLogPage() {
                   </td>
                   <td className="text-slate-600">{e.actorUsername || '—'}</td>
                   <td>
-                    <span className="badge badge-slate">{actionLabel(e.action)}</span>
+                    <span className={ACTION_BADGE[e.action] || 'badge badge-slate'}>{actionLabel(e.action)}</span>
                   </td>
                   <td>
                     {e.companySlug ? (

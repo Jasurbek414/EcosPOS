@@ -22,6 +22,7 @@ public class SaleResponse {
     private PaymentMethod paymentMethod;
     private BigDecimal amountPaid;
     private BigDecimal changeAmount;
+    private BigDecimal cardAmount;
     private LocalDateTime createdAt;
     private List<SaleItemResponse> items;
 
@@ -36,6 +37,7 @@ public class SaleResponse {
                 .paymentMethod(sale.getPaymentMethod())
                 .amountPaid(sale.getAmountPaid())
                 .changeAmount(sale.getChangeAmount())
+                .cardAmount(sale.getCardAmount())
                 .createdAt(sale.getCreatedAt())
                 .items(items)
                 .build();

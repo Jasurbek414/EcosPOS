@@ -397,7 +397,18 @@
     "resetAdminPasswordError": "Administrator parolini tiklashda xatolik",
     "blockedAt": "Bloklangan sana",
     "blockedReason": "Bloklash sababi",
-    "viewAuditLog": "Amallar tarixini ko'rish"
+    "viewAuditLog": "Amallar tarixini ko'rish",
+    "profile": "Profil",
+    "profileSubtitle": "Hisobingiz ma'lumotlari va xavfsizlik sozlamalari",
+    "role": "Superadmin",
+    "activeCompanies": "Faol kompaniyalar",
+    "blockedCompanies": "Bloklangan kompaniyalar",
+    "searchPlaceholder": "Nomi, kod yoki holat bo'yicha qidirish...",
+    "noSearchResults": "Qidiruv bo'yicha hech narsa topilmadi",
+    "createSubtitle": "Yangi tenant kompaniya va uning administratorini yarating",
+    "detailSubtitle": "Kompaniya holati, tarifi va administrator boshqaruvi",
+    "clearFilter": "Filtrni tozalash",
+    "filteredByCompany": "Bitta kompaniya bo'yicha filtrlangan"
   },
   "auditLog": {
     "title": "Amallar tarixi",
