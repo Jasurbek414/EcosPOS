@@ -4,9 +4,10 @@ import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { changeLanguage } from '../../i18n';
 import {
   LayoutDashboard, Building2, Users, ShoppingCart, Package, BarChart3, LogOut, Store, Settings,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed, onToggleCollapsed }) {
   const { user, role, logout } = useTenantAuthContext();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -31,46 +32,64 @@ export default function Sidebar() {
   const roleDotClass = { OWNER: 'bg-amber-400', MANAGER: 'bg-blue-400', CASHIER: 'bg-slate-400' }[role] || 'bg-slate-400';
 
   return (
-    <aside className="sidebar-shell">
+    <aside className={`sidebar-shell ${collapsed ? 'sidebar-shell-collapsed' : ''}`}>
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        title={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        className="sidebar-collapse-toggle"
+      >
+        {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+      </button>
+
       {/* Logo + til */}
-      <div className="sidebar-header">
+      <div className={`sidebar-header ${collapsed ? 'justify-center' : ''}`}>
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="sidebar-logo-mark">
             <Store size={17} className="text-white" strokeWidth={2.25} />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-slate-900 font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
-            <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
+          {!collapsed && (
+            <div className="min-w-0">
+              <h2 className="text-slate-900 font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
+              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
+            </div>
+          )}
+        </div>
+        {!collapsed && (
+          <div className="sidebar-lang-switch">
+            <button
+              type="button"
+              onClick={() => changeLanguage('uz')}
+              className={`sidebar-lang-btn ${i18n.language === 'uz' ? 'sidebar-lang-btn-active' : ''}`}
+            >
+              UZ
+            </button>
+            <button
+              type="button"
+              onClick={() => changeLanguage('ru')}
+              className={`sidebar-lang-btn ${i18n.language === 'ru' ? 'sidebar-lang-btn-active' : ''}`}
+            >
+              RU
+            </button>
           </div>
-        </div>
-        <div className="sidebar-lang-switch">
-          <button
-            type="button"
-            onClick={() => changeLanguage('uz')}
-            className={`sidebar-lang-btn ${i18n.language === 'uz' ? 'sidebar-lang-btn-active' : ''}`}
-          >
-            UZ
-          </button>
-          <button
-            type="button"
-            onClick={() => changeLanguage('ru')}
-            className={`sidebar-lang-btn ${i18n.language === 'ru' ? 'sidebar-lang-btn-active' : ''}`}
-          >
-            RU
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Navigatsiya */}
-      <nav className="flex-1 overflow-y-auto px-3 py-5">
-        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('sidebar.main')}</p>
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
+        {!collapsed && <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('sidebar.main')}</p>}
         <div className="flex flex-col gap-0.5">
           {navItems.map((item) => (
-            <NavLink key={item.path} to={item.path} className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}>
+            <NavLink
+              key={item.path}
+              to={item.path}
+              title={collapsed ? item.label : undefined}
+              className={({ isActive }) => `sidebar-link ${collapsed ? 'sidebar-link-collapsed' : ''} ${isActive ? 'sidebar-link-active' : ''}`}
+            >
               <span className="sidebar-link-icon">
                 <item.icon size={17} strokeWidth={2.1} />
               </span>
-              <span>{item.label}</span>
+              {!collapsed && <span>{item.label}</span>}
             </NavLink>
           ))}
         </div>
@@ -78,19 +97,33 @@ export default function Sidebar() {
 
       {/* Profil */}
       <div className="p-3 border-t border-slate-200">
-        <div className="sidebar-profile-card">
-          <div className="sidebar-avatar">
+        <div className={`sidebar-profile-card ${collapsed ? 'justify-center !px-0' : ''}`}>
+          <div className="sidebar-avatar" title={collapsed ? user?.fullName : undefined}>
             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
             <span className={`sidebar-avatar-dot ${roleDotClass}`} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-slate-900 text-sm font-semibold truncate">{user?.fullName}</p>
-            <p className="text-slate-500 text-xs truncate">{user?.role ? t(`staff.roles.${user.role}`) : ''}</p>
-          </div>
-          <button type="button" onClick={handleLogout} title={t('sidebar.logout')} className="sidebar-logout-btn">
+          {!collapsed && (
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="text-slate-900 text-sm font-semibold truncate">{user?.fullName}</p>
+                <p className="text-slate-500 text-xs truncate">{user?.role ? t(`staff.roles.${user.role}`) : ''}</p>
+              </div>
+              <button type="button" onClick={handleLogout} title={t('sidebar.logout')} className="sidebar-logout-btn">
+                <LogOut size={15} />
+              </button>
+            </>
+          )}
+        </div>
+        {collapsed && (
+          <button
+            type="button"
+            onClick={handleLogout}
+            title={t('sidebar.logout')}
+            className="sidebar-logout-btn w-full mt-1.5 !bg-transparent"
+          >
             <LogOut size={15} />
           </button>
-        </div>
+        )}
       </div>
     </aside>
   );

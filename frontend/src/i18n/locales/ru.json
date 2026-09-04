@@ -42,7 +42,9 @@
     "warehouse": "Склад",
     "reports": "Отчёты",
     "settings": "Настройки",
-    "logout": "Выход"
+    "logout": "Выход",
+    "collapse": "Свернуть",
+    "expand": "Развернуть"
   },
   "dashboard": {
     "welcome": "Добро пожаловать",
@@ -418,6 +420,7 @@
     "title": "Настройки",
     "subtitle": "Настройки профиля и компании",
     "profileTitle": "Мой профиль",
+    "editNameTitle": "Изменить имя",
     "fullName": "Ф.И.О.",
     "fullNamePlaceholder": "Имя Фамилия",
     "saveBtn": "Сохранить",
@@ -433,6 +436,7 @@
     "changePasswordError": "Ошибка при изменении пароля",
     "passwordMismatch": "Пароли не совпадают",
     "companyTitle": "Информация о компании",
+    "editCompanyNameTitle": "Изменить название компании",
     "companyName": "Название компании",
     "companyNamePlaceholder": "Название компании",
     "slug": "Код (slug)",

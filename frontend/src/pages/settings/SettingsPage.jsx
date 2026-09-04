@@ -2,15 +2,24 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { UserCog, Building2, KeyRound } from 'lucide-react';
+import { UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService } from '../../services/api';
 
-function InfoField({ label, value }) {
+const ROLE_BADGE = { OWNER: 'badge-amber', MANAGER: 'badge-blue', CASHIER: 'badge-slate' };
+
+function InfoField({ icon: Icon, label, value }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</span>
-      <span className="text-slate-900 text-sm font-medium">{value ?? '—'}</span>
+    <div className="flex items-start gap-2.5">
+      {Icon && (
+        <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+          <Icon size={15} />
+        </div>
+      )}
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wide">{label}</span>
+        <span className="text-slate-900 text-sm font-semibold truncate">{value ?? '—'}</span>
+      </div>
     </div>
   );
 }
@@ -144,32 +153,49 @@ function ProfileCard() {
   }, [t]);
 
   return (
-    <div className="card p-6 flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-          <UserCog size={20} />
+    <div className="card overflow-hidden">
+      <div className="settings-card-banner">
+        {loading || !profile ? (
+          <div className="w-14 h-14 rounded-full bg-white/15 shrink-0" />
+        ) : (
+          <div className="settings-avatar">{profile.fullName?.charAt(0)?.toUpperCase() || 'U'}</div>
+        )}
+        <div className="min-w-0">
+          <h2 className="text-white font-bold text-base truncate">{loading || !profile ? t('settings.profileTitle') : profile.fullName}</h2>
+          {!loading && profile && (
+            <span className={`badge ${ROLE_BADGE[profile.role] || 'badge-slate'} mt-1.5`} style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+              {t(`staff.roles.${profile.role}`)}
+            </span>
+          )}
         </div>
-        <h2 className="font-bold text-slate-900">{t('settings.profileTitle')}</h2>
       </div>
 
-      {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
-      ) : !profile ? null : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <InfoField label={t('auth.username')} value={profile.username} />
-            <InfoField label={t('staff.role')} value={t(`staff.roles.${profile.role}`)} />
-            {profile.branchName && <InfoField label={t('inventory.stock.branch')} value={profile.branchName} />}
-          </div>
+      <div className="p-6 flex flex-col gap-6">
+        {loading ? (
+          <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        ) : !profile ? null : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <InfoField icon={Fingerprint} label={t('auth.username')} value={profile.username} />
+              <InfoField icon={ShieldCheck} label={t('staff.role')} value={t(`staff.roles.${profile.role}`)} />
+              {profile.branchName && <InfoField icon={Building2} label={t('inventory.stock.branch')} value={profile.branchName} />}
+            </div>
 
-          <ProfileNameForm profile={profile} onUpdated={setProfile} />
+            <div className="border-t border-slate-100 pt-6">
+              <h3 className="font-bold text-slate-900 text-sm mb-4">{t('settings.editNameTitle')}</h3>
+              <ProfileNameForm profile={profile} onUpdated={setProfile} />
+            </div>
 
-          <div className="border-t border-slate-200 pt-6 flex flex-col gap-4">
-            <h3 className="font-bold text-slate-900 text-sm">{t('settings.changePasswordTitle')}</h3>
-            <ChangePasswordForm />
-          </div>
-        </>
-      )}
+            <div className="border-t border-slate-100 pt-6 flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <KeyRound size={15} className="text-slate-400" />
+                <h3 className="font-bold text-slate-900 text-sm">{t('settings.changePasswordTitle')}</h3>
+              </div>
+              <ChangePasswordForm />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -240,38 +266,52 @@ function CompanyCard() {
   }, [t]);
 
   return (
-    <div className="card p-6 flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
-          <Building2 size={20} />
+    <div className="card overflow-hidden">
+      <div className="settings-card-banner settings-card-banner-dark">
+        <div className="settings-avatar settings-avatar-square">
+          <Building2 size={22} />
         </div>
-        <h2 className="font-bold text-slate-900">{t('settings.companyTitle')}</h2>
+        <div className="min-w-0">
+          <h2 className="text-white font-bold text-base truncate">{loading || !company ? t('settings.companyTitle') : company.name}</h2>
+          <span className="text-slate-400 text-xs">{t('settings.companyTitle')}</span>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
-      ) : !company ? null : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('settings.slug')}</span>
-              <span className="font-mono text-sm bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 w-fit">{company.slug}</span>
-              <span className="text-slate-400 text-xs mt-0.5">{t('settings.slugHint')}</span>
+      <div className="p-6 flex flex-col gap-6">
+        {loading ? (
+          <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        ) : !company ? null : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Tag size={15} />
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('settings.slug')}</span>
+                  <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 w-fit">{company.slug}</span>
+                  <span className="text-slate-400 text-[11px] mt-0.5">{t('settings.slugHint')}</span>
+                </div>
+              </div>
+              <InfoField icon={ShieldCheck} label={t('settings.plan')} value={company.plan} />
+              <InfoField
+                icon={CalendarDays}
+                label={t('common.createdAt')}
+                value={
+                  company.createdAt
+                    ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : '—'
+                }
+              />
             </div>
-            <InfoField label={t('settings.plan')} value={company.plan} />
-            <InfoField
-              label={t('common.createdAt')}
-              value={
-                company.createdAt
-                  ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' })
-                  : '—'
-              }
-            />
-          </div>
 
-          <CompanyNameForm company={company} onUpdated={setCompany} />
-        </>
-      )}
+            <div className="border-t border-slate-100 pt-6">
+              <h3 className="font-bold text-slate-900 text-sm mb-4">{t('settings.editCompanyNameTitle')}</h3>
+              <CompanyNameForm company={company} onUpdated={setCompany} />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -281,7 +321,7 @@ export default function SettingsPage() {
   const { isOwner } = useTenantAuthContext();
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="flex flex-col gap-6 w-full">
       <div>
         <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           <UserCog size={20} className="text-slate-400" />
@@ -290,8 +330,10 @@ export default function SettingsPage() {
         <p className="text-slate-500 text-sm mt-1">{t('settings.subtitle')}</p>
       </div>
 
-      <ProfileCard />
-      {isOwner && <CompanyCard />}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        <ProfileCard />
+        {isOwner && <CompanyCard />}
+      </div>
     </div>
   );
 }

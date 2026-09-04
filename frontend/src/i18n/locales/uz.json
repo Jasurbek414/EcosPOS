@@ -42,7 +42,9 @@
     "warehouse": "Ombor",
     "reports": "Hisobotlar",
     "settings": "Sozlamalar",
-    "logout": "Chiqish"
+    "logout": "Chiqish",
+    "collapse": "Yig'ish",
+    "expand": "Yoyish"
   },
   "dashboard": {
     "welcome": "Xush kelibsiz",
@@ -418,6 +420,7 @@
     "title": "Sozlamalar",
     "subtitle": "Profil va kompaniya sozlamalari",
     "profileTitle": "Mening profilim",
+    "editNameTitle": "Ismni tahrirlash",
     "fullName": "F.I.O.",
     "fullNamePlaceholder": "Ism Familiya",
     "saveBtn": "Saqlash",
@@ -433,6 +436,7 @@
     "changePasswordError": "Parolni o'zgartirishda xatolik",
     "passwordMismatch": "Parollar mos kelmadi",
     "companyTitle": "Kompaniya ma'lumotlari",
+    "editCompanyNameTitle": "Kompaniya nomini tahrirlash",
     "companyName": "Kompaniya nomi",
     "companyNamePlaceholder": "Kompaniya nomi",
     "slug": "Kod (slug)",
