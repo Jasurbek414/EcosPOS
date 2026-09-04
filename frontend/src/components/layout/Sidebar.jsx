@@ -50,8 +50,8 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <h2 className="text-slate-900 font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
-              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
+              <h2 className="text-slate-900 dark:text-slate-100 font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
+              <p className="text-slate-400 dark:text-slate-500 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
             </div>
           )}
         </div>
@@ -77,7 +77,7 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
 
       {/* Navigatsiya */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
-        {!collapsed && <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('sidebar.main')}</p>}
+        {!collapsed && <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t('sidebar.main')}</p>}
         <div className="flex flex-col gap-0.5">
           {navItems.map((item) => (
             <NavLink
@@ -96,7 +96,7 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
       </nav>
 
       {/* Profil */}
-      <div className="p-3 border-t border-slate-200">
+      <div className="p-3 border-t border-slate-200 dark:border-slate-700">
         <div className={`sidebar-profile-card ${collapsed ? 'justify-center !px-0' : ''}`}>
           <div className="sidebar-avatar" title={collapsed ? user?.fullName : undefined}>
             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
@@ -105,8 +105,8 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-slate-900 text-sm font-semibold truncate">{user?.fullName}</p>
-                <p className="text-slate-500 text-xs truncate">{user?.role ? t(`staff.roles.${user.role}`) : ''}</p>
+                <p className="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">{user?.fullName}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs truncate">{user?.role ? t(`staff.roles.${user.role}`) : ''}</p>
               </div>
               <button type="button" onClick={handleLogout} title={t('sidebar.logout')} className="sidebar-logout-btn">
                 <LogOut size={15} />

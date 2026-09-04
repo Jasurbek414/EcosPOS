@@ -33,14 +33,14 @@ function AdjustModal({ target, onClose, onAdjusted }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{t('inventory.stock.adjustTitle')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('inventory.stock.adjustTitle')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 flex flex-col gap-4">
-          <p className="text-sm font-medium text-slate-900">{target.productName}</p>
+          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{target.productName}</p>
           <div>
             <label className="field-label">{t('inventory.stock.quantityDelta')}</label>
             <input
@@ -50,7 +50,7 @@ function AdjustModal({ target, onClose, onAdjusted }) {
               autoFocus
               {...register('quantityDelta', { required: true, validate: (v) => Number(v) !== 0 })}
             />
-            <p className="text-slate-400 text-xs mt-1">{t('inventory.stock.quantityDeltaHint')}</p>
+            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{t('inventory.stock.quantityDeltaHint')}</p>
             {errors.quantityDelta && <p className="field-error">{t('common.required')}</p>}
           </div>
           <div>
@@ -148,8 +148,8 @@ export default function StockPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('inventory.stock.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('inventory.stock.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.stock.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('inventory.stock.subtitle')}</p>
         </div>
       </div>
 
@@ -163,20 +163,20 @@ export default function StockPage() {
             ))}
           </select>
         )}
-        <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
           <input type="checkbox" checked={lowOnly} onChange={(e) => setLowOnly(e.target.checked)} />
           {t('inventory.stock.lowOnly')}
         </label>
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : stock.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Layers size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Layers size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('inventory.stock.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.stock.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -192,9 +192,9 @@ export default function StockPage() {
             <tbody>
               {stock.map((s) => (
                 <tr key={s.productId}>
-                  <td className="font-medium text-slate-900">{s.productName}</td>
-                  <td className="text-slate-600">{t(`inventory.units.${s.unit}`)}</td>
-                  <td className="text-slate-600">{s.quantity}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{s.productName}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${s.unit}`)}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{s.quantity}</td>
                   {isManager && (
                     <td>
                       <button

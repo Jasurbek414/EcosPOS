@@ -461,5 +461,19 @@
     "companyUpdateSuccess": "Kompaniya ma'lumotlari yangilandi",
     "companyUpdateError": "Kompaniyani yangilashda xatolik",
     "companyLoadError": "Kompaniya ma'lumotlarini yuklab bo'lmadi"
+  },
+  "theme": {
+    "title": "Ko'rinish",
+    "mode": "Mavzu",
+    "light": "Yorug'",
+    "dark": "Qorong'i",
+    "accent": "Rang",
+    "accentNames": {
+      "blue": "Ko'k",
+      "emerald": "Zumrad",
+      "violet": "Binafsha",
+      "rose": "Pushti",
+      "amber": "Kahrabo"
+    }
   }
 }

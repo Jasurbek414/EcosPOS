@@ -33,11 +33,11 @@ function CategoryModal({ category, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">
             {category ? t('inventory.categories.editCategory') : t('inventory.categories.newCategory')}
           </h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -142,8 +142,8 @@ export default function CategoriesPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('inventory.categories.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('inventory.categories.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.categories.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('inventory.categories.subtitle')}</p>
         </div>
         {isManager && (
           <button type="button" onClick={openCreate} className="btn btn-primary">
@@ -154,13 +154,13 @@ export default function CategoriesPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : categories.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Tag size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Tag size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('inventory.categories.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.categories.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -175,7 +175,7 @@ export default function CategoriesPage() {
             <tbody>
               {categories.map((c) => (
                 <tr key={c.id}>
-                  <td className="font-medium text-slate-900">{c.name}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{c.name}</td>
                   <td>
                     <span className={c.isActive ? 'badge badge-green' : 'badge badge-slate'}>
                       {c.isActive ? t('inventory.products.active') : t('inventory.products.inactive')}

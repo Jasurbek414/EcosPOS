@@ -22,7 +22,7 @@ export default function SuperAdminLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-800">
       <aside className="superadmin-sidebar">
         {/* Logo + til — tenant Sidebar.jsx bilan bir xil naqsh, amber urg'u rangi bilan */}
         <div className="sidebar-header">
@@ -31,8 +31,8 @@ export default function SuperAdminLayout() {
               <ShieldCheck size={17} className="text-white" strokeWidth={2.25} />
             </div>
             <div className="min-w-0">
-              <h1 className="text-slate-900 font-extrabold text-sm leading-tight tracking-tight truncate">SUPERADMIN</h1>
-              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider truncate">{t('superadmin.loginSubtitle')}</p>
+              <h1 className="text-slate-900 dark:text-slate-100 font-extrabold text-sm leading-tight tracking-tight truncate">SUPERADMIN</h1>
+              <p className="text-slate-400 dark:text-slate-500 text-[10px] font-semibold uppercase tracking-wider truncate">{t('superadmin.loginSubtitle')}</p>
             </div>
           </div>
           <div className="sidebar-lang-switch">
@@ -55,7 +55,7 @@ export default function SuperAdminLayout() {
 
         {/* Navigatsiya */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-5">
-          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('sidebar.main')}</p>
+          <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{t('sidebar.main')}</p>
           <div className="flex flex-col gap-0.5">
             {navItems.map(({ path, icon: Icon, label }) => (
               <NavLink
@@ -73,7 +73,7 @@ export default function SuperAdminLayout() {
         </nav>
 
         {/* Profil */}
-        <div className="p-3 border-t border-slate-200">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-700">
           <div className="sidebar-profile-card">
             <div className="sidebar-avatar superadmin-avatar">
               {(user?.fullName || user?.username)?.charAt(0)?.toUpperCase() || 'A'}
@@ -82,8 +82,8 @@ export default function SuperAdminLayout() {
               <span className="sidebar-avatar-dot bg-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-slate-900 text-sm font-semibold truncate">{user?.fullName || user?.username || 'Admin'}</p>
-              <p className="text-slate-500 text-xs truncate">{t('superadmin.role')}</p>
+              <p className="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">{user?.fullName || user?.username || 'Admin'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs truncate">{t('superadmin.role')}</p>
             </div>
             <button type="button" onClick={handleLogout} title={t('sidebar.logout')} className="sidebar-logout-btn">
               <LogOut size={15} />

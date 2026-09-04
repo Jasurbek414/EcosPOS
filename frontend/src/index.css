@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Tailwind v4 "dark:" utility'larini OS prefers-color-scheme'ga emas,
+   <html data-theme="dark"> atributiga bog'laydi — Sozlamalar sahifasidagi
+   yorug'/qorong'i tugmasi shu atributni almashtiradi (useThemeContext.jsx). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ============= DESIGN TOKENS (neutral palette, v1 scaffolding) ============= */
 :root {
   --color-primary: #2563eb;
@@ -18,6 +23,48 @@
   --border-color: #e5e7eb;
   --radius: 0.625rem;
   --radius-lg: 0.875rem;
+}
+
+/* ============= QORONG'I MAVZU (DARK THEME) — token qayta belgilash ============= */
+/* <html data-theme="dark"> qo'yilganda :root'dagi standart (yorug') qiymatlar
+   shu yerdagilar bilan almashtiriladi. .card, .input-field, .btn ailasi, table,
+   .modal, .pos ailasi, .settings ailasi, .sidebar ailasi kabi umumiy klasslar
+   allaqachon shu var(--...) token'larni ishlatgani uchun bu yerda avtomatik
+   qayta-mavzulanadi. */
+[data-theme="dark"] {
+  --bg-main: #0f172a;
+  --bg-sidebar: #0b1220;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: #334155;
+}
+
+/* ============= RANGLI MAVZU (ACCENT COLOR) — 5 ta tayyor variant ============= */
+/* <html data-accent="..."> orqali tanlanadi (standart "blue" — hozirgi qattiq
+   yozilgan qiymat bilan bir xil, shuning uchun sozlamani o'zgartirmagan
+   foydalanuvchilar uchun hech narsa o'zgarmaydi). Yorug'/qorong'i mavzudan
+   mustaqil ishlaydi. */
+html[data-accent="blue"] {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+}
+html[data-accent="emerald"] {
+  --color-primary: #059669;
+  --color-primary-dark: #047857;
+}
+html[data-accent="violet"] {
+  --color-primary: #7c3aed;
+  --color-primary-dark: #6d28d9;
+}
+html[data-accent="rose"] {
+  --color-primary: #e11d48;
+  --color-primary-dark: #be123c;
+}
+html[data-accent="amber"] {
+  --color-primary: #d97706;
+  --color-primary-dark: #b45309;
 }
 
 * {
@@ -721,4 +768,120 @@ tbody tr:hover td { background: #fafafa; }
 .superadmin-link-active .sidebar-link-icon {
   background: #d97706;
   color: #fff;
+}
+
+/* ============= KO'RINISH (THEME) SOZLAMASI KARTASI ============= */
+/* Yorug'/qorong'i almashtirgich — pos-pay-option / pos-pay-option-active
+   segmented-control vizual naqshiga o'xshash. */
+.theme-toggle {
+  display: inline-flex;
+  gap: 0.375rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+}
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5625rem 1.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.theme-toggle-btn:hover { color: var(--text-primary); }
+.theme-toggle-btn-active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Rangli mavzu (accent) — 5 ta doiraviy tanlov tugmasi */
+.accent-swatch {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+.accent-swatch:hover { transform: scale(1.08); }
+.accent-swatch-active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-card);
+}
+.accent-swatch-check {
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* ============= QORONG'I MAVZU — sidebar/pos/table/form/badge qattiq yozilgan ranglar ============= */
+/* index.css'dagi qolgan literal hex ranglar (yuqoridagi .btn, .badge, table,
+   .modal, .pos, .sidebar, .superadmin bo'limlarida) var(--...) token orqali
+   AVTOMATIK qayta-mavzulanmaydi — shuning uchun har biri shu yerda alohida
+   ko'rib chiqilib, kerak bo'lganlari uchun qorong'i muqobili berilgan. */
+[data-theme="dark"] {
+  /* --- forma / tugma --- */
+  .input-field:disabled { background: #1e293b; }
+  .btn-outline { background: var(--bg-card); }
+  .btn-outline:hover:not(:disabled) { background: #273549; }
+  .btn-ghost:hover:not(:disabled) { background: #273549; }
+  .btn-icon:hover { background: #273549; }
+  .btn-icon.danger:hover { background: rgba(220, 38, 38, 0.15); }
+
+  /* --- badge --- */
+  .badge-blue { background: rgba(37, 99, 235, 0.18); color: #93c5fd; }
+  .badge-green { background: rgba(22, 163, 74, 0.18); color: #86efac; }
+  .badge-amber { background: rgba(217, 119, 6, 0.2); color: #fcd34d; }
+  .badge-slate { background: rgba(148, 163, 184, 0.18); color: #cbd5e1; }
+
+  /* --- jadval / modal --- */
+  thead { background: #1a2436; }
+  td { border-bottom: 1px solid var(--border-color); }
+  tbody tr:hover td { background: #24324a; }
+  .modal-content { background: var(--bg-card); }
+
+  /* --- POS terminal --- */
+  .pos-chip:hover { border-color: #475569; }
+  .pos-cart-row { border-bottom: 1px solid var(--border-color); }
+  .pos-qty-btn { background: #273549; }
+  .pos-qty-btn:hover { background: #334155; }
+  .pos-round-btn { background: #273549; }
+  .pos-round-btn:hover { background: #334155; }
+  .pos-product-thumb { background: #273549; }
+  .pos-pay-option { background: #273549; }
+
+  /* --- chek (receipt) --- */
+  .receipt-slip { background: var(--bg-card); }
+  .receipt-divider { border-top: 1px dashed #475569; }
+
+  /* --- sidebar (tenant + superadmin umumiy shakllar) --- */
+  .sidebar-shell { background: var(--bg-card); }
+  .sidebar-collapse-toggle { background: var(--bg-card); color: #94a3b8; }
+  .sidebar-lang-switch { background: #0f172a; }
+  .sidebar-lang-btn { color: #64748b; }
+  .sidebar-lang-btn:hover { color: #cbd5e1; }
+  .sidebar-lang-btn-active { background: #273549; color: var(--text-primary); }
+  .sidebar-link { color: #94a3b8; }
+  .sidebar-link:hover { background: #24324a; color: var(--text-primary); }
+  .sidebar-link-icon { color: #64748b; }
+  .sidebar-profile-card { background: #0f172a; }
+  .sidebar-avatar-dot { border-color: #0f172a; }
+  .sidebar-logout-btn { color: #64748b; }
+
+  /* --- superadmin (platforma) paneli --- */
+  .superadmin-sidebar { background: var(--bg-card); }
+  .superadmin-link-active { background: rgba(217, 119, 6, 0.18); color: #fbbf24; }
 }

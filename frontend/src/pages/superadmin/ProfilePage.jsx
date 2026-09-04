@@ -5,18 +5,19 @@ import { useTranslation } from 'react-i18next';
 import { UserCog, ShieldCheck, Fingerprint, CalendarDays, KeyRound } from 'lucide-react';
 import { useSuperAdminAuthContext } from '../../hooks/useSuperAdminAuthContext';
 import { platformProfileService } from '../../services/platformApi';
+import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 
 function InfoField({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-2.5">
       {Icon && (
-        <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center shrink-0 mt-0.5">
           <Icon size={15} />
         </div>
       )}
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wide">{label}</span>
-        <span className="text-slate-900 text-sm font-semibold truncate">{value ?? '—'}</span>
+        <span className="text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</span>
+        <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">{value ?? '—'}</span>
       </div>
     </div>
   );
@@ -152,11 +153,11 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div>
-        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <UserCog size={20} className="text-slate-400" />
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <UserCog size={20} className="text-slate-400 dark:text-slate-500" />
           {t('superadmin.profile')}
         </h1>
-        <p className="text-slate-500 text-sm mt-1">{t('superadmin.profileSubtitle')}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('superadmin.profileSubtitle')}</p>
       </div>
 
       <div className="max-w-2xl w-full">
@@ -185,7 +186,7 @@ export default function ProfilePage() {
 
           <div className="p-6 flex flex-col gap-6">
             {loading ? (
-              <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+              <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
             ) : !profile ? null : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -201,21 +202,25 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="border-t border-slate-100 pt-6">
-                  <h3 className="font-bold text-slate-900 text-sm mb-4">{t('settings.editNameTitle')}</h3>
+                <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.editNameTitle')}</h3>
                   <ProfileNameForm profile={profile} onUpdated={setProfile} />
                 </div>
 
-                <div className="border-t border-slate-100 pt-6 flex flex-col gap-4">
+                <div className="border-t border-slate-100 dark:border-slate-700 pt-6 flex flex-col gap-4">
                   <div className="flex items-center gap-2">
-                    <KeyRound size={15} className="text-slate-400" />
-                    <h3 className="font-bold text-slate-900 text-sm">{t('settings.changePasswordTitle')}</h3>
+                    <KeyRound size={15} className="text-slate-400 dark:text-slate-500" />
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.changePasswordTitle')}</h3>
                   </div>
                   <ChangePasswordForm />
                 </div>
               </>
             )}
           </div>
+        </div>
+
+        <div className="mt-6">
+          <ThemeSettingsCard />
         </div>
       </div>
     </div>

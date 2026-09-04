@@ -101,14 +101,14 @@ export default function ReceiptCreatePage() {
       <button
         type="button"
         onClick={() => navigate('/inventory/receipts')}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm font-medium w-fit cursor-pointer"
+        className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium w-fit cursor-pointer"
       >
         <ArrowLeft size={16} />
         {t('inventory.receipts.back')}
       </button>
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900">{t('inventory.receipts.newReceipt')}</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.receipts.newReceipt')}</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-7 flex flex-col gap-6">
@@ -149,7 +149,7 @@ export default function ReceiptCreatePage() {
 
         <div className="flex flex-col gap-3">
           <p className="field-label mb-0">{t('inventory.receipts.items')}</p>
-          <div className="table-wrap border border-slate-200 rounded-lg">
+          <div className="table-wrap border border-slate-200 dark:border-slate-700 rounded-lg">
             <table>
               <thead>
                 <tr>
@@ -191,7 +191,7 @@ export default function ReceiptCreatePage() {
                         {...register(`items.${index}.unitCost`)}
                       />
                     </td>
-                    <td className="text-slate-600 whitespace-nowrap">
+                    <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">
                       {rowSubtotal(watchedItems?.[index]).toLocaleString('uz-UZ')}
                     </td>
                     <td>
@@ -220,9 +220,9 @@ export default function ReceiptCreatePage() {
           </button>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-          <span className="text-slate-500 text-sm font-semibold">{t('inventory.receipts.grandTotal')}:</span>
-          <span className="text-slate-900 text-lg font-bold">{grandTotal.toLocaleString('uz-UZ')}</span>
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+          <span className="text-slate-500 dark:text-slate-400 text-sm font-semibold">{t('inventory.receipts.grandTotal')}:</span>
+          <span className="text-slate-900 dark:text-slate-100 text-lg font-bold">{grandTotal.toLocaleString('uz-UZ')}</span>
         </div>
 
         <div className="flex justify-end gap-2">

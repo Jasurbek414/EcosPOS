@@ -46,8 +46,8 @@ export default function AuditLogPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('auditLog.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('auditLog.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('auditLog.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('auditLog.subtitle')}</p>
         </div>
         {companyId && (
           <button
@@ -63,15 +63,15 @@ export default function AuditLogPage() {
 
       {loading ? (
         <div className="card py-16 flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-amber-500 rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm">{t('common.loading')}</p>
+          <span className="w-8 h-8 border-[3px] border-slate-200 dark:border-slate-700 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-slate-400 dark:text-slate-500 text-sm">{t('common.loading')}</p>
         </div>
       ) : entries.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <History size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <History size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('auditLog.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('auditLog.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -88,10 +88,10 @@ export default function AuditLogPage() {
             <tbody>
               {entries.map((e) => (
                 <tr key={e.id}>
-                  <td className="text-slate-500 text-xs whitespace-nowrap">
+                  <td className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
                     {e.createdAt ? new Date(e.createdAt).toLocaleString('uz-UZ') : '—'}
                   </td>
-                  <td className="text-slate-600">{e.actorUsername || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{e.actorUsername || '—'}</td>
                   <td>
                     <span className={ACTION_BADGE[e.action] || 'badge badge-slate'}>{actionLabel(e.action)}</span>
                   </td>
@@ -99,7 +99,7 @@ export default function AuditLogPage() {
                     {e.companySlug ? (
                       <Link
                         to={`/spd/companies/${e.companyId}`}
-                        className="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 hover:text-slate-900"
+                        className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
                       >
                         {e.companySlug}
                       </Link>
@@ -107,7 +107,7 @@ export default function AuditLogPage() {
                       '—'
                     )}
                   </td>
-                  <td className="text-slate-600 text-sm max-w-xs truncate" title={e.details}>
+                  <td className="text-slate-600 dark:text-slate-300 text-sm max-w-xs truncate" title={e.details}>
                     {e.details || '—'}
                   </td>
                 </tr>

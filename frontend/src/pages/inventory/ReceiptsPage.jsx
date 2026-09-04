@@ -68,8 +68,8 @@ export default function ReceiptsPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('inventory.receipts.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('inventory.receipts.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.receipts.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('inventory.receipts.subtitle')}</p>
         </div>
         {isManager && branchId && (
           <button type="button" onClick={() => navigate('/inventory/receipts/new')} className="btn btn-primary">
@@ -90,13 +90,13 @@ export default function ReceiptsPage() {
       )}
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : receipts.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <ClipboardList size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <ClipboardList size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('inventory.receipts.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.receipts.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -112,10 +112,10 @@ export default function ReceiptsPage() {
             <tbody>
               {receipts.map((r) => (
                 <tr key={r.id}>
-                  <td className="text-slate-600">{formatDate(r.receiptDate)}</td>
-                  <td className="font-medium text-slate-900">{r.supplierName || t('inventory.receipts.noSupplier')}</td>
-                  <td className="text-slate-600">{r.itemCount}</td>
-                  <td className="text-slate-600">{Number(r.totalAmount).toLocaleString('uz-UZ')}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{formatDate(r.receiptDate)}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{r.supplierName || t('inventory.receipts.noSupplier')}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{r.itemCount}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{Number(r.totalAmount).toLocaleString('uz-UZ')}</td>
                 </tr>
               ))}
             </tbody>

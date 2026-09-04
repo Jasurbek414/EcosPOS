@@ -10,8 +10,8 @@ import { STATUS_BADGE } from './constants';
 function Field({ label, value }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</span>
-      <span className="text-slate-900 text-sm font-medium">{value ?? '—'}</span>
+      <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{label}</span>
+      <span className="text-slate-900 dark:text-slate-100 text-sm font-medium">{value ?? '—'}</span>
     </div>
   );
 }
@@ -37,9 +37,9 @@ function BlockModal({ onClose, onBlocked, companyId }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{t('superadmin.blockTitle')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('superadmin.blockTitle')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -86,35 +86,35 @@ function AdminCredentialsPanel({ result, onClose }) {
           <ShieldAlert size={20} className="text-amber-600 shrink-0 mt-0.5" />
           <p className="text-amber-800 text-sm font-medium leading-relaxed">{t('superadmin.credentialsWarning')}</p>
         </div>
-        <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer shrink-0">
+        <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer shrink-0">
           <X size={18} />
         </button>
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
-            <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
+            <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
           </div>
           <button
             type="button"
             onClick={() => copy(result.adminUsername, t('superadmin.adminUsername'))}
-            className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+            className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
           >
             <Copy size={16} />
           </button>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
-            <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
+            <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
           </div>
           <button
             type="button"
             onClick={() => copy(result.adminPassword, t('auth.password'))}
-            className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+            className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
           >
             <Copy size={16} />
           </button>
@@ -196,7 +196,7 @@ export default function CompanyDetailPage() {
       <button
         type="button"
         onClick={() => navigate('/spd/companies')}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm font-medium w-fit cursor-pointer"
+        className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium w-fit cursor-pointer"
       >
         <ArrowLeft size={16} />
         {t('superadmin.backToCompanies')}
@@ -204,15 +204,15 @@ export default function CompanyDetailPage() {
 
       {loading ? (
         <div className="card py-16 flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-amber-500 rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm">{t('common.loading')}</p>
+          <span className="w-8 h-8 border-[3px] border-slate-200 dark:border-slate-700 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-slate-400 dark:text-slate-500 text-sm">{t('common.loading')}</p>
         </div>
       ) : notFound || !company ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Building2 size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Building2 size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('superadmin.notFound')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('superadmin.notFound')}</p>
         </div>
       ) : (
         <>
@@ -265,7 +265,7 @@ export default function CompanyDetailPage() {
 
             <div className="flex flex-col gap-6">
               <div className="card p-6 flex flex-col gap-3">
-                <h2 className="font-bold text-slate-900 text-sm">{t('superadmin.actions')}</h2>
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('superadmin.actions')}</h2>
                 <div className="flex flex-col gap-2">
                   {company.status === 'ACTIVE' && (
                     <button type="button" onClick={() => setBlockModalOpen(true)} className="btn btn-danger w-full justify-center">
@@ -288,12 +288,12 @@ export default function CompanyDetailPage() {
 
               <Link
                 to={`/spd/audit-log?companyId=${company.id}`}
-                className="card p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors"
+                className="card p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
-                <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
                   <History size={16} />
                 </div>
-                <span className="text-slate-700 text-sm font-medium">{t('superadmin.viewAuditLog')}</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">{t('superadmin.viewAuditLog')}</span>
               </Link>
             </div>
           </div>

@@ -42,9 +42,9 @@ export default function CompanyCreatePage() {
               <CheckCircle2 size={26} className="text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{t('superadmin.createSuccess')}</h2>
-              <p className="text-slate-500 text-sm mt-0.5">
-                {result.name} <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded ml-1">{result.slug}</span>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('superadmin.createSuccess')}</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
+                {result.name} <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded ml-1">{result.slug}</span>
               </p>
             </div>
           </div>
@@ -57,29 +57,29 @@ export default function CompanyCreatePage() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
-                    <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.adminUsername')}</p>
+                    <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.adminUsername}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => copy(result.adminUsername, t('superadmin.adminUsername'))}
-                    className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+                    className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
                   >
                     <Copy size={16} />
                   </button>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
-                    <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
+                    <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.adminPassword}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => copy(result.adminPassword, t('auth.password'))}
-                    className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+                    className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
                   >
                     <Copy size={16} />
                   </button>
@@ -106,15 +106,15 @@ export default function CompanyCreatePage() {
       <button
         type="button"
         onClick={() => navigate('/spd/companies')}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm font-medium w-fit cursor-pointer"
+        className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 text-sm font-medium w-fit cursor-pointer"
       >
         <ArrowLeft size={16} />
         {t('superadmin.backToCompanies')}
       </button>
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900">{t('superadmin.newCompany')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('superadmin.createSubtitle')}</p>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('superadmin.newCompany')}</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('superadmin.createSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-7 flex flex-col gap-4 max-w-2xl">
@@ -138,7 +138,7 @@ export default function CompanyCreatePage() {
             placeholder={t('superadmin.slugPlaceholder')}
             {...register('slug', { required: true, pattern: /^[a-z0-9-]+$/ })}
           />
-          <p className="text-slate-400 text-xs mt-1">{t('superadmin.slugHint')}</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{t('superadmin.slugHint')}</p>
           {errors.slug && <p className="field-error">{t('common.required')}</p>}
         </div>
 

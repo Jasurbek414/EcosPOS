@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService } from '../../services/api';
+import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 
 const ROLE_BADGE = { OWNER: 'badge-amber', MANAGER: 'badge-blue', CASHIER: 'badge-slate' };
 
@@ -12,13 +13,13 @@ function InfoField({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-2.5">
       {Icon && (
-        <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center shrink-0 mt-0.5">
           <Icon size={15} />
         </div>
       )}
       <div className="flex flex-col gap-0.5 min-w-0">
-        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wide">{label}</span>
-        <span className="text-slate-900 text-sm font-semibold truncate">{value ?? '—'}</span>
+        <span className="text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</span>
+        <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">{value ?? '—'}</span>
       </div>
     </div>
   );
@@ -172,7 +173,7 @@ function ProfileCard() {
 
       <div className="p-6 flex flex-col gap-6">
         {loading ? (
-          <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+          <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
         ) : !profile ? null : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -181,15 +182,15 @@ function ProfileCard() {
               {profile.branchName && <InfoField icon={Building2} label={t('inventory.stock.branch')} value={profile.branchName} />}
             </div>
 
-            <div className="border-t border-slate-100 pt-6">
-              <h3 className="font-bold text-slate-900 text-sm mb-4">{t('settings.editNameTitle')}</h3>
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.editNameTitle')}</h3>
               <ProfileNameForm profile={profile} onUpdated={setProfile} />
             </div>
 
-            <div className="border-t border-slate-100 pt-6 flex flex-col gap-4">
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-6 flex flex-col gap-4">
               <div className="flex items-center gap-2">
-                <KeyRound size={15} className="text-slate-400" />
-                <h3 className="font-bold text-slate-900 text-sm">{t('settings.changePasswordTitle')}</h3>
+                <KeyRound size={15} className="text-slate-400 dark:text-slate-500" />
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.changePasswordTitle')}</h3>
               </div>
               <ChangePasswordForm />
             </div>
@@ -273,24 +274,24 @@ function CompanyCard() {
         </div>
         <div className="min-w-0">
           <h2 className="text-white font-bold text-base truncate">{loading || !company ? t('settings.companyTitle') : company.name}</h2>
-          <span className="text-slate-400 text-xs">{t('settings.companyTitle')}</span>
+          <span className="text-slate-400 dark:text-slate-500 text-xs">{t('settings.companyTitle')}</span>
         </div>
       </div>
 
       <div className="p-6 flex flex-col gap-6">
         {loading ? (
-          <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+          <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
         ) : !company ? null : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center shrink-0 mt-0.5">
                   <Tag size={15} />
                 </div>
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('settings.slug')}</span>
-                  <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 w-fit">{company.slug}</span>
-                  <span className="text-slate-400 text-[11px] mt-0.5">{t('settings.slugHint')}</span>
+                  <span className="text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('settings.slug')}</span>
+                  <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300 w-fit">{company.slug}</span>
+                  <span className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">{t('settings.slugHint')}</span>
                 </div>
               </div>
               <InfoField icon={ShieldCheck} label={t('settings.plan')} value={company.plan} />
@@ -305,8 +306,8 @@ function CompanyCard() {
               />
             </div>
 
-            <div className="border-t border-slate-100 pt-6">
-              <h3 className="font-bold text-slate-900 text-sm mb-4">{t('settings.editCompanyNameTitle')}</h3>
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.editCompanyNameTitle')}</h3>
               <CompanyNameForm company={company} onUpdated={setCompany} />
             </div>
           </>
@@ -323,16 +324,17 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div>
-        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <UserCog size={20} className="text-slate-400" />
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <UserCog size={20} className="text-slate-400 dark:text-slate-500" />
           {t('settings.title')}
         </h1>
-        <p className="text-slate-500 text-sm mt-1">{t('settings.subtitle')}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('settings.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <ProfileCard />
         {isOwner && <CompanyCard />}
+        <ThemeSettingsCard />
       </div>
     </div>
   );

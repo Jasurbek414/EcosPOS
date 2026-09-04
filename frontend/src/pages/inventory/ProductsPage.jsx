@@ -67,11 +67,11 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">
             {product ? t('inventory.products.editProduct') : t('inventory.products.newProduct')}
           </h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -279,8 +279,8 @@ export default function ProductsPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('inventory.products.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('inventory.products.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.products.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('inventory.products.subtitle')}</p>
         </div>
         {isManager && (
           <button type="button" onClick={openCreate} className="btn btn-primary">
@@ -292,7 +292,7 @@ export default function ProductsPage() {
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             className="input-field !pl-9"
@@ -312,13 +312,13 @@ export default function ProductsPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : products.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Package size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Package size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('inventory.products.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.products.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -338,12 +338,12 @@ export default function ProductsPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
-                  <td className="font-medium text-slate-900">{p.name}</td>
-                  <td className="text-slate-600">{p.categoryName || '—'}</td>
-                  <td className="text-slate-600 font-mono text-xs">{p.barcode || '—'}</td>
-                  <td className="text-slate-600">{t(`inventory.units.${p.unit}`)}</td>
-                  <td className="text-slate-600">{Number(p.costPrice).toLocaleString('uz-UZ')}</td>
-                  <td className="text-slate-600">{Number(p.salePrice).toLocaleString('uz-UZ')}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{p.name}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{p.categoryName || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300 font-mono text-xs">{p.barcode || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${p.unit}`)}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{Number(p.costPrice).toLocaleString('uz-UZ')}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{Number(p.salePrice).toLocaleString('uz-UZ')}</td>
                   <td>
                     <span className={p.isActive ? 'badge badge-green' : 'badge badge-slate'}>
                       {p.isActive ? t('inventory.products.active') : t('inventory.products.inactive')}

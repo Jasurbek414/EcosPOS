@@ -461,5 +461,19 @@
     "companyUpdateSuccess": "Данные компании обновлены",
     "companyUpdateError": "Ошибка при обновлении компании",
     "companyLoadError": "Не удалось загрузить данные компании"
+  },
+  "theme": {
+    "title": "Внешний вид",
+    "mode": "Тема",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "accent": "Цвет",
+    "accentNames": {
+      "blue": "Синий",
+      "emerald": "Изумрудный",
+      "violet": "Фиолетовый",
+      "rose": "Розовый",
+      "amber": "Янтарный"
+    }
   }
 }

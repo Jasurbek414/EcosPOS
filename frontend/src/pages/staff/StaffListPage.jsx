@@ -29,9 +29,9 @@ function CreateStaffModal({ branches, onClose, onCreated }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{t('staff.newStaff')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('staff.newStaff')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -127,9 +127,9 @@ function EditStaffModal({ staffMember, branches, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{t('staff.editStaff')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('staff.editStaff')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -166,7 +166,7 @@ function EditStaffModal({ staffMember, branches, onClose, onSaved }) {
               ))}
             </select>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
             <input type="checkbox" {...register('isActive')} />
             {t('staff.isActive')}
           </label>
@@ -201,35 +201,35 @@ function ResetPasswordPanel({ result, onClose }) {
           <ShieldAlert size={20} className="text-amber-600 shrink-0 mt-0.5" />
           <p className="text-amber-800 text-sm font-medium leading-relaxed">{t('staff.resetPasswordWarning')}</p>
         </div>
-        <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer shrink-0">
+        <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer shrink-0">
           <X size={18} />
         </button>
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('staff.username')}</p>
-            <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.username}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('staff.username')}</p>
+            <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.username}</p>
           </div>
           <button
             type="button"
             onClick={() => copy(result.username, t('staff.username'))}
-            className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+            className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
           >
             <Copy size={16} />
           </button>
         </div>
 
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
-            <p className="text-slate-900 font-mono text-base font-semibold truncate">{result.newPassword}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('auth.password')}</p>
+            <p className="text-slate-900 dark:text-slate-100 font-mono text-base font-semibold truncate">{result.newPassword}</p>
           </div>
           <button
             type="button"
             onClick={() => copy(result.newPassword, t('auth.password'))}
-            className="shrink-0 w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 cursor-pointer"
+            className="shrink-0 w-9 h-9 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
           >
             <Copy size={16} />
           </button>
@@ -325,8 +325,8 @@ export default function StaffListPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('staff.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('staff.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('staff.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('staff.subtitle')}</p>
         </div>
         {isOwner && (
           <button type="button" onClick={() => setCreateOpen(true)} className="btn btn-primary">
@@ -339,13 +339,13 @@ export default function StaffListPage() {
       {resetResult && <ResetPasswordPanel result={resetResult} onClose={() => setResetResult(null)} />}
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : staff.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Users size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Users size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('staff.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('staff.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -363,12 +363,12 @@ export default function StaffListPage() {
             <tbody>
               {staff.map((s) => (
                 <tr key={s.id ?? s.username}>
-                  <td className="font-medium text-slate-900">{s.fullName}</td>
-                  <td className="text-slate-600">{s.username}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{s.fullName}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{s.username}</td>
                   <td>
                     <span className={roleBadgeClass(s.role)}>{t(`staff.roles.${s.role}`)}</span>
                   </td>
-                  <td className="text-slate-600">{s.branchName || branchName(s.branchId)}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{s.branchName || branchName(s.branchId)}</td>
                   <td>
                     <span className={s.isActive ?? true ? 'badge badge-green' : 'badge badge-slate'}>
                       {(s.isActive ?? true) ? t('staff.active') : t('staff.inactive')}

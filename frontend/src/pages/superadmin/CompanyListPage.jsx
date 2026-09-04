@@ -43,8 +43,8 @@ export default function CompanyListPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('superadmin.companies')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('superadmin.companiesSubtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('superadmin.companies')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('superadmin.companiesSubtitle')}</p>
         </div>
         <button type="button" onClick={() => navigate('/spd/companies/new')} className="btn" style={{ background: '#d97706', color: '#fff' }}>
           <Plus size={16} />
@@ -54,7 +54,7 @@ export default function CompanyListPage() {
 
       {!loading && companies.length > 0 && (
         <div className="relative max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             className="input-field !pl-9"
@@ -67,22 +67,22 @@ export default function CompanyListPage() {
 
       {loading ? (
         <div className="card py-16 flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-[3px] border-slate-200 border-t-amber-500 rounded-full animate-spin" />
-          <p className="text-slate-400 text-sm">{t('common.loading')}</p>
+          <span className="w-8 h-8 border-[3px] border-slate-200 dark:border-slate-700 border-t-amber-500 rounded-full animate-spin" />
+          <p className="text-slate-400 dark:text-slate-500 text-sm">{t('common.loading')}</p>
         </div>
       ) : companies.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Building2 size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Building2 size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('superadmin.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('superadmin.empty')}</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Search size={22} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Search size={22} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('superadmin.noSearchResults')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('superadmin.noSearchResults')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -104,17 +104,17 @@ export default function CompanyListPage() {
                       <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <Building2 size={15} />
                       </div>
-                      <span className="font-medium text-slate-900">{c.name}</span>
+                      <span className="font-medium text-slate-900 dark:text-slate-100">{c.name}</span>
                     </div>
                   </td>
                   <td>
-                    <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">{c.slug}</span>
+                    <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300">{c.slug}</span>
                   </td>
                   <td>
                     <span className={STATUS_BADGE[c.status] || 'badge badge-slate'}>{c.status}</span>
                   </td>
-                  <td className="text-slate-600">{c.plan || '—'}</td>
-                  <td className="text-slate-500 text-xs">
+                  <td className="text-slate-600 dark:text-slate-300">{c.plan || '—'}</td>
+                  <td className="text-slate-500 dark:text-slate-400 text-xs">
                     {c.createdAt ? new Date(c.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                   </td>
                 </tr>

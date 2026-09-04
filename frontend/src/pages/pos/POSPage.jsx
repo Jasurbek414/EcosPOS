@@ -67,8 +67,8 @@ function NoShiftPanel({ user, isOwner, onOpened }) {
             <Lock size={26} className="text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">{t('pos.noShift.title')}</h2>
-            <p className="text-slate-500 text-sm mt-1.5">{t('pos.noShift.subtitle')}</p>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('pos.noShift.title')}</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5">{t('pos.noShift.subtitle')}</p>
           </div>
         </div>
 
@@ -130,9 +130,9 @@ function CloseShiftModal({ shift, onClose, onClosed }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{t('pos.closeModal.title')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('pos.closeModal.title')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -190,23 +190,23 @@ function CloseShiftResult({ result, onDone }) {
           >
             <CheckCircle2 size={26} className={diffClass} />
           </div>
-          <h2 className="text-lg font-bold text-slate-900">{t('pos.closeResult.title')}</h2>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('pos.closeResult.title')}</h2>
         </div>
         <div className="flex flex-col gap-2.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-500">{t('pos.closeResult.opening')}</span>
-            <span className="font-medium text-slate-900 tabular-nums">{Number(result.openingCash).toLocaleString('uz-UZ')}</span>
+            <span className="text-slate-500 dark:text-slate-400">{t('pos.closeResult.opening')}</span>
+            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">{Number(result.openingCash).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">{t('pos.closeResult.expected')}</span>
-            <span className="font-medium text-slate-900 tabular-nums">{Number(result.expectedCash).toLocaleString('uz-UZ')}</span>
+            <span className="text-slate-500 dark:text-slate-400">{t('pos.closeResult.expected')}</span>
+            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">{Number(result.expectedCash).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">{t('pos.closeResult.actual')}</span>
-            <span className="font-medium text-slate-900 tabular-nums">{Number(result.closingCash).toLocaleString('uz-UZ')}</span>
+            <span className="text-slate-500 dark:text-slate-400">{t('pos.closeResult.actual')}</span>
+            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">{Number(result.closingCash).toLocaleString('uz-UZ')}</span>
           </div>
-          <div className="flex justify-between pt-3 border-t border-slate-200">
-            <span className="text-slate-500 font-medium">{t('pos.closeResult.diff')}</span>
+          <div className="flex justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('pos.closeResult.diff')}</span>
             <span className={`font-bold tabular-nums ${diffClass}`}>
               {diff > 0 ? '+' : ''}
               {diff.toLocaleString('uz-UZ')} ({diffLabel})
@@ -230,8 +230,8 @@ function ReceiptView({ receipt, onNewSale }) {
           <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center">
             <ReceiptText size={20} className="text-white" />
           </div>
-          <h2 className="text-base font-bold text-slate-900 tracking-wide">{t('pos.receipt.title')}</h2>
-          <p className="text-slate-400 text-xs">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-wide">{t('pos.receipt.title')}</h2>
+          <p className="text-slate-400 dark:text-slate-500 text-xs">
             #{receipt.id} · {new Date(receipt.createdAt).toLocaleString('uz-UZ')}
           </p>
         </div>
@@ -239,43 +239,43 @@ function ReceiptView({ receipt, onNewSale }) {
         <div className="flex flex-col gap-2 text-sm">
           {receipt.items.map((item) => (
             <div key={item.productId} className="flex justify-between gap-3">
-              <span className="text-slate-700">
+              <span className="text-slate-700 dark:text-slate-300">
                 {item.productName}
-                <span className="text-slate-400">
+                <span className="text-slate-400 dark:text-slate-500">
                   {' '}x{item.quantity} {t(`inventory.units.${item.unit}`)}
                 </span>
               </span>
-              <span className="font-medium text-slate-900 whitespace-nowrap tabular-nums">{Number(item.subtotal).toLocaleString('uz-UZ')}</span>
+              <span className="font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap tabular-nums">{Number(item.subtotal).toLocaleString('uz-UZ')}</span>
             </div>
           ))}
         </div>
         <div className="receipt-divider" />
         <div className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-500">{t('pos.receipt.total')}</span>
-            <span className="font-bold text-slate-900 text-lg tabular-nums">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
+            <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.total')}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100 text-lg tabular-nums">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">{t('pos.receipt.paymentMethod')}</span>
-            <span className="text-slate-900 font-medium">
+            <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.paymentMethod')}</span>
+            <span className="text-slate-900 dark:text-slate-100 font-medium">
               {t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : receipt.paymentMethod === 'MIXED' ? 'mixed' : 'cash'}`)}
             </span>
           </div>
           {receipt.paymentMethod === 'MIXED' && (
             <div className="flex justify-between">
-              <span className="text-slate-500">{t('pos.receipt.cardPortion')}</span>
-              <span className="text-slate-900 tabular-nums">{Number(receipt.cardAmount).toLocaleString('uz-UZ')}</span>
+              <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.cardPortion')}</span>
+              <span className="text-slate-900 dark:text-slate-100 tabular-nums">{Number(receipt.cardAmount).toLocaleString('uz-UZ')}</span>
             </div>
           )}
           {(receipt.paymentMethod === 'CASH' || receipt.paymentMethod === 'MIXED') && (
             <>
               <div className="flex justify-between">
-                <span className="text-slate-500">{t('pos.receipt.amountPaid')}</span>
-                <span className="text-slate-900 tabular-nums">{Number(receipt.amountPaid).toLocaleString('uz-UZ')}</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.amountPaid')}</span>
+                <span className="text-slate-900 dark:text-slate-100 tabular-nums">{Number(receipt.amountPaid).toLocaleString('uz-UZ')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">{t('pos.receipt.change')}</span>
-                <span className="text-slate-900 tabular-nums">{Number(receipt.changeAmount).toLocaleString('uz-UZ')}</span>
+                <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.change')}</span>
+                <span className="text-slate-900 dark:text-slate-100 tabular-nums">{Number(receipt.changeAmount).toLocaleString('uz-UZ')}</span>
               </div>
             </>
           )}
@@ -339,10 +339,10 @@ function ProductGrid({ products, categories, onAdd }) {
 
       {visible.length === 0 ? (
         <div className="card py-16 flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-            <PackageSearch size={22} className="text-slate-400" />
+          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <PackageSearch size={22} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('pos.terminal.gridEmpty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('pos.terminal.gridEmpty')}</p>
         </div>
       ) : (
         <div className="pos-product-grid">
@@ -357,7 +357,7 @@ function ProductGrid({ products, categories, onAdd }) {
               )}
               <span className="pos-product-name">{p.name}</span>
               <span className="pos-product-price">
-                {Number(p.salePrice).toLocaleString('uz-UZ')} <span className="text-slate-400 font-normal">{t(`inventory.units.${p.unit}`)}</span>
+                {Number(p.salePrice).toLocaleString('uz-UZ')} <span className="text-slate-400 dark:text-slate-500 font-normal">{t(`inventory.units.${p.unit}`)}</span>
               </span>
             </button>
           ))}
@@ -538,7 +538,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
           <span className="pos-shift-dot" />
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-white text-sm">{t('pos.shiftBar.open')}</span>
-            <span className="text-slate-400 text-xs flex items-center gap-1.5">
+            <span className="text-slate-400 dark:text-slate-500 text-xs flex items-center gap-1.5">
               <Clock size={11} />
               <ElapsedTime since={shift.openedAt} />
               <span className="mx-1">·</span>
@@ -560,7 +560,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
         <div className="flex flex-col xl:flex-row gap-4 xl:flex-1 xl:min-h-0 xl:items-stretch">
           <div className="flex-1 w-full flex flex-col gap-4 min-w-0 xl:min-h-0">
             <div className="relative shrink-0">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 ref={inputRef}
                 type="text"
@@ -580,10 +580,10 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                       key={p.id}
                       type="button"
                       onClick={() => handlePickResult(p)}
-                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0 cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-100 dark:border-slate-700 last:border-b-0 cursor-pointer"
                     >
-                      <div className="font-medium text-slate-900">{p.name}</div>
-                      <div className="text-slate-500 text-xs">
+                      <div className="font-medium text-slate-900 dark:text-slate-100">{p.name}</div>
+                      <div className="text-slate-500 dark:text-slate-400 text-xs">
                         {Number(p.salePrice).toLocaleString('uz-UZ')} · {t(`inventory.units.${p.unit}`)}
                       </div>
                     </button>
@@ -594,7 +594,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
             <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
               {catalogLoading ? (
-                <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+                <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
               ) : (
                 <ProductGrid products={products} categories={categories} onAdd={addToCart} />
               )}
@@ -603,7 +603,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
           <div className="pos-cart-panel">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-bold text-slate-900 flex items-center gap-2">
+              <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <ShoppingCart size={17} />
                 {t('pos.terminal.cartTitle')}
               </span>
@@ -612,18 +612,18 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
             {cart.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                  <ShoppingCart size={20} className="text-slate-400" />
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <ShoppingCart size={20} className="text-slate-400 dark:text-slate-500" />
                 </div>
-                <p className="text-slate-500 text-sm max-w-[16rem]">{t('pos.terminal.cartEmpty')}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[16rem]">{t('pos.terminal.cartEmpty')}</p>
               </div>
             ) : (
               <div className="pos-cart-list">
                 {cart.map((item) => (
                   <div key={item.productId} className="pos-cart-row">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
-                      <p className="text-xs text-slate-500 tabular-nums">
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{item.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {item.salePrice.toLocaleString('uz-UZ')} × {item.quantity} {t(`inventory.units.${item.unit}`)}
                       </p>
                     </div>
@@ -643,7 +643,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                         <Plus size={13} />
                       </button>
                     </div>
-                    <span className="text-sm font-semibold text-slate-900 tabular-nums w-20 text-right shrink-0">
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums w-20 text-right shrink-0">
                       {((Number(item.quantity) || 0) * item.salePrice).toLocaleString('uz-UZ')}
                     </span>
                     <button
@@ -661,8 +661,8 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
             <div className="pos-cart-footer">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 text-sm font-semibold">{t('pos.terminal.total')}</span>
-                <span className="text-2xl font-extrabold text-slate-900 tabular-nums">{total.toLocaleString('uz-UZ')}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-sm font-semibold">{t('pos.terminal.total')}</span>
+                <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">{total.toLocaleString('uz-UZ')}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5">
@@ -707,8 +707,8 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                   {!mixedCardValid && cardAmountInput !== '' && (
                     <p className="field-error !mt-0">{t('pos.terminal.mixedCardInvalid')}</p>
                   )}
-                  <p className="text-slate-400 text-xs">
-                    {t('pos.terminal.cashDueHint')}: <span className="font-semibold text-slate-600">{cashDue.toLocaleString('uz-UZ')}</span>
+                  <p className="text-slate-400 dark:text-slate-500 text-xs">
+                    {t('pos.terminal.cashDueHint')}: <span className="font-semibold text-slate-600 dark:text-slate-300">{cashDue.toLocaleString('uz-UZ')}</span>
                   </p>
                 </div>
               )}
@@ -738,8 +738,8 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                       ))}
                     </div>
                   )}
-                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
-                    <span className="text-slate-500 text-sm font-medium">{t('pos.terminal.change')}</span>
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 dark:border-slate-700">
+                    <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('pos.terminal.change')}</span>
                     <span className={`text-xl font-bold tabular-nums ${change < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                       {change.toLocaleString('uz-UZ')}
                     </span>
@@ -811,7 +811,7 @@ export default function POSPage() {
   };
 
   if (loading) {
-    return <div className="text-slate-500 text-sm">{t('common.loading')}</div>;
+    return <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>;
   }
 
   if (closeResult) {

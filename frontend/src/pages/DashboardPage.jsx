@@ -61,11 +61,11 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           {t('dashboard.welcome')}, {user?.fullName}
           <Sparkles size={20} className="text-amber-400" />
         </h1>
-        <p className="text-slate-500 text-sm mt-1">{t('dashboard.subtitle')}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -75,8 +75,8 @@ export default function DashboardPage() {
               <card.icon size={22} />
             </div>
             <div className="min-w-0">
-              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
-              <p className="text-slate-900 text-2xl font-bold mt-0.5">{card.value ?? '—'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
+              <p className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-0.5">{card.value ?? '—'}</p>
             </div>
           </div>
         ))}
@@ -90,8 +90,8 @@ export default function DashboardPage() {
                 <card.icon size={22} />
               </div>
               <div className="min-w-0">
-                <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
-                <p className="text-slate-900 text-xl font-bold mt-0.5 truncate">{card.value}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
+                <p className="text-slate-900 dark:text-slate-100 text-xl font-bold mt-0.5 truncate">{card.value}</p>
               </div>
             </div>
           ))}
@@ -104,18 +104,18 @@ export default function DashboardPage() {
               <Package size={22} />
             </div>
             <div className="min-w-0">
-              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide truncate">{t('dashboard.lowStockCard')}</p>
-              <p className="text-slate-900 text-xl font-bold mt-0.5">{stats.lowStockCount ?? '—'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide truncate">{t('dashboard.lowStockCard')}</p>
+              <p className="text-slate-900 dark:text-slate-100 text-xl font-bold mt-0.5">{stats.lowStockCount ?? '—'}</p>
             </div>
           </button>
         </div>
       )}
 
       <div className="card p-8 flex flex-col items-center justify-center gap-3 text-center py-16">
-        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-          <Sparkles size={22} className="text-slate-400" />
+        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+          <Sparkles size={22} className="text-slate-400 dark:text-slate-500" />
         </div>
-        <p className="text-slate-500 text-sm max-w-md">{t('dashboard.placeholder')}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md">{t('dashboard.placeholder')}</p>
       </div>
     </div>
   );

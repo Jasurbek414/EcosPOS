@@ -38,9 +38,9 @@ function BranchModal({ branch, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h3 className="font-bold text-slate-900">{branch ? t('branches.editBranch') : t('branches.newBranch')}</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{branch ? t('branches.editBranch') : t('branches.newBranch')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
             <X size={18} />
           </button>
         </div>
@@ -67,7 +67,7 @@ function BranchModal({ branch, onClose, onSaved }) {
             {errors.address && <p className="field-error">{t('common.required')}</p>}
           </div>
           {branch && (
-            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
               <input type="checkbox" {...register('isActive')} />
               {t('branches.isActive')}
             </label>
@@ -159,8 +159,8 @@ export default function BranchListPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{t('branches.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('branches.subtitle')}</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('branches.title')}</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('branches.subtitle')}</p>
         </div>
         {isOwner && (
           <button type="button" onClick={openCreate} className="btn btn-primary">
@@ -171,13 +171,13 @@ export default function BranchListPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : branches.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Building2 size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Building2 size={24} className="text-slate-400 dark:text-slate-500" />
           </div>
-          <p className="text-slate-500 text-sm">{t('branches.empty')}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('branches.empty')}</p>
         </div>
       ) : (
         <div className="card table-wrap">
@@ -193,8 +193,8 @@ export default function BranchListPage() {
             <tbody>
               {branches.map((b) => (
                 <tr key={b.id}>
-                  <td className="font-medium text-slate-900">{b.name}</td>
-                  <td className="text-slate-600">{b.address}</td>
+                  <td className="font-medium text-slate-900 dark:text-slate-100">{b.name}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{b.address}</td>
                   <td>
                     <span className={b.isActive ? 'badge badge-green' : 'badge badge-slate'}>
                       {b.isActive ? t('branches.active') : t('branches.inactive')}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Wallet, Package, TrendingUp, Percent, BarChart3 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useThemeContext } from '../../hooks/useThemeContext';
 import { branchService, reportService } from '../../services/api';
 
 const toISODate = (d) => {
@@ -24,6 +25,11 @@ const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 export default function ReportsPage() {
   const { t } = useTranslation();
   const { user, isOwner } = useTenantAuthContext();
+  // Recharts SVG rang atributlari Tailwind "dark:" klasslariga bog'liq emas —
+  // qorong'i mavzuda grafik chizig'i/o'q yozuvlari ko'rinishi uchun joriy
+  // mavzuni to'g'ridan-to'g'ri o'qib, mos rangni tanlaymiz.
+  const { theme } = useThemeContext();
+  const isDark = theme === 'dark';
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
@@ -123,7 +129,7 @@ export default function ReportsPage() {
 
   const summaryCards = [
     { label: t('reports.totalRevenue'), value: money(profit?.totalRevenue), icon: Wallet, accent: 'bg-blue-50 text-blue-600' },
-    { label: t('reports.totalCost'), value: money(profit?.totalCost), icon: Package, accent: 'bg-slate-100 text-slate-600' },
+    { label: t('reports.totalCost'), value: money(profit?.totalCost), icon: Package, accent: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' },
     { label: t('reports.totalProfit'), value: money(profit?.totalProfit), icon: TrendingUp, accent: 'bg-emerald-50 text-emerald-600' },
     {
       label: t('reports.profitMargin'),
@@ -146,8 +152,8 @@ export default function ReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">{t('reports.title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('reports.subtitle')}</p>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('reports.title')}</h1>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('reports.subtitle')}</p>
       </div>
 
       <div className="card p-4 flex flex-col gap-4">
@@ -184,7 +190,7 @@ export default function ReportsPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -194,32 +200,45 @@ export default function ReportsPage() {
                   <card.icon size={22} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
-                  <p className="text-slate-900 text-xl font-bold mt-0.5 truncate">{card.value}</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide truncate">{card.label}</p>
+                  <p className="text-slate-900 dark:text-slate-100 text-xl font-bold mt-0.5 truncate">{card.value}</p>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="card p-6">
-            <h2 className="text-sm font-bold text-slate-900 mb-4">{t('reports.chartTitle')}</h2>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">{t('reports.chartTitle')}</h2>
             {chartData.length === 0 ? (
               <div className="py-16 flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-                  <BarChart3 size={24} className="text-slate-400" />
+                <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <BarChart3 size={24} className="text-slate-400 dark:text-slate-500" />
                 </div>
-                <p className="text-slate-500 text-sm">{t('reports.noData')}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">{t('reports.noData')}</p>
               </div>
             ) : (
               <div style={{ width: '100%', height: 320 }}>
                 <ResponsiveContainer>
                   <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                    <XAxis dataKey="period" tickFormatter={formatPeriod} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                    <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(v) => Number(v).toLocaleString('uz-UZ')} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e5e7eb'} vertical={false} />
+                    <XAxis
+                      dataKey="period"
+                      tickFormatter={formatPeriod}
+                      tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#6b7280' }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#6b7280' }}
+                      tickFormatter={(v) => Number(v).toLocaleString('uz-UZ')}
+                    />
                     <Tooltip
                       labelFormatter={formatPeriod}
                       formatter={(value, name) => [`${Number(value).toLocaleString('uz-UZ')} ${t('reports.currency')}`, name]}
+                      contentStyle={
+                        isDark
+                          ? { background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9' }
+                          : undefined
+                      }
+                      labelStyle={isDark ? { color: '#f1f5f9' } : undefined}
                     />
                     <Legend />
                     <Bar dataKey="revenue" name={t('reports.revenue')} fill="#2563eb" radius={[4, 4, 0, 0]} />
@@ -231,13 +250,13 @@ export default function ReportsPage() {
           </div>
 
           <div className="card p-6">
-            <h2 className="text-sm font-bold text-slate-900 mb-4">{t('reports.topProductsTitle')}</h2>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">{t('reports.topProductsTitle')}</h2>
             {topProducts.length === 0 ? (
               <div className="py-16 flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-                  <Package size={24} className="text-slate-400" />
+                <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <Package size={24} className="text-slate-400 dark:text-slate-500" />
                 </div>
-                <p className="text-slate-500 text-sm">{t('reports.noData')}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">{t('reports.noData')}</p>
               </div>
             ) : (
               <div className="table-wrap">
@@ -255,12 +274,12 @@ export default function ReportsPage() {
                   <tbody>
                     {topProducts.map((p, idx) => (
                       <tr key={p.productId}>
-                        <td className="text-slate-500">{idx + 1}</td>
-                        <td className="font-medium text-slate-900">{p.productName}</td>
-                        <td className="text-slate-600">{t(`inventory.units.${p.unit}`)}</td>
-                        <td className="text-slate-600">{p.quantitySold}</td>
-                        <td className="text-slate-600">{Number(p.revenue).toLocaleString('uz-UZ')}</td>
-                        <td className="text-slate-600">{Number(p.profit).toLocaleString('uz-UZ')}</td>
+                        <td className="text-slate-500 dark:text-slate-400">{idx + 1}</td>
+                        <td className="font-medium text-slate-900 dark:text-slate-100">{p.productName}</td>
+                        <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${p.unit}`)}</td>
+                        <td className="text-slate-600 dark:text-slate-300">{p.quantitySold}</td>
+                        <td className="text-slate-600 dark:text-slate-300">{Number(p.revenue).toLocaleString('uz-UZ')}</td>
+                        <td className="text-slate-600 dark:text-slate-300">{Number(p.profit).toLocaleString('uz-UZ')}</td>
                       </tr>
                     ))}
                   </tbody>
