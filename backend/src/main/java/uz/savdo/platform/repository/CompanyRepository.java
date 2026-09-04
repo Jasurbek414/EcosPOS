@@ -95,4 +95,9 @@ public class CompanyRepository {
                 "UPDATE companies SET status = ?, blocked_reason = ?, blocked_at = ?, updated_at = now() WHERE id = ?",
                 status.name(), blockedReason, blockedAt != null ? Timestamp.valueOf(blockedAt) : null, id);
     }
+
+    /** Kompaniya nomini (display name) o'zgartirish — slug (login uchun) O'ZGARMAYDI. */
+    public void updateName(Long id, String name) {
+        jdbc.update("UPDATE companies SET name = ?, updated_at = now() WHERE id = ?", name, id);
+    }
 }

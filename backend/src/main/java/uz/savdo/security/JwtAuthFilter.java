@@ -63,6 +63,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     if (company != null && company.getStatus() == CompanyStatus.ACTIVE) {
                         TenantContext.set(company.getDbName());
                         tenantContextSet = true;
+                        request.setAttribute("companyId", companyId);
 
                         User user = userRepository.findByUsernameAndIsDeletedFalse(username).orElse(null);
 

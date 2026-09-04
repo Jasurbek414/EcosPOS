@@ -157,4 +157,17 @@ export const reportService = {
   profit: (params) => api.get('/reports/profit', { params }),
 };
 
+export const profileService = {
+  get: () => api.get('/profile'),
+  update: (data) => api.put('/profile', data),
+  changePassword: (data) => api.post('/profile/change-password', data),
+};
+
+// Faqat OWNER — bu servisga murojaat isOwner tekshiruvi bilan cheklanadi, chunki
+// backend boshqa rollarga 403 qaytaradi.
+export const companyProfileService = {
+  get: () => api.get('/company'),
+  update: (data) => api.put('/company', data),
+};
+
 export default api;

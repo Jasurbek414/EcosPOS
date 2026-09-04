@@ -41,6 +41,7 @@
     "pos": "Касса",
     "warehouse": "Склад",
     "reports": "Отчёты",
+    "settings": "Настройки",
     "logout": "Выход"
   },
   "dashboard": {
@@ -412,5 +413,33 @@
       "COMPANY_UNBLOCKED": "Компания разблокирована",
       "ADMIN_PASSWORD_RESET": "Пароль администратора сброшен"
     }
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Настройки профиля и компании",
+    "profileTitle": "Мой профиль",
+    "fullName": "Ф.И.О.",
+    "fullNamePlaceholder": "Имя Фамилия",
+    "saveBtn": "Сохранить",
+    "profileUpdateSuccess": "Профиль обновлён",
+    "profileUpdateError": "Ошибка при обновлении профиля",
+    "profileLoadError": "Не удалось загрузить данные профиля",
+    "changePasswordTitle": "Изменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Подтвердите новый пароль",
+    "changePasswordBtn": "Изменить пароль",
+    "changePasswordSuccess": "Пароль успешно изменён",
+    "changePasswordError": "Ошибка при изменении пароля",
+    "passwordMismatch": "Пароли не совпадают",
+    "companyTitle": "Информация о компании",
+    "companyName": "Название компании",
+    "companyNamePlaceholder": "Название компании",
+    "slug": "Код (slug)",
+    "slugHint": "Это код для входа в систему — здесь его нельзя изменить",
+    "plan": "Тариф",
+    "companyUpdateSuccess": "Данные компании обновлены",
+    "companyUpdateError": "Ошибка при обновлении компании",
+    "companyLoadError": "Не удалось загрузить данные компании"
   }
 }

@@ -41,6 +41,7 @@
     "pos": "Kassa",
     "warehouse": "Ombor",
     "reports": "Hisobotlar",
+    "settings": "Sozlamalar",
     "logout": "Chiqish"
   },
   "dashboard": {
@@ -412,5 +413,33 @@
       "COMPANY_UNBLOCKED": "Kompaniya blokdan chiqarildi",
       "ADMIN_PASSWORD_RESET": "Administrator paroli tiklandi"
     }
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "subtitle": "Profil va kompaniya sozlamalari",
+    "profileTitle": "Mening profilim",
+    "fullName": "F.I.O.",
+    "fullNamePlaceholder": "Ism Familiya",
+    "saveBtn": "Saqlash",
+    "profileUpdateSuccess": "Profil yangilandi",
+    "profileUpdateError": "Profilni yangilashda xatolik",
+    "profileLoadError": "Profil ma'lumotlarini yuklab bo'lmadi",
+    "changePasswordTitle": "Parolni o'zgartirish",
+    "currentPassword": "Joriy parol",
+    "newPassword": "Yangi parol",
+    "confirmPassword": "Yangi parolni tasdiqlang",
+    "changePasswordBtn": "Parolni o'zgartirish",
+    "changePasswordSuccess": "Parol muvaffaqiyatli o'zgartirildi",
+    "changePasswordError": "Parolni o'zgartirishda xatolik",
+    "passwordMismatch": "Parollar mos kelmadi",
+    "companyTitle": "Kompaniya ma'lumotlari",
+    "companyName": "Kompaniya nomi",
+    "companyNamePlaceholder": "Kompaniya nomi",
+    "slug": "Kod (slug)",
+    "slugHint": "Bu tizimga kirish kodi — bu yerdan o'zgartirib bo'lmaydi",
+    "plan": "Tarif",
+    "companyUpdateSuccess": "Kompaniya ma'lumotlari yangilandi",
+    "companyUpdateError": "Kompaniyani yangilashda xatolik",
+    "companyLoadError": "Kompaniya ma'lumotlarini yuklab bo'lmadi"
   }
 }

@@ -18,6 +18,18 @@ export function TenantAuthProvider({ children }) {
     setAuth(null);
   }, []);
 
+  // Foydalanuvchi o'z profilini (masalan F.I.O.) Sozlamalar sahifasida o'zgartirganda
+  // saqlangan auth obyektini joyida yangilash uchun — logout/login qilmasdan sidebar/topbar
+  // darhol yangi qiymatni ko'rsatishi uchun kerak.
+  const updateUser = useCallback((partial) => {
+    setAuth((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...partial };
+      setTenantAuth(next);
+      return next;
+    });
+  }, []);
+
   const value = {
     user: auth,
     role: auth?.role ?? null,
@@ -26,6 +38,7 @@ export function TenantAuthProvider({ children }) {
     loading: false,
     login,
     logout,
+    updateUser,
   };
 
   return <TenantAuthContext.Provider value={value}>{children}</TenantAuthContext.Provider>;
