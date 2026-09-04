@@ -132,6 +132,42 @@ services:
       retries: 3
       start_period: 10s
 
+  # 7-bosqich: tashqi domenga chiqarish. CLOUDFLARE_TUNNEL_TOKEN .env'da
+  # bo'lmasa bu xizmat oddiygina ishga tushmay qoladi (compose xato bermaydi,
+  # faqat bu bitta konteyner health-check kutmasdan qulab tushadi va restart:
+  # always tufayli qayta-qayta urinaveradi) - shuning uchun tokensiz ham
+  # qolgan xizmatlarga (mahalliy/SSH orqali) hech qanday ta'sir qilmaydi.
+  # Cloudflare Zero Trust panelida Public Hostname sozlanganda ikkala
+  # hostname (savdo.ecos.uz VA savdo-api.ecos.uz) uchun ham "Service" maydoniga
+  # HTTP + localhost:80 yoziladi - nginx frontend/API'ni PORT emas, YO'L
+  # (/ vs /api/) orqali ajratadi, shuning uchun ikkala hostname bir xil
+  # manzilga yo'naltiriladi (service-core'dagi ikki-port sxemasidan farqli).
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: savdo-tunnel
+    # ATAYLAB standart "docker compose up" bilan ISHGA TUSHMAYDI (profiles) -
+    # CLOUDFLARE_TUNNEL_TOKEN hali yo'q, bo'sh token bilan cloudflared darhol
+    # xato berib qayta-qayta restart bo'laveradi (zararsiz, lekin keraksiz log
+    # shovqini). Token .env'ga qo'shilgach: "docker compose --profile tunnel
+    # up -d --build" (yoki shu qatorni butunlay o'chirib tashlash).
+    profiles: ["tunnel"]
+    mem_limit: 128m
+    cpu_shares: 512
+    logging: *default-logging
+    restart: always
+    network_mode: "service:proxy"
+    user: "root"
+    command:
+      - "tunnel"
+      - "--no-autoupdate"
+      - "--protocol"
+      - "http2"
+      - "run"
+      - "--token"
+      - "${CLOUDFLARE_TUNNEL_TOKEN}"
+    depends_on:
+      - proxy
+
 volumes:
   savdo_postgres_data:
 
