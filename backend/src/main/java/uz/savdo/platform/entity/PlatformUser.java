@@ -18,5 +18,6 @@ public class PlatformUser {
     private String username;
     private String password;
     private String fullName;
+    private Boolean isActive;
     private LocalDateTime createdAt;
 }

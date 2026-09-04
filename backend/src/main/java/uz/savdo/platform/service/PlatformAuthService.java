@@ -32,6 +32,10 @@ public class PlatformAuthService {
             throw new UnauthorizedException("Username yoki parol noto'g'ri");
         }
 
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new UnauthorizedException("Hisob faolsizlantirilgan");
+        }
+
         log.info("Superadmin tizimga kirdi: {}", user.getUsername());
 
         return PlatformAuthResponse.builder()

@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History } from 'lucide-react';
+import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History, Pencil } from 'lucide-react';
 import { companyService } from '../../services/platformApi';
 import { STATUS_BADGE } from './constants';
 
@@ -66,6 +66,52 @@ function BlockModal({ onClose, onBlocked, companyId }) {
         </form>
       </div>
     </div>
+  );
+}
+
+// Kompaniya nomi/tarifini tahrirlash formasi — ProfilePage'dagi ProfileNameForm bilan
+// bir xil naqsh: faqat `company` yuklangandan keyin mount qilinadi, shu sabab useForm
+// defaultValues to'g'ridan-to'g'ri to'g'ri qiymat bilan ishga tushadi.
+function EditCompanyInfoForm({ company, onSaved, onCancel }) {
+  const { t } = useTranslation();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: { name: company.name || '', plan: company.plan || '' } });
+
+  const onSubmit = async (data) => {
+    try {
+      const res = await companyService.update(company.id, data);
+      onSaved(res.data);
+      toast.success(t('superadmin.updateCompanySuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('superadmin.updateCompanyError'));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="field-label">{t('superadmin.name')}</label>
+          <input type="text" className="input-field" autoFocus {...register('name', { required: true })} />
+          {errors.name && <p className="field-error">{t('common.required')}</p>}
+        </div>
+        <div>
+          <label className="field-label">{t('superadmin.plan')}</label>
+          <input type="text" className="input-field" placeholder={t('superadmin.planPlaceholder')} {...register('plan')} />
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn btn-outline">
+          {t('common.cancel')}
+        </button>
+        <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+          {t('common.save')}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -133,6 +179,7 @@ export default function CompanyDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [adminCreds, setAdminCreds] = useState(null);
+  const [editingInfo, setEditingInfo] = useState(false);
 
   const reload = useCallback(async () => {
     try {
@@ -178,6 +225,11 @@ export default function CompanyDetailPage() {
     } catch (err) {
       toast.error(err.response?.data?.message || t('superadmin.unblockError'));
     }
+  };
+
+  const handleInfoSaved = (updated) => {
+    setCompany(updated);
+    setEditingInfo(false);
   };
 
   const handleResetAdminPassword = async () => {
@@ -242,21 +294,41 @@ export default function CompanyDetailPage() {
               ekranlarda ma'lumot va amallar ikki ustunga yoyiladi. */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="card p-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Field label={t('superadmin.id')} value={company.id} />
-                <Field label={t('superadmin.plan')} value={company.plan} />
-                <Field
-                  label={t('common.createdAt')}
-                  value={company.createdAt ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
-                />
-                {(company.blockedAt || company.blockedReason) && (
-                  <>
+              <div className="card p-7 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('superadmin.detail')}</h2>
+                  {!editingInfo && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingInfo(true)}
+                      className="flex items-center gap-1.5 text-amber-700 text-xs font-semibold hover:text-amber-800 cursor-pointer"
+                    >
+                      <Pencil size={13} />
+                      {t('common.edit')}
+                    </button>
+                  )}
+                </div>
+
+                {editingInfo ? (
+                  <EditCompanyInfoForm company={company} onSaved={handleInfoSaved} onCancel={() => setEditingInfo(false)} />
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <Field label={t('superadmin.id')} value={company.id} />
+                    <Field label={t('superadmin.plan')} value={company.plan} />
                     <Field
-                      label={t('superadmin.blockedAt')}
-                      value={company.blockedAt ? new Date(company.blockedAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                      label={t('common.createdAt')}
+                      value={company.createdAt ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                     />
-                    <Field label={t('superadmin.blockedReason')} value={company.blockedReason} />
-                  </>
+                    {(company.blockedAt || company.blockedReason) && (
+                      <>
+                        <Field
+                          label={t('superadmin.blockedAt')}
+                          value={company.blockedAt ? new Date(company.blockedAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                        />
+                        <Field label={t('superadmin.blockedReason')} value={company.blockedReason} />
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
 

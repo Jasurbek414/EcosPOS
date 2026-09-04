@@ -51,7 +51,8 @@ public class PlatformJwtAuthFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 PlatformUser user = platformUserRepository.findByUsername(username).orElse(null);
 
-                if (user != null && platformJwtService.isValidPlatformToken(jwt, username)) {
+                if (user != null && Boolean.TRUE.equals(user.getIsActive())
+                        && platformJwtService.isValidPlatformToken(jwt, username)) {
                     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_SUPERADMIN"));
 
                     UsernamePasswordAuthenticationToken authToken =

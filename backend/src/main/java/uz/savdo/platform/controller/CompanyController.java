@@ -13,6 +13,7 @@ import uz.savdo.platform.dto.CompanyDetailResponse;
 import uz.savdo.platform.dto.CompanyResponse;
 import uz.savdo.platform.dto.CreateCompanyRequest;
 import uz.savdo.platform.dto.CreateCompanyResponse;
+import uz.savdo.platform.dto.UpdateCompanyRequest;
 import uz.savdo.platform.entity.Company;
 import uz.savdo.platform.entity.PlatformUser;
 import uz.savdo.platform.enums.CompanyStatus;
@@ -56,6 +57,25 @@ public class CompanyController {
             @AuthenticationPrincipal PlatformUser currentAdmin,
             @Valid @RequestBody CreateCompanyRequest request) {
         return ResponseEntity.ok(provisioningService.createCompany(request, currentAdmin.getId()));
+    }
+
+    @PutMapping("/{id}")
+    public CompanyDetailResponse update(@AuthenticationPrincipal PlatformUser currentAdmin,
+                                         @PathVariable Long id,
+                                         @Valid @RequestBody UpdateCompanyRequest request) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+
+        String oldName = company.getName();
+        String oldPlan = company.getPlan();
+
+        companyRepository.updateNameAndPlan(id, request.getName(), request.getPlan());
+        platformAuditLogService.log(currentAdmin.getId(), "COMPANY_UPDATED", id,
+                "Nom: '" + oldName + "' -> '" + request.getName() + "', Reja: '" + oldPlan + "' -> '" + request.getPlan() + "'");
+
+        company.setName(request.getName());
+        company.setPlan(request.getPlan());
+        return CompanyDetailResponse.from(company);
     }
 
     @PatchMapping("/{id}/block")

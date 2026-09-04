@@ -27,6 +27,7 @@ import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
 import CompanyListPage from './pages/superadmin/CompanyListPage';
 import CompanyCreatePage from './pages/superadmin/CompanyCreatePage';
 import CompanyDetailPage from './pages/superadmin/CompanyDetailPage';
+import AdminsPage from './pages/superadmin/AdminsPage';
 import AuditLogPage from './pages/superadmin/AuditLogPage';
 import SuperAdminProfilePage from './pages/superadmin/ProfilePage';
 
@@ -55,6 +56,7 @@ export default function App() {
                 <Route path="/spd/companies" element={<CompanyListPage />} />
                 <Route path="/spd/companies/new" element={<CompanyCreatePage />} />
                 <Route path="/spd/companies/:id" element={<CompanyDetailPage />} />
+                <Route path="/spd/admins" element={<AdminsPage />} />
                 <Route path="/spd/audit-log" element={<AuditLogPage />} />
                 <Route path="/spd/profile" element={<SuperAdminProfilePage />} />
               </Route>

@@ -58,9 +58,19 @@ export const companyService = {
   list: () => platformApi.get('/companies'),
   detail: (id) => platformApi.get(`/companies/${id}`),
   create: (data) => platformApi.post('/companies', data),
+  update: (id, data) => platformApi.put(`/companies/${id}`, data),
   block: (id, data) => platformApi.patch(`/companies/${id}/block`, data),
   unblock: (id) => platformApi.patch(`/companies/${id}/unblock`),
   resetAdminPassword: (id) => platformApi.post(`/companies/${id}/reset-admin-password`),
+};
+
+// Boshqa superadmin hisoblarini boshqarish (hamkasblarni qo'shish/faolsizlantirish) —
+// CompanyDetailPage'dagi companyService bilan bir xil axios instance pattern.
+export const platformAdminService = {
+  list: () => platformApi.get('/admins'),
+  create: (data) => platformApi.post('/admins', data),
+  activate: (id) => platformApi.patch(`/admins/${id}/activate`),
+  deactivate: (id) => platformApi.patch(`/admins/${id}/deactivate`),
 };
 
 export const auditLogService = {

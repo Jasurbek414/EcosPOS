@@ -100,4 +100,9 @@ public class CompanyRepository {
     public void updateName(Long id, String name) {
         jdbc.update("UPDATE companies SET name = ?, updated_at = now() WHERE id = ?", name, id);
     }
+
+    /** Superadmin tomonidan qo'llab-quvvatlash uchun nom va rejani birgalikda yangilash. */
+    public void updateNameAndPlan(Long id, String name, String plan) {
+        jdbc.update("UPDATE companies SET name = ?, plan = ?, updated_at = now() WHERE id = ?", name, plan, id);
+    }
 }
