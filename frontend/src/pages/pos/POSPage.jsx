@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   Lock, Unlock, ShoppingCart, Trash2, Printer, CircleDollarSign, CreditCard, Barcode, X,
-  Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2,
+  Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2, Layers,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import {
@@ -257,9 +257,17 @@ function ReceiptView({ receipt, onNewSale }) {
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.receipt.paymentMethod')}</span>
-            <span className="text-slate-900 font-medium">{t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : 'cash'}`)}</span>
+            <span className="text-slate-900 font-medium">
+              {t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : receipt.paymentMethod === 'MIXED' ? 'mixed' : 'cash'}`)}
+            </span>
           </div>
-          {receipt.paymentMethod === 'CASH' && (
+          {receipt.paymentMethod === 'MIXED' && (
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t('pos.receipt.cardPortion')}</span>
+              <span className="text-slate-900 tabular-nums">{Number(receipt.cardAmount).toLocaleString('uz-UZ')}</span>
+            </div>
+          )}
+          {(receipt.paymentMethod === 'CASH' || receipt.paymentMethod === 'MIXED') && (
             <>
               <div className="flex justify-between">
                 <span className="text-slate-500">{t('pos.receipt.amountPaid')}</span>
@@ -369,6 +377,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [amountPaidInput, setAmountPaidInput] = useState(null); // null = follow total automatically
+  const [cardAmountInput, setCardAmountInput] = useState(''); // faqat MIXED uchun
   const [submitting, setSubmitting] = useState(false);
   const [receipt, setReceipt] = useState(null);
 
@@ -399,10 +408,14 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
   const total = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0) * item.salePrice, 0);
   const itemCount = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
-  const amountPaidDisplay = amountPaidInput === null ? String(total || 0) : amountPaidInput;
+  const cardAmountNumeric = Number(cardAmountInput) || 0;
+  // MIXED'da naqd qismi = jami - karta qismi; CASH'da naqd qismi = jami.
+  const cashDue = paymentMethod === 'MIXED' ? Math.max(0, total - cardAmountNumeric) : total;
+  const amountPaidDisplay = amountPaidInput === null ? String(cashDue || 0) : amountPaidInput;
   const amountPaidNumeric = Number(amountPaidDisplay) || 0;
-  const change = amountPaidNumeric - total;
-  const roundOptions = ROUND_STEPS.map((step) => Math.ceil((total || 1) / step) * step).filter((v) => v > total).slice(0, 3);
+  const change = amountPaidNumeric - cashDue;
+  const mixedCardValid = cardAmountNumeric > 0 && cardAmountNumeric < total;
+  const roundOptions = ROUND_STEPS.map((step) => Math.ceil((cashDue || 1) / step) * step).filter((v) => v > cashDue).slice(0, 3);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -493,13 +506,20 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       toast.error(t('pos.terminal.itemsRequired'));
       return;
     }
+    if (paymentMethod === 'MIXED' && !mixedCardValid) {
+      toast.error(t('pos.terminal.mixedCardInvalid'));
+      return;
+    }
     const paid = paymentMethod === 'CARD' ? total : amountPaidNumeric;
+    const payload = { items, paymentMethod, amountPaid: paid };
+    if (paymentMethod === 'MIXED') payload.cardAmount = cardAmountNumeric;
     setSubmitting(true);
     try {
-      const res = await saleService.create({ items, paymentMethod, amountPaid: paid });
+      const res = await saleService.create(payload);
       setReceipt(res.data);
       setCart([]);
       setAmountPaidInput(null);
+      setCardAmountInput('');
     } catch (err) {
       toast.error(err.response?.data?.message || t('pos.terminal.checkoutError'));
     } finally {
@@ -645,13 +665,13 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                 <span className="text-2xl font-extrabold text-slate-900 tabular-nums">{total.toLocaleString('uz-UZ')}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
                   className={`pos-pay-option ${paymentMethod === 'CASH' ? 'pos-pay-option-active' : ''}`}
                 >
-                  <CircleDollarSign size={18} />
+                  <CircleDollarSign size={17} />
                   {t('pos.terminal.cash')}
                 </button>
                 <button
@@ -659,12 +679,41 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                   onClick={() => setPaymentMethod('CARD')}
                   className={`pos-pay-option ${paymentMethod === 'CARD' ? 'pos-pay-option-active' : ''}`}
                 >
-                  <CreditCard size={18} />
+                  <CreditCard size={17} />
                   {t('pos.terminal.card')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('MIXED')}
+                  className={`pos-pay-option ${paymentMethod === 'MIXED' ? 'pos-pay-option-active' : ''}`}
+                >
+                  <Layers size={17} />
+                  {t('pos.terminal.mixed')}
                 </button>
               </div>
 
-              {paymentMethod === 'CASH' && (
+              {paymentMethod === 'MIXED' && (
+                <div className="flex flex-col gap-2">
+                  <label className="field-label !mb-0">{t('pos.terminal.cardAmount')}</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    className="input-field !text-lg !font-bold tabular-nums"
+                    placeholder="0"
+                    value={cardAmountInput}
+                    onChange={(e) => setCardAmountInput(e.target.value)}
+                  />
+                  {!mixedCardValid && cardAmountInput !== '' && (
+                    <p className="field-error !mt-0">{t('pos.terminal.mixedCardInvalid')}</p>
+                  )}
+                  <p className="text-slate-400 text-xs">
+                    {t('pos.terminal.cashDueHint')}: <span className="font-semibold text-slate-600">{cashDue.toLocaleString('uz-UZ')}</span>
+                  </p>
+                </div>
+              )}
+
+              {(paymentMethod === 'CASH' || paymentMethod === 'MIXED') && (
                 <div className="flex flex-col gap-2">
                   <label className="field-label !mb-0">{t('pos.terminal.amountPaid')}</label>
                   <input
@@ -701,7 +750,12 @@ function POSTerminal({ shift, onRequestCloseShift }) {
               <button
                 type="button"
                 onClick={handleCheckout}
-                disabled={cart.length === 0 || submitting || (paymentMethod === 'CASH' && change < 0)}
+                disabled={
+                  cart.length === 0 ||
+                  submitting ||
+                  ((paymentMethod === 'CASH' || paymentMethod === 'MIXED') && change < 0) ||
+                  (paymentMethod === 'MIXED' && !mixedCardValid)
+                }
                 className="pos-checkout-btn"
               >
                 <ShoppingCart size={18} />
