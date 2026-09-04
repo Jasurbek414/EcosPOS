@@ -68,4 +68,28 @@ public class CurrentUserService {
         }
         return List.of(user.getBranchId());
     }
+
+    /** Katalog (Category/Product/Supplier) yozish huquqi — OWNER va MANAGER; CASHIER faqat o'qiydi. */
+    public void assertCanManageCatalog() {
+        UserRole role = getCurrentUser().getRole();
+        if (role != UserRole.OWNER && role != UserRole.MANAGER) {
+            throw new ForbiddenException("Katalogni tahrirlash huquqi yo'q");
+        }
+    }
+
+    /**
+     * Ombor yozish huquqi (kirim hujjatlari / qo'lda tuzatish) — OWNER istalgan filialda,
+     * MANAGER faqat o'z filialida. CASHIER hech qachon yoza olmaydi (faqat ko'rish uchun
+     * mavjud bo'lgan assertCanAccessBranch'dan foydalanadi).
+     */
+    public void assertCanWriteInventory(Long branchId) {
+        User user = getCurrentUser();
+        if (user.getRole() == UserRole.OWNER) {
+            return;
+        }
+        if (user.getRole() == UserRole.MANAGER && branchId != null && branchId.equals(user.getBranchId())) {
+            return;
+        }
+        throw new ForbiddenException("Ombor ma'lumotlarini o'zgartirish huquqingiz yo'q");
+    }
 }

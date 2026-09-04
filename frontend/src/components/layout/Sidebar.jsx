@@ -15,11 +15,11 @@ export default function Sidebar() {
     { path: '/dashboard', icon: LayoutDashboard, label: t('sidebar.dashboard') },
     { path: '/branches', icon: Building2, label: t('sidebar.branches') },
     { path: '/staff', icon: Users, label: t('sidebar.staff') },
+    { path: '/inventory', icon: Package, label: t('sidebar.warehouse') },
   ];
 
   const comingSoonItems = [
     { icon: ShoppingCart, label: t('sidebar.pos') },
-    { icon: Package, label: t('sidebar.warehouse') },
     { icon: BarChart3, label: t('sidebar.reports') },
   ];
 

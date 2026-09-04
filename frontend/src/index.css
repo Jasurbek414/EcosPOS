@@ -103,6 +103,23 @@ body {
 .btn-danger { background: var(--color-danger); color: #fff; }
 .btn-danger:hover:not(:disabled) { background: #b91c1c; }
 
+/* Icon-only row action button (edit/delete/adjust in tables) */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-icon:hover { background: #f3f4f6; color: var(--text-primary); }
+.btn-icon.danger:hover { background: #fef2f2; color: var(--color-danger); }
+
 /* ============= CARD ============= */
 .card {
   background: var(--bg-card);

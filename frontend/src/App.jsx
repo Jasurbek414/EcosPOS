@@ -11,6 +11,12 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import BranchListPage from './pages/branches/BranchListPage';
 import StaffListPage from './pages/staff/StaffListPage';
+import ProductsPage from './pages/inventory/ProductsPage';
+import CategoriesPage from './pages/inventory/CategoriesPage';
+import SuppliersPage from './pages/inventory/SuppliersPage';
+import StockPage from './pages/inventory/StockPage';
+import ReceiptsPage from './pages/inventory/ReceiptsPage';
+import ReceiptCreatePage from './pages/inventory/ReceiptCreatePage';
 
 import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
@@ -47,6 +53,13 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/branches" element={<BranchListPage />} />
               <Route path="/staff" element={<StaffListPage />} />
+              <Route path="/inventory" element={<Navigate to="/inventory/products" replace />} />
+              <Route path="/inventory/products" element={<ProductsPage />} />
+              <Route path="/inventory/categories" element={<CategoriesPage />} />
+              <Route path="/inventory/suppliers" element={<SuppliersPage />} />
+              <Route path="/inventory/stock" element={<StockPage />} />
+              <Route path="/inventory/receipts" element={<ReceiptsPage />} />
+              <Route path="/inventory/receipts/new" element={<ReceiptCreatePage />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -96,4 +96,38 @@ export const userService = {
   create: (data) => api.post('/users', data),
 };
 
+export const categoryService = {
+  list: () => api.get('/categories'),
+  create: (data) => api.post('/categories', data),
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  remove: (id) => api.delete(`/categories/${id}`),
+};
+
+export const productService = {
+  list: (params) => api.get('/products', { params }),
+  get: (id) => api.get(`/products/${id}`),
+  create: (data) => api.post('/products', data),
+  update: (id, data) => api.put(`/products/${id}`, data),
+  remove: (id) => api.delete(`/products/${id}`),
+};
+
+export const supplierService = {
+  list: () => api.get('/suppliers'),
+  create: (data) => api.post('/suppliers', data),
+  update: (id, data) => api.put(`/suppliers/${id}`, data),
+  remove: (id) => api.delete(`/suppliers/${id}`),
+};
+
+export const stockService = {
+  list: (branchId) => api.get('/stock', { params: { branchId } }),
+  low: (branchId) => api.get('/stock/low', { params: { branchId } }),
+  adjust: (data) => api.post('/stock/adjustments', data),
+};
+
+export const goodsReceiptService = {
+  list: (branchId) => api.get('/goods-receipts', { params: { branchId } }),
+  get: (id) => api.get(`/goods-receipts/${id}`),
+  create: (data) => api.post('/goods-receipts', data),
+};
+
 export default api;
