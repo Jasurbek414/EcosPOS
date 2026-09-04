@@ -221,6 +221,70 @@
       "itemsRequired": "Kamida bitta mahsulot qo'shing"
     }
   },
+  "pos": {
+    "loadError": "Smena holatini yuklab bo'lmadi",
+    "noShift": {
+      "title": "Smena ochilmagan",
+      "subtitle": "Sotuvni boshlash uchun avval smenani oching",
+      "branch": "Filial",
+      "openingCash": "Boshlang'ich summa",
+      "openBtn": "Smenani ochish",
+      "openError": "Smenani ochishda xatolik"
+    },
+    "shiftBar": {
+      "open": "Smena ochiq",
+      "opening": "Boshlang'ich",
+      "currency": "so'm",
+      "closeBtn": "Smenani yopish"
+    },
+    "closeModal": {
+      "title": "Smenani yopish",
+      "closingCash": "Kassadagi naqd summa",
+      "note": "Izoh",
+      "notePlaceholder": "Ixtiyoriy izoh",
+      "submit": "Yopish",
+      "error": "Smenani yopishda xatolik"
+    },
+    "closeResult": {
+      "title": "Smena yopildi",
+      "opening": "Boshlang'ich summa",
+      "expected": "Kutilgan summa",
+      "actual": "Kiritilgan summa",
+      "diff": "Farq",
+      "match": "mos keldi",
+      "surplus": "ortiqcha",
+      "shortage": "kamomad"
+    },
+    "terminal": {
+      "searchPlaceholder": "Shtrix-kodni skanerlang yoki mahsulot nomini kiriting va Enter bosing",
+      "notFound": "Mahsulot topilmadi",
+      "searchError": "Qidirishda xatolik",
+      "product": "Mahsulot",
+      "unit": "O'lchov",
+      "quantity": "Miqdor",
+      "price": "Narx",
+      "subtotal": "Jami",
+      "cartEmpty": "Savat bo'sh — mahsulot qo'shish uchun shtrix-kodni skanerlang",
+      "total": "Umumiy summa",
+      "paymentMethod": "To'lov turi",
+      "cash": "Naqd",
+      "card": "Karta",
+      "amountPaid": "Qabul qilingan summa",
+      "change": "Qaytim",
+      "checkoutBtn": "Sotish",
+      "checkoutError": "Sotuvda xatolik",
+      "itemsRequired": "Savatda hech bo'lmaganda bitta mahsulot bo'lishi kerak"
+    },
+    "receipt": {
+      "title": "Chek",
+      "total": "Jami",
+      "paymentMethod": "To'lov turi",
+      "amountPaid": "Qabul qilindi",
+      "change": "Qaytim",
+      "printBtn": "Chop etish",
+      "newSaleBtn": "Yangi sotuv"
+    }
+  },
   "superadmin": {
     "loginTitle": "Superadmin",
     "loginSubtitle": "Platforma boshqaruv paneli",

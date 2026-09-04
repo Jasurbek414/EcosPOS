@@ -17,6 +17,7 @@ import SuppliersPage from './pages/inventory/SuppliersPage';
 import StockPage from './pages/inventory/StockPage';
 import ReceiptsPage from './pages/inventory/ReceiptsPage';
 import ReceiptCreatePage from './pages/inventory/ReceiptCreatePage';
+import POSPage from './pages/pos/POSPage';
 
 import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="/inventory/stock" element={<StockPage />} />
               <Route path="/inventory/receipts" element={<ReceiptsPage />} />
               <Route path="/inventory/receipts/new" element={<ReceiptCreatePage />} />
+              <Route path="/pos" element={<POSPage />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

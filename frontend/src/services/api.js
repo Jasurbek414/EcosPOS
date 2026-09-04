@@ -130,4 +130,19 @@ export const goodsReceiptService = {
   create: (data) => api.post('/goods-receipts', data),
 };
 
+export const cashShiftService = {
+  current: () => api.get('/cash-shifts/current', { validateStatus: (status) => status === 200 || status === 204 }),
+  open: (data) => api.post('/cash-shifts/open', data),
+  close: (id, data) => api.post(`/cash-shifts/${id}/close`, data),
+};
+
+export const saleService = {
+  create: (data) => api.post('/sales', data),
+};
+
+export const posProductService = {
+  byBarcode: (code) => api.get(`/products/barcode/${encodeURIComponent(code)}`, { validateStatus: (status) => status === 200 || status === 404 }),
+  search: (search) => api.get('/products', { params: { search } }),
+};
+
 export default api;

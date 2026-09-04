@@ -16,10 +16,10 @@ export default function Sidebar() {
     { path: '/branches', icon: Building2, label: t('sidebar.branches') },
     { path: '/staff', icon: Users, label: t('sidebar.staff') },
     { path: '/inventory', icon: Package, label: t('sidebar.warehouse') },
+    { path: '/pos', icon: ShoppingCart, label: t('sidebar.pos') },
   ];
 
   const comingSoonItems = [
-    { icon: ShoppingCart, label: t('sidebar.pos') },
     { icon: BarChart3, label: t('sidebar.reports') },
   ];
 
