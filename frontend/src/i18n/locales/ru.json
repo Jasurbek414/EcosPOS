@@ -49,7 +49,12 @@
     "placeholder": "Здесь скоро появится статистика по продажам, складу и кассе.",
     "branchesCard": "Филиалы",
     "staffCard": "Сотрудники",
-    "roleCard": "Ваша роль"
+    "roleCard": "Ваша роль",
+    "todayRevenueCard": "Продажи сегодня",
+    "todayProfitCard": "Прибыль сегодня",
+    "monthRevenueCard": "Продажи за месяц",
+    "lowStockCard": "Заканчивающиеся товары",
+    "currency": "сум"
   },
   "branches": {
     "title": "Филиалы",
@@ -220,6 +225,33 @@
       "back": "Назад к приходам",
       "itemsRequired": "Добавьте хотя бы один товар"
     }
+  },
+  "reports": {
+    "title": "Отчёты",
+    "subtitle": "Анализ продаж и прибыли",
+    "branch": "Филиал",
+    "allBranches": "Все",
+    "from": "С",
+    "to": "По",
+    "today": "Сегодня",
+    "thisWeek": "Эта неделя",
+    "thisMonth": "Этот месяц",
+    "last30Days": "Последние 30 дней",
+    "totalRevenue": "Общие продажи",
+    "totalCost": "Общая себестоимость",
+    "totalProfit": "Общая прибыль",
+    "profitMargin": "Процент прибыли",
+    "currency": "сум",
+    "chartTitle": "Продажи и прибыль по периодам",
+    "revenue": "Продажи",
+    "profit": "Прибыль",
+    "topProductsTitle": "Самые продаваемые товары",
+    "rank": "#",
+    "product": "Товар",
+    "unit": "Ед. изм.",
+    "quantitySold": "Продано",
+    "loadError": "Не удалось загрузить данные отчёта",
+    "noData": "Нет данных за этот период"
   },
   "pos": {
     "loadError": "Не удалось загрузить состояние смены",

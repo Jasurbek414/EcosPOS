@@ -49,7 +49,12 @@
     "placeholder": "Bu yerda tez orada savdo, ombor va kassa bo'yicha statistika ko'rinadi.",
     "branchesCard": "Filiallar",
     "staffCard": "Xodimlar",
-    "roleCard": "Sizning rolingiz"
+    "roleCard": "Sizning rolingiz",
+    "todayRevenueCard": "Bugungi savdo",
+    "todayProfitCard": "Bugungi foyda",
+    "monthRevenueCard": "Shu oy savdo",
+    "lowStockCard": "Kam qolgan mahsulotlar",
+    "currency": "so'm"
   },
   "branches": {
     "title": "Filiallar",
@@ -220,6 +225,33 @@
       "back": "Kirimlarga qaytish",
       "itemsRequired": "Kamida bitta mahsulot qo'shing"
     }
+  },
+  "reports": {
+    "title": "Hisobotlar",
+    "subtitle": "Savdo va foyda bo'yicha tahlil",
+    "branch": "Filial",
+    "allBranches": "Hammasi",
+    "from": "Dan",
+    "to": "Gacha",
+    "today": "Bugun",
+    "thisWeek": "Shu hafta",
+    "thisMonth": "Shu oy",
+    "last30Days": "Oxirgi 30 kun",
+    "totalRevenue": "Jami savdo",
+    "totalCost": "Jami tannarx",
+    "totalProfit": "Jami foyda",
+    "profitMargin": "Foyda foizi",
+    "currency": "so'm",
+    "chartTitle": "Davr bo'yicha savdo va foyda",
+    "revenue": "Savdo",
+    "profit": "Foyda",
+    "topProductsTitle": "Eng ko'p sotilgan mahsulotlar",
+    "rank": "#",
+    "product": "Mahsulot",
+    "unit": "O'lchov",
+    "quantitySold": "Sotilgan miqdor",
+    "loadError": "Hisobot ma'lumotlarini yuklab bo'lmadi",
+    "noData": "Bu davr uchun ma'lumot topilmadi"
   },
   "pos": {
     "loadError": "Smena holatini yuklab bo'lmadi",

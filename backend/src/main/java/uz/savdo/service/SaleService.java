@@ -110,6 +110,7 @@ public class SaleService {
                     .productId(product.getId())
                     .quantity(itemRequest.getQuantity())
                     .unitPrice(unitPrice)
+                    .costPriceSnapshot(product.getCostPrice())
                     .subtotal(subtotal)
                     .build();
             saleItemRepository.save(item);

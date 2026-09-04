@@ -10,4 +10,7 @@ import java.util.List;
 public interface SaleItemRepository extends JpaRepository<SaleItem, Long> {
 
     List<SaleItem> findAllBySaleIdAndIsDeletedFalseOrderByIdAsc(Long saleId);
+
+    /** Hisobotlar uchun — bir nechta sotuv hujjatining qatorlarini bitta so'rovda oladi. */
+    List<SaleItem> findAllBySaleIdInAndIsDeletedFalse(List<Long> saleIds);
 }

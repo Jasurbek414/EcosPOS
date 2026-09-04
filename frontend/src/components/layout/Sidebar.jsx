@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { user, logout } = useTenantAuthContext();
+  const { user, role, logout } = useTenantAuthContext();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -17,11 +17,11 @@ export default function Sidebar() {
     { path: '/staff', icon: Users, label: t('sidebar.staff') },
     { path: '/inventory', icon: Package, label: t('sidebar.warehouse') },
     { path: '/pos', icon: ShoppingCart, label: t('sidebar.pos') },
+    // Hisobotlar moliyaviy ma'lumot — CASHIER'ga backend ham 403 qaytaradi, shuning uchun bu yerda ham yashiramiz.
+    ...(role !== 'CASHIER' ? [{ path: '/reports', icon: BarChart3, label: t('sidebar.reports') }] : []),
   ];
 
-  const comingSoonItems = [
-    { icon: BarChart3, label: t('sidebar.reports') },
-  ];
+  const comingSoonItems = [];
 
   const handleLogout = () => {
     logout();
@@ -74,25 +74,27 @@ export default function Sidebar() {
           ))}
         </div>
 
-        <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex flex-col gap-1">
-            {comingSoonItems.map((item) => (
-              <div
-                key={item.label}
-                title={t('common.comingSoon')}
-                className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 cursor-not-allowed select-none"
-              >
-                <span className="flex items-center gap-3">
-                  <item.icon size={18} className="shrink-0" />
-                  <span>{item.label}</span>
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-wide bg-white/5 text-slate-500 px-1.5 py-0.5 rounded">
-                  {t('common.comingSoon')}
-                </span>
-              </div>
-            ))}
+        {comingSoonItems.length > 0 && (
+          <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex flex-col gap-1">
+              {comingSoonItems.map((item) => (
+                <div
+                  key={item.label}
+                  title={t('common.comingSoon')}
+                  className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 cursor-not-allowed select-none"
+                >
+                  <span className="flex items-center gap-3">
+                    <item.icon size={18} className="shrink-0" />
+                    <span>{item.label}</span>
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wide bg-white/5 text-slate-500 px-1.5 py-0.5 rounded">
+                    {t('common.comingSoon')}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </nav>
 
       {/* Profil */}

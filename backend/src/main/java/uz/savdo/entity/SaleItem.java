@@ -11,7 +11,10 @@ import java.math.BigDecimal;
  * Sotuv hujjatining bitta qatori (bitta mahsulot). {@code unitPrice} sotuv paytidagi
  * {@code Product#salePrice} SNAPSHOT'i — narx keyinchalik o'zgarsa ham eski chek haqiqiy
  * o'sha paytda to'langan narxni ko'rsatishi kerak. {@code subtotal} har doim server
- * tomonida {@code quantity * unitPrice} sifatida hisoblanadi.
+ * tomonida {@code quantity * unitPrice} sifatida hisoblanadi. {@code costPriceSnapshot}
+ * xuddi shunday sotuv paytidagi {@code Product#costPrice} SNAPSHOT'i — tarixiy foyda
+ * hisobotlari (ReportService) ta'minotchi narxi keyinchalik o'zgargan taqdirda ham
+ * o'sha paytdagi haqiqiy tannarx bilan hisoblanishi uchun.
  */
 @Entity
 @Table(name = "sale_items")
@@ -33,6 +36,9 @@ public class SaleItem extends BaseEntity {
 
     @Column(name = "unit_price", nullable = false, precision = 14, scale = 2)
     private BigDecimal unitPrice;
+
+    @Column(name = "cost_price_snapshot", nullable = false, precision = 14, scale = 2)
+    private BigDecimal costPriceSnapshot;
 
     @Column(name = "subtotal", nullable = false, precision = 14, scale = 2)
     private BigDecimal subtotal;

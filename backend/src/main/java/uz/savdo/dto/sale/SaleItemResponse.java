@@ -16,6 +16,7 @@ public class SaleItemResponse {
     private String unit;
     private BigDecimal quantity;
     private BigDecimal unitPrice;
+    private BigDecimal costPriceSnapshot;
     private BigDecimal subtotal;
 
     public static SaleItemResponse from(SaleItem item, Product product) {
@@ -26,6 +27,7 @@ public class SaleItemResponse {
                 .unit(product.getUnit().name())
                 .quantity(item.getQuantity())
                 .unitPrice(item.getUnitPrice())
+                .costPriceSnapshot(item.getCostPriceSnapshot())
                 .subtotal(item.getSubtotal())
                 .build();
     }

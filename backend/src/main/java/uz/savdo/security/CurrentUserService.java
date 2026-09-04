@@ -78,6 +78,18 @@ public class CurrentUserService {
     }
 
     /**
+     * Hisobotlarni (sotuv/foyda analitikasi) ko'rish huquqi — OWNER va MANAGER; CASHIER'ga
+     * moliyaviy/foyda ma'lumotlari ko'rsatilmaydi. Mantiqan assertCanManageCatalog bilan
+     * bir xil, lekin chaqiruv nuqtalarida aniqlik uchun alohida metod sifatida ajratilgan.
+     */
+    public void assertCanViewReports() {
+        UserRole role = getCurrentUser().getRole();
+        if (role != UserRole.OWNER && role != UserRole.MANAGER) {
+            throw new ForbiddenException("Hisobotlarni ko'rish huquqi yo'q");
+        }
+    }
+
+    /**
      * Ombor yozish huquqi (kirim hujjatlari / qo'lda tuzatish) — OWNER istalgan filialda,
      * MANAGER faqat o'z filialida. CASHIER hech qachon yoza olmaydi (faqat ko'rish uchun
      * mavjud bo'lgan assertCanAccessBranch'dan foydalanadi).

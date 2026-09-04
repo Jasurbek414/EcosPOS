@@ -145,4 +145,11 @@ export const posProductService = {
   search: (search) => api.get('/products', { params: { search } }),
 };
 
+export const reportService = {
+  dashboard: (params) => api.get('/reports/dashboard', { params }),
+  salesSummary: (params) => api.get('/reports/sales-summary', { params }),
+  topProducts: (params) => api.get('/reports/top-products', { params }),
+  profit: (params) => api.get('/reports/profit', { params }),
+};
+
 export default api;
