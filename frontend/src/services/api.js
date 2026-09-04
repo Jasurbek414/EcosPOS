@@ -27,6 +27,15 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Product.imageUrl kabi backend qaytargan "/api/v1/..." absolyut yo'llarni <img src>
+// uchun to'liq URL'ga aylantirish — api instansiyasining baseURL'i bilan bir xil
+// VITE_API_BASE_URL manbasidan foydalanadi (lekin "/api/v1" qo'shilmaydi, chunki
+// backend qaytargan url'da u allaqachon bor).
+export function resolveFileUrl(url) {
+  if (!url) return null;
+  return `${API_BASE_URL}${url}`;
+}
+
 // Har bir so'rovga JWT token qo'shish
 api.interceptors.request.use((config) => {
   const auth = getTenantAuth();
@@ -88,6 +97,7 @@ export const authService = {
 
 export const branchService = {
   list: () => api.get('/branches'),
+  listNames: () => api.get('/branches/all-names'),
   create: (data) => api.post('/branches', data),
   update: (id, data) => api.put(`/branches/${id}`, data),
   remove: (id) => api.delete(`/branches/${id}`),
@@ -127,6 +137,27 @@ export const stockService = {
   list: (branchId) => api.get('/stock', { params: { branchId } }),
   low: (branchId) => api.get('/stock/low', { params: { branchId } }),
   adjust: (data) => api.post('/stock/adjustments', data),
+};
+
+export const stockMovementService = {
+  list: (params) => api.get('/stock/movements', { params }),
+};
+
+export const stockTransferService = {
+  list: (branchId) => api.get('/stock/transfers', { params: { branchId } }),
+  create: (data) => api.post('/stock/transfers', data),
+};
+
+// Mahsulot rasmlarini yuklash. Backend multipart/form-data'da "file" maydonini kutadi
+// va faqat isManager (katalogni boshqarish huquqi) uchun ruxsat beradi.
+export const fileService = {
+  upload: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export const goodsReceiptService = {

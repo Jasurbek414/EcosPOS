@@ -18,6 +18,8 @@ import SuppliersPage from './pages/inventory/SuppliersPage';
 import StockPage from './pages/inventory/StockPage';
 import ReceiptsPage from './pages/inventory/ReceiptsPage';
 import ReceiptCreatePage from './pages/inventory/ReceiptCreatePage';
+import TransfersPage from './pages/inventory/TransfersPage';
+import MovementsPage from './pages/inventory/MovementsPage';
 import POSPage from './pages/pos/POSPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import SettingsPage from './pages/settings/SettingsPage';
@@ -73,6 +75,8 @@ export default function App() {
                 <Route path="/inventory/stock" element={<StockPage />} />
                 <Route path="/inventory/receipts" element={<ReceiptsPage />} />
                 <Route path="/inventory/receipts/new" element={<ReceiptCreatePage />} />
+                <Route path="/inventory/transfers" element={<TransfersPage />} />
+                <Route path="/inventory/movements" element={<MovementsPage />} />
                 <Route path="/pos" element={<POSPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

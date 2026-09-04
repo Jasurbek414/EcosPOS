@@ -123,7 +123,14 @@
       "categories": "Kategoriyalar",
       "suppliers": "Ta'minotchilar",
       "stock": "Qoldiqlar",
-      "receipts": "Kirimlar"
+      "receipts": "Kirimlar",
+      "transfers": "Ko'chirish",
+      "movements": "Harakatlar tarixi"
+    },
+    "stats": {
+      "activeProducts": "Faol mahsulotlar",
+      "suppliers": "Ta'minotchilar",
+      "lowStock": "Kam qolganlar"
     },
     "units": {
       "DONA": "Dona",
@@ -162,7 +169,13 @@
       "loadError": "Mahsulotlar ro'yxatini yuklab bo'lmadi",
       "empty": "Hozircha mahsulotlar yo'q",
       "active": "Faol",
-      "inactive": "Nofaol"
+      "inactive": "Nofaol",
+      "tableView": "Jadval ko'rinishi",
+      "gridView": "Katakcha ko'rinishi",
+      "uploadImageHint": "Rasm yuklash uchun bosing",
+      "imageInvalidType": "Faqat JPEG, PNG yoki WEBP rasm fayllari qabul qilinadi",
+      "imageTooLarge": "Fayl hajmi 5MB dan oshmasligi kerak",
+      "imageUploadError": "Rasmni yuklashda xatolik"
     },
     "categories": {
       "title": "Kategoriyalar",
@@ -250,6 +263,47 @@
       "empty": "Hozircha kirimlar yo'q",
       "back": "Kirimlarga qaytish",
       "itemsRequired": "Kamida bitta mahsulot qo'shing"
+    },
+    "transfers": {
+      "title": "Filiallar orasida ko'chirish",
+      "subtitle": "Mahsulotni bir filialdan boshqasiga o'tkazish va ko'chirishlar tarixi",
+      "product": "Mahsulot",
+      "selectProduct": "Mahsulotni tanlang",
+      "fromBranch": "Qayerdan",
+      "toBranch": "Qayerga",
+      "selectBranch": "Filialni tanlang",
+      "quantity": "Miqdor",
+      "note": "Izoh",
+      "notePlaceholder": "Ixtiyoriy izoh",
+      "submit": "Ko'chirish",
+      "sameBranchError": "\"Qayerdan\" va \"qayerga\" bir xil filial bo'lishi mumkin emas",
+      "createSuccess": "Ko'chirish muvaffaqiyatli amalga oshirildi",
+      "createError": "Ko'chirishda xatolik",
+      "loadError": "Ko'chirishlar tarixini yuklab bo'lmadi",
+      "empty": "Hozircha ko'chirishlar yo'q",
+      "date": "Sana",
+      "route": "Yo'nalish",
+      "performedBy": "Bajardi"
+    },
+    "movements": {
+      "title": "Ombor harakatlari tarixi",
+      "subtitle": "Barcha kirim, sotuv, tuzatish va ko'chirish harakatlari jurnali",
+      "loadError": "Harakatlar tarixini yuklab bo'lmadi",
+      "empty": "Bu filtrlar bo'yicha harakatlar topilmadi",
+      "allTypes": "Barchasi",
+      "allProducts": "Barcha mahsulotlar",
+      "date": "Sana / vaqt",
+      "type": "Turi",
+      "reference": "Hujjat",
+      "refReceipt": "Kirim",
+      "refSale": "Sotuv",
+      "refTransfer": "Ko'chirish",
+      "types": {
+        "RECEIPT": "Kirim",
+        "SALE": "Sotuv",
+        "ADJUSTMENT": "Tuzatish",
+        "TRANSFER": "Ko'chirish"
+      }
     }
   },
   "reports": {

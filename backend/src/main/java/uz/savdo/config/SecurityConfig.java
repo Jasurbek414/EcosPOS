@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -56,6 +57,11 @@ public class SecurityConfig {
                         // Ochiq endpointlar
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/health").permitAll()
+                        // Mahsulot rasmlarini serve qilish - <img src> Authorization header
+                        // biriktira olmaydi. DIQQAT: faqat GET (yuklash POST /upload esa
+                        // FileController#upload'da assertCanManageCatalog orqali himoyalangan
+                        // holicha qoladi, chunki bu matcher HttpMethod.GET bilan cheklangan).
+                        .requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         // Qolgan barcha endpointlar autentifikatsiya talab qiladi

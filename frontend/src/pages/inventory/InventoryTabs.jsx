@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Package, Tag, Truck, Layers, ClipboardList } from 'lucide-react';
+import { Package, Tag, Truck, Layers, ClipboardList, ArrowLeftRight, History } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 
 export default function InventoryTabs() {
@@ -17,6 +17,12 @@ export default function InventoryTabs() {
   if (isManager) {
     tabs.push({ path: '/inventory/receipts', icon: ClipboardList, label: t('inventory.tabs.receipts') });
   }
+
+  // Filiallar orasida ko'chirish va harakatlar tarixi — hammaga ko'rinadi (CASHIER
+  // uchun ko'chirish sahifasida faqat tarix, yaratish formasi yashiriladi; harakatlar
+  // tarixi esa boshidanoq faqat ko'rish uchun).
+  tabs.push({ path: '/inventory/transfers', icon: ArrowLeftRight, label: t('inventory.tabs.transfers') });
+  tabs.push({ path: '/inventory/movements', icon: History, label: t('inventory.tabs.movements') });
 
   return (
     <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">

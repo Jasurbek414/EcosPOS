@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uz.savdo.dto.branch.BranchNameResponse;
 import uz.savdo.dto.branch.BranchRequest;
 import uz.savdo.dto.branch.BranchResponse;
 import uz.savdo.entity.Branch;
@@ -32,6 +33,19 @@ public class BranchController {
                         .filter(b -> !b.getIsDeleted())
                         .toList();
         return branches.stream().map(BranchResponse::from).toList();
+    }
+
+    /**
+     * Rolga qaramasdan BARCHA faol filiallar nomi — filiallar orasida ko'chirish
+     * formasidagi "qayerga" pikeri uchun (MANAGER/CASHIER {@code list()} orqali faqat
+     * o'z filialini ko'radi, lekin transfer qabul qiluvchi filialni tanlashi kerak).
+     */
+    @GetMapping("/all-names")
+    public List<BranchNameResponse> listAllNames() {
+        return branchRepository.findAllByIsDeletedFalseOrderByIdAsc().stream()
+                .filter(Branch::getIsActive)
+                .map(BranchNameResponse::from)
+                .toList();
     }
 
     @PostMapping

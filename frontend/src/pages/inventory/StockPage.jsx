@@ -4,8 +4,9 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Layers, X, SlidersHorizontal } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { branchService, stockService } from '../../services/api';
+import { branchService, productService, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
+import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
 
 function AdjustModal({ target, onClose, onAdjusted }) {
   const { t } = useTranslation();
@@ -86,6 +87,43 @@ export default function StockPage() {
   const [lowOnly, setLowOnly] = useState(false);
   const [adjustTarget, setAdjustTarget] = useState(null);
 
+  const [productsCount, setProductsCount] = useState(null);
+  const [suppliersCount, setSuppliersCount] = useState(null);
+  const [lowStockCount, setLowStockCount] = useState(null);
+
+  // Statistika sarlavhasi uchun: umumiy faol mahsulotlar va ta'minotchilar soni,
+  // joriy filial/filtrdan mustaqil — bir marta yuklanadi.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([productService.list({}), supplierService.list()])
+      .then(([productsRes, suppliersRes]) => {
+        if (cancelled) return;
+        setProductsCount(productsRes.data.filter((p) => p.isActive).length);
+        setSuppliersCount(suppliersRes.data.length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Kam qolgan mahsulotlar soni — tanlangan filial uchun (bu sahifada OWNER ham
+  // avvaldan bir filialni standart qilib tanlaydi, shuning uchun ProductsPage'dagidan
+  // farqli o'laroq bu yerda OWNER uchun ham deyarli har doim aniq qiymat bo'ladi).
+  useEffect(() => {
+    if (!branchId) return undefined;
+    let cancelled = false;
+    stockService
+      .low(branchId)
+      .then((res) => {
+        if (!cancelled) setLowStockCount(res.data.length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [branchId]);
+
   // Faqat OWNER uchun: filiallar ro'yxatini yuklab, birinchisini standart qilib tanlaymiz.
   useEffect(() => {
     if (!isOwner) return undefined;
@@ -145,6 +183,8 @@ export default function StockPage() {
   return (
     <div className="flex flex-col gap-6">
       <InventoryTabs />
+
+      <InventoryStatsHeader productsCount={productsCount} suppliersCount={suppliersCount} lowStockCount={lowStockCount} />
 
       <div className="flex items-center justify-between">
         <div>

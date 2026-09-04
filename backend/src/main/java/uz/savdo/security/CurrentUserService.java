@@ -104,4 +104,26 @@ public class CurrentUserService {
         }
         throw new ForbiddenException("Ombor ma'lumotlarini o'zgartirish huquqingiz yo'q");
     }
+
+    /**
+     * Filiallar orasida ko'chirish huquqi — OWNER istalgan ikki filial orasida ko'chira
+     * oladi. MANAGER esa faqat IKKI TOMONDAN KAMIDA BITTASI o'z filiali bo'lsa (chiqish
+     * o'z filialidan YOKI kirish o'z filialiga) — {@code assertCanWriteInventory}'ni
+     * ikkala tomonga alohida-alohida qo'llash noto'g'ri, chunki transfer'da ikki filial
+     * har doim har xil bo'ladi va MANAGER'ning bittagina o'z filiali bor: shu sababli
+     * "ikkalasi ham mening filialim" talabi hech qachon bajarilmas edi. CASHIER
+     * hech qachon ko'chira olmaydi.
+     */
+    public void assertCanTransferStock(Long fromBranchId, Long toBranchId) {
+        User user = getCurrentUser();
+        if (user.getRole() == UserRole.OWNER) {
+            return;
+        }
+        if (user.getRole() == UserRole.MANAGER
+                && user.getBranchId() != null
+                && (user.getBranchId().equals(fromBranchId) || user.getBranchId().equals(toBranchId))) {
+            return;
+        }
+        throw new ForbiddenException("Bu filiallar orasida ko'chirish huquqingiz yo'q");
+    }
 }

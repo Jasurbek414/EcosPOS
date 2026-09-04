@@ -1,16 +1,55 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Package, Plus, X, Pencil, Trash2, Search } from 'lucide-react';
+import {
+  Package, Plus, X, Pencil, Trash2, Search, LayoutGrid, List, ImagePlus, Loader2,
+} from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { categoryService, productService } from '../../services/api';
+import { categoryService, fileService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
+import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
 
 const UNITS = ['DONA', 'KG', 'LITR', 'QUTI'];
+const VIEW_STORAGE_KEY = 'savdo_products_view';
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+// POSPage.jsx'dagi "rasm yo'q bo'lsa rangli bosh harf" naqshi bilan bir xil —
+// alohida umumiy util fayl yo'q bo'lgani uchun shu yerda takrorlanadi (bir xil
+// CARD_COLORS ro'yxati bilan, natija ikkala sahifada ham bir xil rang chiqishi uchun).
+const CARD_COLORS = [
+  '#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#c026d3', '#65a30d',
+];
+function colorForName(name) {
+  const code = (name || '?').charCodeAt(0) || 0;
+  return CARD_COLORS[code % CARD_COLORS.length];
+}
+function initialsForName(name) {
+  return (name || '?').trim().charAt(0).toUpperCase();
+}
+
+// Mahsulot miniatyurasi — jadval qatorida ("sm") va grid kartada ("lg") bitta
+// manbadan (rasm yoki rangli bosh harf) chiqarish uchun yagona komponent.
+function ProductThumb({ product, size = 'sm' }) {
+  const resolvedUrl = resolveFileUrl(product.imageUrl);
+  const imgClass = size === 'sm' ? 'inv-thumb-sm' : 'inv-product-card-thumb';
+  const fallbackClass = size === 'sm' ? 'inv-thumb-sm-fallback' : 'inv-product-card-thumb-fallback';
+  if (resolvedUrl) {
+    return <img src={resolvedUrl} alt={product.name} className={imgClass} />;
+  }
+  return (
+    <div className={`${imgClass} ${fallbackClass}`} style={{ background: colorForName(product.name) }}>
+      {initialsForName(product.name)}
+    </div>
+  );
+}
 
 function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated }) {
   const { t } = useTranslation();
+  const fileInputRef = useRef(null);
+  const [imageUrl, setImageUrl] = useState(product?.imageUrl || null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const {
     register,
     handleSubmit,
@@ -40,6 +79,31 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
     }
   };
 
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error(t('inventory.products.imageInvalidType'));
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(t('inventory.products.imageTooLarge'));
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const res = await fileService.upload(file);
+      setImageUrl(res.data.url);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('inventory.products.imageUploadError'));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const onSubmit = async (data) => {
     const payload = {
       categoryId: data.categoryId || null,
@@ -49,6 +113,7 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
       costPrice: Number(data.costPrice),
       salePrice: Number(data.salePrice),
       minStockLevel: data.minStockLevel === '' ? null : Number(data.minStockLevel),
+      imageUrl: imageUrl || null,
     };
     try {
       if (product) {
@@ -64,6 +129,8 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
     }
   };
 
+  const resolvedImageUrl = resolveFileUrl(imageUrl);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -76,6 +143,37 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
           </button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 flex flex-col gap-4">
+          <div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept={ALLOWED_IMAGE_TYPES.join(',')}
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inv-upload-box"
+              disabled={uploadingImage}
+              title={t('inventory.products.uploadImageHint')}
+            >
+              {resolvedImageUrl ? (
+                <img src={resolvedImageUrl} alt={t('inventory.products.name')} />
+              ) : (
+                <>
+                  <ImagePlus size={22} />
+                  <span className="inv-upload-box-hint">{t('inventory.products.uploadImageHint')}</span>
+                </>
+              )}
+              {uploadingImage && (
+                <div className="inv-upload-overlay">
+                  <Loader2 size={22} className="animate-spin" />
+                </div>
+              )}
+            </button>
+          </div>
+
           <div>
             <label className="field-label">{t('inventory.products.name')}</label>
             <input
@@ -168,7 +266,7 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
             <button type="button" onClick={onClose} className="btn btn-outline">
               {t('common.cancel')}
             </button>
-            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+            <button type="submit" disabled={isSubmitting || uploadingImage} className="btn btn-primary">
               {product ? t('common.save') : t('common.create')}
             </button>
           </div>
@@ -180,7 +278,7 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
 
 export default function ProductsPage() {
   const { t } = useTranslation();
-  const { isManager } = useTenantAuthContext();
+  const { user, isManager } = useTenantAuthContext();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,6 +287,26 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [view, setView] = useState(() => {
+    try {
+      return localStorage.getItem(VIEW_STORAGE_KEY) || 'table';
+    } catch {
+      return 'table';
+    }
+  });
+
+  const [productsCount, setProductsCount] = useState(null);
+  const [suppliersCount, setSuppliersCount] = useState(null);
+  const [lowStockCount, setLowStockCount] = useState(null);
+
+  // Ko'rinish tanlovini (jadval/grid) localStorage'da saqlaymiz — keyingi tashrifda eslab qoladi.
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, view);
+    } catch {
+      // localStorage mavjud bo'lmasa (masalan xususiy rejim) — jimgina o'tkazib yuboramiz.
+    }
+  }, [view]);
 
   // Kategoriyalarni faqat bir marta, sahifa ochilganda yuklaymiz.
   useEffect(() => {
@@ -203,6 +321,40 @@ export default function ProductsPage() {
       cancelled = true;
     };
   }, []);
+
+  // Statistika sarlavhasi uchun: joriy filtrlardan mustaqil, umumiy faol mahsulotlar
+  // va ta'minotchilar soni — bir marta yuklanadi.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([productService.list({}), supplierService.list()])
+      .then(([productsRes, suppliersRes]) => {
+        if (cancelled) return;
+        setProductsCount(productsRes.data.filter((p) => p.isActive).length);
+        setSuppliersCount(suppliersRes.data.length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Kam qolgan mahsulotlar soni — bu sahifada filial tanlagich yo'q, shuning uchun
+  // faqat filiali aniq bo'lgan foydalanuvchilar (MANAGER/CASHIER) uchun hisoblanadi;
+  // OWNER uchun statistika kartochkasida "—" ko'rsatiladi (StockPage.jsx'da esa OWNER
+  // filial tanlaganidan keyin bu qiymat to'liq ishlaydi).
+  useEffect(() => {
+    if (!user?.branchId) return undefined;
+    let cancelled = false;
+    stockService
+      .low(user.branchId)
+      .then((res) => {
+        if (!cancelled) setLowStockCount(res.data.length);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.branchId]);
 
   // Qidiruv matnini debounce qilish.
   useEffect(() => {
@@ -277,6 +429,8 @@ export default function ProductsPage() {
     <div className="flex flex-col gap-6">
       <InventoryTabs />
 
+      <InventoryStatsHeader productsCount={productsCount} suppliersCount={suppliersCount} lowStockCount={lowStockCount} />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('inventory.products.title')}</h1>
@@ -309,6 +463,24 @@ export default function ProductsPage() {
             </option>
           ))}
         </select>
+        <div className="flex items-center gap-1 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setView('table')}
+            className={`btn-icon ${view === 'table' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100' : ''}`}
+            title={t('inventory.products.tableView')}
+          >
+            <List size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('grid')}
+            className={`btn-icon ${view === 'grid' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100' : ''}`}
+            title={t('inventory.products.gridView')}
+          >
+            <LayoutGrid size={15} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -320,11 +492,42 @@ export default function ProductsPage() {
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.products.empty')}</p>
         </div>
+      ) : view === 'grid' ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {products.map((p) => (
+            <div key={p.id} className="inv-product-card">
+              {isManager && (
+                <div className="inv-product-card-actions">
+                  <button type="button" onClick={() => openEdit(p)} className="btn-icon" title={t('common.edit')}>
+                    <Pencil size={14} />
+                  </button>
+                  <button type="button" onClick={() => handleDelete(p)} className="btn-icon danger" title={t('common.delete')}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+              <ProductThumb product={p} size="lg" />
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900 dark:text-slate-100 text-sm truncate">{p.name}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs truncate">{p.categoryName || '—'}</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-mono truncate">{p.barcode || '—'}</p>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-slate-400">{Number(p.costPrice).toLocaleString('uz-UZ')}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{Number(p.salePrice).toLocaleString('uz-UZ')}</span>
+              </div>
+              <span className={`w-fit ${p.isActive ? 'badge badge-green' : 'badge badge-slate'}`}>
+                {p.isActive ? t('inventory.products.active') : t('inventory.products.inactive')}
+              </span>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="card table-wrap">
           <table>
             <thead>
               <tr>
+                <th />
                 <th>{t('inventory.products.name')}</th>
                 <th>{t('inventory.products.category')}</th>
                 <th>{t('inventory.products.barcode')}</th>
@@ -338,6 +541,9 @@ export default function ProductsPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
+                  <td>
+                    <ProductThumb product={p} size="sm" />
+                  </td>
                   <td className="font-medium text-slate-900 dark:text-slate-100">{p.name}</td>
                   <td className="text-slate-600 dark:text-slate-300">{p.categoryName || '—'}</td>
                   <td className="text-slate-600 dark:text-slate-300 font-mono text-xs">{p.barcode || '—'}</td>
