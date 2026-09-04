@@ -39,8 +39,8 @@ export default function Sidebar() {
             <Store size={17} className="text-white" strokeWidth={2.25} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-white font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
-            <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
+            <h2 className="text-slate-900 font-extrabold text-sm leading-tight tracking-tight truncate">SAVDO</h2>
+            <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider truncate">POS Terminal</p>
           </div>
         </div>
         <div className="sidebar-lang-switch">
@@ -63,7 +63,7 @@ export default function Sidebar() {
 
       {/* Navigatsiya */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
-        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-600">{t('sidebar.main')}</p>
+        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('sidebar.main')}</p>
         <div className="flex flex-col gap-0.5">
           {navItems.map((item) => (
             <NavLink key={item.path} to={item.path} className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}>
@@ -77,14 +77,14 @@ export default function Sidebar() {
       </nav>
 
       {/* Profil */}
-      <div className="p-3 border-t border-white/[0.06]">
+      <div className="p-3 border-t border-slate-200">
         <div className="sidebar-profile-card">
           <div className="sidebar-avatar">
             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
             <span className={`sidebar-avatar-dot ${roleDotClass}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-slate-100 text-sm font-semibold truncate">{user?.fullName}</p>
+            <p className="text-slate-900 text-sm font-semibold truncate">{user?.fullName}</p>
             <p className="text-slate-500 text-xs truncate">{user?.role ? t(`staff.roles.${user.role}`) : ''}</p>
           </div>
           <button type="button" onClick={handleLogout} title={t('sidebar.logout')} className="sidebar-logout-btn">
