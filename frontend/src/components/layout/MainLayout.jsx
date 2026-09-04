@@ -6,7 +6,7 @@ export default function MainLayout() {
     <div className="flex min-h-screen" style={{ background: 'var(--bg-main)' }}>
       <Sidebar />
       <main className="flex-1 min-h-screen ml-64 px-8 py-7">
-        <div className="animate-fade-in max-w-6xl mx-auto">
+        <div className="animate-fade-in w-full">
           <Outlet />
         </div>
       </main>

@@ -60,7 +60,7 @@ export default function SuperAdminLayout() {
       </aside>
 
       <main className="flex-1 min-w-0 overflow-x-auto">
-        <div className="max-w-5xl mx-auto px-10 py-10">
+        <div className="w-full px-10 py-10">
           <Outlet />
         </div>
       </main>
