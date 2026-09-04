@@ -512,8 +512,8 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="pos-shift-bar print:hidden">
+    <div className="flex flex-col gap-4 xl:h-[calc(100vh-3.5rem)] xl:min-h-0">
+      <div className="pos-shift-bar print:hidden shrink-0">
         <div className="flex items-center gap-3">
           <span className="pos-shift-dot" />
           <div className="flex flex-col leading-tight">
@@ -533,11 +533,13 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       </div>
 
       {receipt ? (
-        <ReceiptView receipt={receipt} onNewSale={handleNewSale} />
+        <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
+          <ReceiptView receipt={receipt} onNewSale={handleNewSale} />
+        </div>
       ) : (
-        <div className="flex flex-col xl:flex-row gap-4 items-start">
-          <div className="flex-1 w-full flex flex-col gap-4 min-w-0">
-            <div className="relative">
+        <div className="flex flex-col xl:flex-row gap-4 xl:flex-1 xl:min-h-0 xl:items-stretch">
+          <div className="flex-1 w-full flex flex-col gap-4 min-w-0 xl:min-h-0">
+            <div className="relative shrink-0">
               <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 ref={inputRef}
@@ -570,11 +572,13 @@ function POSTerminal({ shift, onRequestCloseShift }) {
               )}
             </div>
 
-            {catalogLoading ? (
-              <div className="text-slate-500 text-sm">{t('common.loading')}</div>
-            ) : (
-              <ProductGrid products={products} categories={categories} onAdd={addToCart} />
-            )}
+            <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
+              {catalogLoading ? (
+                <div className="text-slate-500 text-sm">{t('common.loading')}</div>
+              ) : (
+                <ProductGrid products={products} categories={categories} onAdd={addToCart} />
+              )}
+            </div>
           </div>
 
           <div className="pos-cart-panel">

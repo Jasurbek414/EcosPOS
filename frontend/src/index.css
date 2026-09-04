@@ -329,21 +329,19 @@ tbody tr:hover td { background: #fafafa; }
   border-radius: var(--radius-lg);
   padding: 1.125rem;
 }
-/* Savat paneli faqat ikki ustunli (xl+) joylashuvda sahifa oxirigacha
-   yoyilib, ekran aylantirilganda joyidan qo'zg'almasligi kerak
-   (foydalanuvchi talabi) - shuning uchun sticky + ekran balandligiga teng
-   fiksirlangan balandlik. Ichidagi ro'yxat (.pos-cart-list) o'zi alohida
-   aylanadi, sarlavha va pastki (to'lov) qism doim ko'rinib turadi. Mobil/
-   tor ekranda (savat mahsulot ro'yxati OSTIDA) bu tabiiy balandlikda
-   qoladi - to'liq ekran balandligini majburlash noqulay bo'lardi. */
+/* Savat paneli faqat ikki ustunli (xl+) joylashuvda butun qatorning
+   balandligiga cho'ziladi (POSPage.jsx'dagi "xl:items-stretch" orqali) -
+   shuning uchun bu yerda faqat kenglik kifoya, alohida balandlik/sticky
+   hisoblash SHART EMAS (avval "height: calc(100vh...)" ishlatilgan edi -
+   bu sahifa balandligini ustidagi smena panelidan ortiqcha oshirib,
+   keraksiz sahifa skrolini hosil qilgan edi; endi butun terminal
+   POSPage.jsx'da "xl:h-[calc(100vh-3.5rem)]" bilan asosiy konteyner
+   balandligiga aniq moslangan, ichki mahsulot ro'yxati va savat
+   ro'yxati ALOHIDA-ALOHIDA o'zicha aylanadi - sahifaning o'zi
+   umuman aylanmaydi). Mobil/tor ekranda (savat mahsulot ro'yxati
+   OSTIDA) tabiiy balandlikda qoladi. */
 @media (min-width: 1280px) {
-  .pos-cart-panel {
-    width: 24rem;
-    position: sticky;
-    top: 1rem;
-    height: calc(100vh - 2rem);
-    max-height: calc(100vh - 2rem);
-  }
+  .pos-cart-panel { width: 24rem; }
 }
 .pos-cart-count {
   background: var(--color-primary);
