@@ -1,0 +1,36 @@
+name: savdo_mobile
+description: Savdo — do'kon egasi/menejeri uchun hamroh mobil ilova
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management — Riverpod (kod generatsiyasiz)
+  flutter_riverpod: ^2.5.1
+
+  # Navigatsiya
+  go_router: ^14.2.0
+
+  # HTTP client
+  dio: ^5.4.3+1
+
+  # JWT tokenlarni xavfsiz saqlash
+  flutter_secure_storage: ^9.2.2
+
+  # Shtrix-kod skaneri (do'kon ichida qoldiqni tekshirish uchun asosiy funksiya)
+  mobile_scanner: ^5.2.3
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
