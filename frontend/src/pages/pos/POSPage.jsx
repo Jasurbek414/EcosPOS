@@ -1,13 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   Lock, Unlock, ShoppingCart, Trash2, Printer, CircleDollarSign, CreditCard, Barcode, X,
+  Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { branchService, cashShiftService, posProductService, saleService } from '../../services/api';
+import {
+  branchService, cashShiftService, categoryService, posProductService, productService, saleService,
+} from '../../services/api';
 
-const ROUND_STEPS = [10000, 50000];
+const ROUND_STEPS = [10000, 50000, 100000];
+
+const CARD_COLORS = [
+  '#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#c026d3', '#65a30d',
+];
+function colorForName(name) {
+  const code = (name || '?').charCodeAt(0) || 0;
+  return CARD_COLORS[code % CARD_COLORS.length];
+}
+function initialsForName(name) {
+  return (name || '?').trim().charAt(0).toUpperCase();
+}
 
 function NoShiftPanel({ user, isOwner, onOpened }) {
   const { t } = useTranslation();
@@ -16,7 +30,6 @@ function NoShiftPanel({ user, isOwner, onOpened }) {
   const [openingCash, setOpeningCash] = useState('0');
   const [submitting, setSubmitting] = useState(false);
 
-  // Faqat OWNER uchun: filiallar ro'yxatini yuklab, birinchisini standart qilib tanlaymiz.
   useEffect(() => {
     if (!isOwner) return undefined;
     let cancelled = false;
@@ -47,14 +60,16 @@ function NoShiftPanel({ user, isOwner, onOpened }) {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center">
-      <form onSubmit={handleOpen} className="card p-8 w-full max-w-md flex flex-col gap-5">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-            <Lock size={24} className="text-slate-400" />
+    <div className="min-h-[75vh] flex items-center justify-center">
+      <form onSubmit={handleOpen} className="pos-panel w-full max-w-md flex flex-col gap-6 p-9">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1e293b,#334155)' }}>
+            <Lock size={26} className="text-white" />
           </div>
-          <h2 className="text-lg font-bold text-slate-900">{t('pos.noShift.title')}</h2>
-          <p className="text-slate-500 text-sm">{t('pos.noShift.subtitle')}</p>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">{t('pos.noShift.title')}</h2>
+            <p className="text-slate-500 text-sm mt-1.5">{t('pos.noShift.subtitle')}</p>
+          </div>
         </div>
 
         {isOwner && (
@@ -76,14 +91,14 @@ function NoShiftPanel({ user, isOwner, onOpened }) {
             type="number"
             step="1"
             min="0"
-            className="input-field"
+            className="input-field !text-lg !font-semibold"
             value={openingCash}
             onChange={(e) => setOpeningCash(e.target.value)}
           />
         </div>
 
-        <button type="submit" disabled={submitting || !branchId} className="btn btn-primary w-full">
-          <Unlock size={16} />
+        <button type="submit" disabled={submitting || !branchId} className="btn btn-primary w-full !py-3.5 !text-base">
+          <Unlock size={18} />
           {t('pos.noShift.openBtn')}
         </button>
       </form>
@@ -128,7 +143,7 @@ function CloseShiftModal({ shift, onClose, onClosed }) {
               type="number"
               step="1"
               min="0"
-              className="input-field"
+              className="input-field !text-lg !font-semibold"
               autoFocus
               value={closingCash}
               onChange={(e) => setClosingCash(e.target.value)}
@@ -166,31 +181,39 @@ function CloseShiftResult({ result, onDone }) {
   const diffClass = diff === 0 ? 'text-emerald-600' : diff > 0 ? 'text-amber-600' : 'text-red-600';
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center">
-      <div className="card p-8 w-full max-w-md flex flex-col gap-5">
-        <h2 className="text-lg font-bold text-slate-900">{t('pos.closeResult.title')}</h2>
-        <div className="flex flex-col gap-2 text-sm">
+    <div className="min-h-[75vh] flex items-center justify-center">
+      <div className="pos-panel w-full max-w-md flex flex-col gap-6 p-9">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{ background: diff === 0 ? '#ecfdf5' : diff > 0 ? '#fffbeb' : '#fef2f2' }}
+          >
+            <CheckCircle2 size={26} className={diffClass} />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">{t('pos.closeResult.title')}</h2>
+        </div>
+        <div className="flex flex-col gap-2.5 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.closeResult.opening')}</span>
-            <span className="font-medium text-slate-900">{Number(result.openingCash).toLocaleString('uz-UZ')}</span>
+            <span className="font-medium text-slate-900 tabular-nums">{Number(result.openingCash).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.closeResult.expected')}</span>
-            <span className="font-medium text-slate-900">{Number(result.expectedCash).toLocaleString('uz-UZ')}</span>
+            <span className="font-medium text-slate-900 tabular-nums">{Number(result.expectedCash).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.closeResult.actual')}</span>
-            <span className="font-medium text-slate-900">{Number(result.closingCash).toLocaleString('uz-UZ')}</span>
+            <span className="font-medium text-slate-900 tabular-nums">{Number(result.closingCash).toLocaleString('uz-UZ')}</span>
           </div>
-          <div className="flex justify-between pt-2 border-t border-slate-200">
-            <span className="text-slate-500">{t('pos.closeResult.diff')}</span>
-            <span className={`font-bold ${diffClass}`}>
+          <div className="flex justify-between pt-3 border-t border-slate-200">
+            <span className="text-slate-500 font-medium">{t('pos.closeResult.diff')}</span>
+            <span className={`font-bold tabular-nums ${diffClass}`}>
               {diff > 0 ? '+' : ''}
               {diff.toLocaleString('uz-UZ')} ({diffLabel})
             </span>
           </div>
         </div>
-        <button type="button" onClick={onDone} className="btn btn-primary w-full">
+        <button type="button" onClick={onDone} className="btn btn-primary w-full !py-3">
           {t('common.close')}
         </button>
       </div>
@@ -201,45 +224,50 @@ function CloseShiftResult({ result, onDone }) {
 function ReceiptView({ receipt, onNewSale }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="card p-8 w-full max-w-md flex flex-col gap-4">
-        <div className="text-center">
-          <h2 className="text-lg font-bold text-slate-900">{t('pos.receipt.title')}</h2>
-          <p className="text-slate-500 text-xs mt-1">
+    <div className="flex flex-col items-center gap-5 py-4">
+      <div className="receipt-slip flex flex-col gap-4">
+        <div className="text-center flex flex-col items-center gap-2">
+          <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center">
+            <ReceiptText size={20} className="text-white" />
+          </div>
+          <h2 className="text-base font-bold text-slate-900 tracking-wide">{t('pos.receipt.title')}</h2>
+          <p className="text-slate-400 text-xs">
             #{receipt.id} · {new Date(receipt.createdAt).toLocaleString('uz-UZ')}
           </p>
         </div>
-        <div className="flex flex-col gap-2 text-sm border-t border-b border-slate-200 py-3">
+        <div className="receipt-divider" />
+        <div className="flex flex-col gap-2 text-sm">
           {receipt.items.map((item) => (
-            <div key={item.productId} className="flex justify-between gap-2">
+            <div key={item.productId} className="flex justify-between gap-3">
               <span className="text-slate-700">
-                {item.productName}{' '}
+                {item.productName}
                 <span className="text-slate-400">
-                  x{item.quantity} {t(`inventory.units.${item.unit}`)}
+                  {' '}x{item.quantity} {t(`inventory.units.${item.unit}`)}
                 </span>
               </span>
-              <span className="font-medium text-slate-900 whitespace-nowrap">{Number(item.subtotal).toLocaleString('uz-UZ')}</span>
+              <span className="font-medium text-slate-900 whitespace-nowrap tabular-nums">{Number(item.subtotal).toLocaleString('uz-UZ')}</span>
             </div>
           ))}
         </div>
+        <div className="receipt-divider" />
         <div className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.receipt.total')}</span>
-            <span className="font-bold text-slate-900 text-base">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
+            <span className="font-bold text-slate-900 text-lg tabular-nums">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">{t('pos.receipt.paymentMethod')}</span>
-            <span className="text-slate-900">{t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : 'cash'}`)}</span>
+            <span className="text-slate-900 font-medium">{t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : 'cash'}`)}</span>
           </div>
           {receipt.paymentMethod === 'CASH' && (
             <>
               <div className="flex justify-between">
                 <span className="text-slate-500">{t('pos.receipt.amountPaid')}</span>
-                <span className="text-slate-900">{Number(receipt.amountPaid).toLocaleString('uz-UZ')}</span>
+                <span className="text-slate-900 tabular-nums">{Number(receipt.amountPaid).toLocaleString('uz-UZ')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">{t('pos.receipt.change')}</span>
-                <span className="text-slate-900">{Number(receipt.changeAmount).toLocaleString('uz-UZ')}</span>
+                <span className="text-slate-900 tabular-nums">{Number(receipt.changeAmount).toLocaleString('uz-UZ')}</span>
               </div>
             </>
           )}
@@ -258,6 +286,79 @@ function ReceiptView({ receipt, onNewSale }) {
   );
 }
 
+function ElapsedTime({ since }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+  const mins = Math.max(0, Math.floor((now - new Date(since).getTime()) / 60000));
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return <span className="tabular-nums">{h > 0 ? `${h}s ${m}d` : `${m}d`}</span>;
+}
+
+function ProductGrid({ products, categories, onAdd }) {
+  const { t } = useTranslation();
+  const [activeCategory, setActiveCategory] = useState('all');
+
+  const visible = useMemo(
+    () => products.filter((p) => activeCategory === 'all' || p.categoryId === activeCategory),
+    [products, activeCategory]
+  );
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 pos-chip-row">
+        <button
+          type="button"
+          onClick={() => setActiveCategory('all')}
+          className={`pos-chip ${activeCategory === 'all' ? 'pos-chip-active' : ''}`}
+        >
+          {t('pos.terminal.allCategories')}
+        </button>
+        {categories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setActiveCategory(c.id)}
+            className={`pos-chip ${activeCategory === c.id ? 'pos-chip-active' : ''}`}
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="card py-16 flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+            <PackageSearch size={22} className="text-slate-400" />
+          </div>
+          <p className="text-slate-500 text-sm">{t('pos.terminal.gridEmpty')}</p>
+        </div>
+      ) : (
+        <div className="pos-product-grid">
+          {visible.map((p) => (
+            <button key={p.id} type="button" onClick={() => onAdd(p)} className="pos-product-card">
+              {p.imageUrl ? (
+                <img src={p.imageUrl} alt={p.name} className="pos-product-thumb" />
+              ) : (
+                <div className="pos-product-thumb pos-product-thumb-fallback" style={{ background: colorForName(p.name) }}>
+                  {initialsForName(p.name)}
+                </div>
+              )}
+              <span className="pos-product-name">{p.name}</span>
+              <span className="pos-product-price">
+                {Number(p.salePrice).toLocaleString('uz-UZ')} <span className="text-slate-400 font-normal">{t(`inventory.units.${p.unit}`)}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function POSTerminal({ shift, onRequestCloseShift }) {
   const { t } = useTranslation();
   const inputRef = useRef(null);
@@ -271,15 +372,37 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   const [submitting, setSubmitting] = useState(false);
   const [receipt, setReceipt] = useState(null);
 
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([productService.list(), categoryService.list()])
+      .then(([prodRes, catRes]) => {
+        if (cancelled) return;
+        setProducts(prodRes.data.filter((p) => p.isActive));
+        setCategories(catRes.data.filter((c) => c.isActive));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, [receipt]);
 
   const total = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0) * item.salePrice, 0);
+  const itemCount = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
   const amountPaidDisplay = amountPaidInput === null ? String(total || 0) : amountPaidInput;
   const amountPaidNumeric = Number(amountPaidDisplay) || 0;
   const change = amountPaidNumeric - total;
-  const roundOptions = ROUND_STEPS.map((step) => Math.ceil((total || 1) / step) * step).filter((v) => v > total);
+  const roundOptions = ROUND_STEPS.map((step) => Math.ceil((total || 1) / step) * step).filter((v) => v > total).slice(0, 3);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -294,6 +417,18 @@ function POSTerminal({ shift, onRequestCloseShift }) {
         { productId: product.id, name: product.name, unit: product.unit, salePrice: Number(product.salePrice), quantity: '1' },
       ];
     });
+  };
+
+  const bumpQuantity = (productId, delta) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.productId === productId
+            ? { ...item, quantity: String(Math.max(0, (Number(item.quantity) || 0) + delta)) }
+            : item
+        )
+        .filter((item) => Number(item.quantity) > 0)
+    );
   };
 
   const handleQueryChange = (e) => {
@@ -378,16 +513,21 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between card px-5 py-3 print:hidden">
-        <div className="flex items-center gap-2 text-sm">
-          <Unlock size={16} className="text-emerald-600" />
-          <span className="font-medium text-slate-900">{t('pos.shiftBar.open')}</span>
-          <span className="text-slate-500">
-            — {t('pos.shiftBar.opening')}: {Number(shift.openingCash).toLocaleString('uz-UZ')} {t('pos.shiftBar.currency')}
-          </span>
+      <div className="pos-shift-bar print:hidden">
+        <div className="flex items-center gap-3">
+          <span className="pos-shift-dot" />
+          <div className="flex flex-col leading-tight">
+            <span className="font-semibold text-white text-sm">{t('pos.shiftBar.open')}</span>
+            <span className="text-slate-400 text-xs flex items-center gap-1.5">
+              <Clock size={11} />
+              <ElapsedTime since={shift.openedAt} />
+              <span className="mx-1">·</span>
+              {t('pos.shiftBar.opening')}: {Number(shift.openingCash).toLocaleString('uz-UZ')} {t('pos.shiftBar.currency')}
+            </span>
+          </div>
         </div>
-        <button type="button" onClick={onRequestCloseShift} className="btn btn-outline">
-          <Lock size={16} />
+        <button type="button" onClick={onRequestCloseShift} className="pos-shift-close-btn">
+          <Lock size={15} />
           {t('pos.shiftBar.closeBtn')}
         </button>
       </div>
@@ -395,21 +535,22 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       {receipt ? (
         <ReceiptView receipt={receipt} onNewSale={handleNewSale} />
       ) : (
-        <div className="flex flex-col lg:flex-row gap-4 items-start">
-          <div className="flex-1 w-full flex flex-col gap-4">
+        <div className="flex flex-col xl:flex-row gap-4 items-start">
+          <div className="flex-1 w-full flex flex-col gap-4 min-w-0">
             <div className="relative">
-              <Barcode size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 ref={inputRef}
                 type="text"
                 autoFocus
                 disabled={searching}
-                className="input-field !pl-10 !py-3 !text-base"
+                className="pos-search-input"
                 placeholder={t('pos.terminal.searchPlaceholder')}
                 value={query}
                 onChange={handleQueryChange}
                 onKeyDown={handleSearchKeyDown}
               />
+              <Barcode size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300" />
               {searchResults.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full card max-h-72 overflow-y-auto shadow-lg">
                   {searchResults.map((p) => (
@@ -429,134 +570,140 @@ function POSTerminal({ shift, onRequestCloseShift }) {
               )}
             </div>
 
-            {cart.length === 0 ? (
-              <div className="card py-20 flex flex-col items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-                  <ShoppingCart size={24} className="text-slate-400" />
-                </div>
-                <p className="text-slate-500 text-sm">{t('pos.terminal.cartEmpty')}</p>
-              </div>
+            {catalogLoading ? (
+              <div className="text-slate-500 text-sm">{t('common.loading')}</div>
             ) : (
-              <div className="card table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{t('pos.terminal.product')}</th>
-                      <th>{t('pos.terminal.unit')}</th>
-                      <th>{t('pos.terminal.quantity')}</th>
-                      <th>{t('pos.terminal.price')}</th>
-                      <th>{t('pos.terminal.subtotal')}</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cart.map((item) => (
-                      <tr key={item.productId}>
-                        <td className="font-medium text-slate-900">{item.name}</td>
-                        <td className="text-slate-600">{t(`inventory.units.${item.unit}`)}</td>
-                        <td className="min-w-[100px]">
-                          <input
-                            type="number"
-                            step="0.001"
-                            min="0"
-                            className="input-field"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item.productId, e.target.value)}
-                          />
-                        </td>
-                        <td className="text-slate-600 whitespace-nowrap">{item.salePrice.toLocaleString('uz-UZ')}</td>
-                        <td className="text-slate-900 font-semibold whitespace-nowrap">
-                          {((Number(item.quantity) || 0) * item.salePrice).toLocaleString('uz-UZ')}
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => removeFromCart(item.productId)}
-                            className="btn-icon danger"
-                            title={t('common.delete')}
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <ProductGrid products={products} categories={categories} onAdd={addToCart} />
             )}
           </div>
 
-          <div className="card p-6 flex flex-col gap-4 w-full lg:w-80 shrink-0">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 text-sm font-semibold">{t('pos.terminal.total')}</span>
-              <span className="text-2xl font-bold text-slate-900">{total.toLocaleString('uz-UZ')}</span>
+          <div className="pos-cart-panel">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-bold text-slate-900 flex items-center gap-2">
+                <ShoppingCart size={17} />
+                {t('pos.terminal.cartTitle')}
+              </span>
+              {itemCount > 0 && <span className="pos-cart-count">{itemCount}</span>}
             </div>
 
-            <div>
-              <label className="field-label">{t('pos.terminal.paymentMethod')}</label>
+            {cart.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-10 text-center">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                  <ShoppingCart size={20} className="text-slate-400" />
+                </div>
+                <p className="text-slate-500 text-sm max-w-[16rem]">{t('pos.terminal.cartEmpty')}</p>
+              </div>
+            ) : (
+              <div className="pos-cart-list">
+                {cart.map((item) => (
+                  <div key={item.productId} className="pos-cart-row">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
+                      <p className="text-xs text-slate-500 tabular-nums">
+                        {item.salePrice.toLocaleString('uz-UZ')} × {item.quantity} {t(`inventory.units.${item.unit}`)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onClick={() => bumpQuantity(item.productId, -1)} className="pos-qty-btn">
+                        <Minus size={13} />
+                      </button>
+                      <input
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        className="pos-qty-input"
+                        value={item.quantity}
+                        onChange={(e) => updateQuantity(item.productId, e.target.value)}
+                      />
+                      <button type="button" onClick={() => bumpQuantity(item.productId, 1)} className="pos-qty-btn">
+                        <Plus size={13} />
+                      </button>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-900 tabular-nums w-20 text-right shrink-0">
+                      {((Number(item.quantity) || 0) * item.salePrice).toLocaleString('uz-UZ')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(item.productId)}
+                      className="btn-icon danger shrink-0"
+                      title={t('common.delete')}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="pos-cart-footer">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 text-sm font-semibold">{t('pos.terminal.total')}</span>
+                <span className="text-2xl font-extrabold text-slate-900 tabular-nums">{total.toLocaleString('uz-UZ')}</span>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
-                  className={`btn ${paymentMethod === 'CASH' ? 'btn-primary' : 'btn-outline'}`}
+                  className={`pos-pay-option ${paymentMethod === 'CASH' ? 'pos-pay-option-active' : ''}`}
                 >
-                  <CircleDollarSign size={16} />
+                  <CircleDollarSign size={18} />
                   {t('pos.terminal.cash')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CARD')}
-                  className={`btn ${paymentMethod === 'CARD' ? 'btn-primary' : 'btn-outline'}`}
+                  className={`pos-pay-option ${paymentMethod === 'CARD' ? 'pos-pay-option-active' : ''}`}
                 >
-                  <CreditCard size={16} />
+                  <CreditCard size={18} />
                   {t('pos.terminal.card')}
                 </button>
               </div>
-            </div>
 
-            {paymentMethod === 'CASH' && (
-              <div className="flex flex-col gap-2">
-                <label className="field-label">{t('pos.terminal.amountPaid')}</label>
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  className="input-field"
-                  value={amountPaidDisplay}
-                  onChange={(e) => setAmountPaidInput(e.target.value)}
-                />
-                {roundOptions.length > 0 && (
-                  <div className="flex gap-2">
-                    {roundOptions.map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setAmountPaidInput(String(val))}
-                        className="btn btn-outline !px-2 !py-1.5 text-xs"
-                      >
-                        {val.toLocaleString('uz-UZ')}
-                      </button>
-                    ))}
+              {paymentMethod === 'CASH' && (
+                <div className="flex flex-col gap-2">
+                  <label className="field-label !mb-0">{t('pos.terminal.amountPaid')}</label>
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    className="input-field !text-lg !font-bold tabular-nums"
+                    value={amountPaidDisplay}
+                    onChange={(e) => setAmountPaidInput(e.target.value)}
+                  />
+                  {roundOptions.length > 0 && (
+                    <div className="flex gap-1.5">
+                      {roundOptions.map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setAmountPaidInput(String(val))}
+                          className="pos-round-btn"
+                        >
+                          {val.toLocaleString('uz-UZ')}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                    <span className="text-slate-500 text-sm font-medium">{t('pos.terminal.change')}</span>
+                    <span className={`text-xl font-bold tabular-nums ${change < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                      {change.toLocaleString('uz-UZ')}
+                    </span>
                   </div>
-                )}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                  <span className="text-slate-500 text-sm">{t('pos.terminal.change')}</span>
-                  <span className={`text-lg font-bold ${change < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                    {change.toLocaleString('uz-UZ')}
-                  </span>
                 </div>
-              </div>
-            )}
+              )}
 
-            <button
-              type="button"
-              onClick={handleCheckout}
-              disabled={cart.length === 0 || submitting || (paymentMethod === 'CASH' && change < 0)}
-              className="btn btn-primary w-full mt-2"
-            >
-              <ShoppingCart size={16} />
-              {t('pos.terminal.checkoutBtn')}
-            </button>
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={cart.length === 0 || submitting || (paymentMethod === 'CASH' && change < 0)}
+                className="pos-checkout-btn"
+              >
+                <ShoppingCart size={18} />
+                {t('pos.terminal.checkoutBtn')}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -572,7 +719,6 @@ export default function POSPage() {
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [closeResult, setCloseResult] = useState(null);
 
-  // Sahifa ochilganda joriy (ochiq) smenani tekshiramiz.
   useEffect(() => {
     let cancelled = false;
     cashShiftService
