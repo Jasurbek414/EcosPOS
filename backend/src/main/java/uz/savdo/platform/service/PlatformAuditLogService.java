@@ -3,6 +3,7 @@ package uz.savdo.platform.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.savdo.platform.dto.AuditLogResponse;
+import uz.savdo.platform.entity.Company;
 import uz.savdo.platform.entity.PlatformAuditLog;
 import uz.savdo.platform.entity.PlatformUser;
 import uz.savdo.platform.repository.CompanyRepository;
@@ -25,23 +26,26 @@ public class PlatformAuditLogService {
         repository.insert(platformUserId, action, companyId, details);
     }
 
-    public List<AuditLogResponse> list(int page, int size) {
-        Map<Long, String> platformUserNames = platformUserRepository.findAll().stream()
-                .collect(Collectors.toMap(PlatformUser::getId, PlatformUser::getFullName));
+    /** companyId null bo'lsa barcha kompaniyalar bo'yicha, eng yangisi birinchi. */
+    public List<AuditLogResponse> list(Long companyId, int page, int size) {
+        Map<Long, String> actorUsernames = platformUserRepository.findAll().stream()
+                .collect(Collectors.toMap(PlatformUser::getId, PlatformUser::getUsername));
 
-        return repository.findAllPaged(page, size).stream()
-                .map(entry -> AuditLogResponse.from(
-                        entry,
-                        platformUserNames.get(entry.getPlatformUserId()),
-                        entry.getCompanyId() != null
-                                ? companyRepository.findByIdIncludingDeleted(entry.getCompanyId())
-                                        .map(c -> c.getName())
-                                        .orElse(null)
-                                : null))
+        return repository.findAllPaged(companyId, page, size).stream()
+                .map(entry -> {
+                    Company company = entry.getCompanyId() != null
+                            ? companyRepository.findByIdIncludingDeleted(entry.getCompanyId()).orElse(null)
+                            : null;
+                    return AuditLogResponse.from(
+                            entry,
+                            actorUsernames.get(entry.getPlatformUserId()),
+                            company != null ? company.getSlug() : null,
+                            company != null ? company.getName() : null);
+                })
                 .toList();
     }
 
-    public long count() {
-        return repository.count();
+    public long count(Long companyId) {
+        return repository.count(companyId);
     }
 }

@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.branch.BranchRequest;
 import uz.savdo.dto.branch.BranchResponse;
 import uz.savdo.entity.Branch;
+import uz.savdo.exception.BadRequestException;
+import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.BranchRepository;
 import uz.savdo.security.CurrentUserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -43,5 +46,35 @@ public class BranchController {
         branch = branchRepository.save(branch);
 
         return ResponseEntity.ok(BranchResponse.from(branch));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BranchResponse> update(@PathVariable Long id, @Valid @RequestBody BranchRequest request) {
+        currentUserService.assertIsOwner();
+        if (request.getIsActive() == null) {
+            throw new BadRequestException("isActive kiritilishi shart");
+        }
+
+        Branch branch = branchRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filial topilmadi: " + id));
+        branch.setName(request.getName());
+        branch.setAddress(request.getAddress());
+        branch.setIsActive(request.getIsActive());
+        branch = branchRepository.save(branch);
+
+        return ResponseEntity.ok(BranchResponse.from(branch));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        currentUserService.assertIsOwner();
+
+        Branch branch = branchRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filial topilmadi: " + id));
+        branch.setIsDeleted(true);
+        branch.setDeletedAt(LocalDateTime.now());
+        branchRepository.save(branch);
+
+        return ResponseEntity.noContent().build();
     }
 }

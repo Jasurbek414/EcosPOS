@@ -10,17 +10,21 @@ import java.time.LocalDateTime;
 @Builder
 public class AuditLogResponse {
     private Long id;
-    private String platformUserName;
+    private String actorUsername;
     private String action;
+    private Long companyId;
+    private String companySlug;
     private String companyName;
     private String details;
     private LocalDateTime createdAt;
 
-    public static AuditLogResponse from(PlatformAuditLog log, String platformUserName, String companyName) {
+    public static AuditLogResponse from(PlatformAuditLog log, String actorUsername, String companySlug, String companyName) {
         return AuditLogResponse.builder()
                 .id(log.getId())
-                .platformUserName(platformUserName)
+                .actorUsername(actorUsername)
                 .action(log.getAction())
+                .companyId(log.getCompanyId())
+                .companySlug(companySlug)
                 .companyName(companyName)
                 .details(log.getDetails())
                 .createdAt(log.getCreatedAt())

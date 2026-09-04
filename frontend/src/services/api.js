@@ -89,11 +89,16 @@ export const authService = {
 export const branchService = {
   list: () => api.get('/branches'),
   create: (data) => api.post('/branches', data),
+  update: (id, data) => api.put(`/branches/${id}`, data),
+  remove: (id) => api.delete(`/branches/${id}`),
 };
 
 export const userService = {
   list: () => api.get('/users'),
   create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  remove: (id) => api.delete(`/users/${id}`),
+  resetPassword: (id) => api.post(`/users/${id}/reset-password`),
 };
 
 export const categoryService = {

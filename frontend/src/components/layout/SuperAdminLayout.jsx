@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSuperAdminAuthContext } from '../../hooks/useSuperAdminAuthContext';
-import { ShieldCheck, LayoutDashboard, Building2, LogOut } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Building2, History, LogOut } from 'lucide-react';
 
 const NAV_ITEMS = [
   { path: '/spd/dashboard', icon: LayoutDashboard, label: 'Boshqaruv paneli' },
   { path: '/spd/companies', icon: Building2, label: 'Kompaniyalar' },
+  { path: '/spd/audit-log', icon: History, label: 'Amallar tarixi' },
 ];
 
 export default function SuperAdminLayout() {

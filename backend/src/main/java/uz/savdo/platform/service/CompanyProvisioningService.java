@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import uz.savdo.entity.User;
 import uz.savdo.enums.UserRole;
 import uz.savdo.exception.BadRequestException;
+import uz.savdo.platform.dto.AdminPasswordResetResponse;
 import uz.savdo.platform.dto.CreateCompanyRequest;
 import uz.savdo.platform.dto.CreateCompanyResponse;
 import uz.savdo.platform.entity.Company;
@@ -105,6 +106,45 @@ public class CompanyProvisioningService {
             companyRepository.updateStatus(companyId, CompanyStatus.FAILED, null, null);
             throw new BadRequestException("Kompaniya yaratishda xatolik: " + e.getMessage());
         }
+    }
+
+    /**
+     * Kompaniya OWNER foydalanuvchisining parolini yangi tasodifiy parolga almashtiradi
+     * (superadmin so'rovi bo'yicha — masalan, mijoz parolini unutgan holatda). Yangi
+     * dataSource yaratilmaydi/registratsiya qilinmaydi — mavjud faol kompaniyalar uchun
+     * bu allaqachon ilova ishga tushganda {@code TenantRegistryInitializer} tomonidan
+     * bajarilgan bo'ladi.
+     */
+    public AdminPasswordResetResponse resetAdminPassword(Long companyId, Long actingPlatformUserId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new BadRequestException("Kompaniya topilmadi: " + companyId));
+        if (company.getStatus() == CompanyStatus.PROVISIONING || company.getStatus() == CompanyStatus.FAILED) {
+            throw new BadRequestException(
+                    "Bu kompaniya hali tayyor emas (holat: " + company.getStatus() + "), parol tiklab bo'lmaydi");
+        }
+
+        String newPassword = RandomPasswordGenerator.generate();
+        String ownerUsername;
+        TenantContext.set(company.getDbName());
+        try {
+            User owner = userRepository.findFirstByRoleAndIsDeletedFalseOrderByIdAsc(UserRole.OWNER)
+                    .orElseThrow(() -> new IllegalStateException("Kompaniyada OWNER foydalanuvchi topilmadi"));
+            owner.setPassword(passwordEncoder.encode(newPassword));
+            owner.setFailedLoginAttempts(0);
+            owner.setLockedUntil(null);
+            userRepository.save(owner);
+            ownerUsername = owner.getUsername();
+        } finally {
+            TenantContext.clear();
+        }
+
+        platformAuditLogService.log(actingPlatformUserId, "COMPANY_ADMIN_PASSWORD_RESET", companyId,
+                "Admin paroli tiklandi: " + ownerUsername);
+
+        return AdminPasswordResetResponse.builder()
+                .adminUsername(ownerUsername)
+                .adminPassword(newPassword)
+                .build();
     }
 
     private void migrateTenantSchema(DataSource tenantDs) {

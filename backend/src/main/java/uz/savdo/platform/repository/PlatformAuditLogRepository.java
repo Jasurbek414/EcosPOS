@@ -47,14 +47,22 @@ public class PlatformAuditLogRepository {
         });
     }
 
-    public List<PlatformAuditLog> findAllPaged(int page, int size) {
+    /** companyId null bo'lsa barcha kompaniyalar bo'yicha, aks holda faqat shu kompaniya bo'yicha. */
+    public List<PlatformAuditLog> findAllPaged(Long companyId, int page, int size) {
+        if (companyId != null) {
+            return jdbc.query(
+                    "SELECT * FROM platform_audit_log WHERE company_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                    MAPPER, companyId, size, page * size);
+        }
         return jdbc.query(
                 "SELECT * FROM platform_audit_log ORDER BY created_at DESC LIMIT ? OFFSET ?",
                 MAPPER, size, page * size);
     }
 
-    public long count() {
-        Long total = jdbc.queryForObject("SELECT count(*) FROM platform_audit_log", Long.class);
+    public long count(Long companyId) {
+        Long total = companyId != null
+                ? jdbc.queryForObject("SELECT count(*) FROM platform_audit_log WHERE company_id = ?", Long.class, companyId)
+                : jdbc.queryForObject("SELECT count(*) FROM platform_audit_log", Long.class);
         return total != null ? total : 0L;
     }
 }

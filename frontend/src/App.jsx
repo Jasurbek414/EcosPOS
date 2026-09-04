@@ -25,6 +25,7 @@ import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
 import CompanyListPage from './pages/superadmin/CompanyListPage';
 import CompanyCreatePage from './pages/superadmin/CompanyCreatePage';
 import CompanyDetailPage from './pages/superadmin/CompanyDetailPage';
+import AuditLogPage from './pages/superadmin/AuditLogPage';
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="/spd/companies" element={<CompanyListPage />} />
               <Route path="/spd/companies/new" element={<CompanyCreatePage />} />
               <Route path="/spd/companies/:id" element={<CompanyDetailPage />} />
+              <Route path="/spd/audit-log" element={<AuditLogPage />} />
             </Route>
 
             {/* Tenant (do'kon) ilovasi */}

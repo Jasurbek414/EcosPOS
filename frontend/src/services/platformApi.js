@@ -58,6 +58,13 @@ export const companyService = {
   list: () => platformApi.get('/companies'),
   detail: (id) => platformApi.get(`/companies/${id}`),
   create: (data) => platformApi.post('/companies', data),
+  block: (id, data) => platformApi.patch(`/companies/${id}/block`, data),
+  unblock: (id) => platformApi.patch(`/companies/${id}/unblock`),
+  resetAdminPassword: (id) => platformApi.post(`/companies/${id}/reset-admin-password`),
+};
+
+export const auditLogService = {
+  list: (companyId) => platformApi.get('/audit-log', { params: companyId ? { companyId } : {} }),
 };
 
 export default platformApi;
