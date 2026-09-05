@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -105,10 +106,15 @@ function AdjustModal({ target, onClose, onAdjusted }) {
 
 export default function StockPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const { user, isOwner, isManager } = useTenantAuthContext();
   const { unitLabel } = useUnits();
   const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
+  // Filial profilidan ("Ombor qoldig'i") kelganda o'sha filial oldindan tanlangan
+  // bo'lishi uchun — BranchDetailPage.jsx navigation state orqali yuboradi.
+  const [branchId, setBranchId] = useState(() =>
+    location.state?.branchId != null ? String(location.state.branchId) : (isOwner ? '' : (user?.branchId ?? ''))
+  );
   const [stock, setStock] = useState([]);
   const [productsById, setProductsById] = useState({});
   const [categories, setCategories] = useState([]);

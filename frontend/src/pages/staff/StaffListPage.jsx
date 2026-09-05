@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -427,6 +428,7 @@ function ResetPasswordPanel({ result, onClose }) {
 
 export default function StaffListPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const { user, isOwner } = useTenantAuthContext();
   const [staff, setStaff] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -436,7 +438,11 @@ export default function StaffListPage() {
   const [resetResult, setResetResult] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [branchFilter, setBranchFilter] = useState('');
+  // Filial profilidan ("Xodimlarni ko'rish") kelganda o'sha filial oldindan
+  // tanlangan bo'lishi uchun — BranchDetailPage.jsx navigation state orqali yuboradi.
+  const [branchFilter, setBranchFilter] = useState(() =>
+    location.state?.branchId != null ? String(location.state.branchId) : ''
+  );
 
   const reload = useCallback(async () => {
     setLoading(true);

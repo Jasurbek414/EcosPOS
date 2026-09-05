@@ -274,7 +274,11 @@ export default function BranchDetailPage() {
                 </div>
               )}
 
-              <Link to="/staff" className="card p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <Link
+                to="/staff"
+                state={{ branchId: branch.id }}
+                className="card p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
                 <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
                   <Users size={16} />
                 </div>
@@ -283,6 +287,7 @@ export default function BranchDetailPage() {
 
               <Link
                 to="/inventory/stock"
+                state={{ branchId: branch.id }}
                 className="card p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0">
