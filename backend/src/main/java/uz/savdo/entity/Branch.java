@@ -27,4 +27,11 @@ public class Branch extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "phone", length = 30)
+    private String phone;
+
+    /** Erkin matn shaklidagi ish vaqti, masalan "09:00–21:00" — strukturaviy jadval emas. */
+    @Column(name = "working_hours", length = 100)
+    private String workingHours;
 }

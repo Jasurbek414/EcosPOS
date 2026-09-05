@@ -13,6 +13,8 @@ public class BranchResponse {
     private String name;
     private String address;
     private Boolean isActive;
+    private String phone;
+    private String workingHours;
     private LocalDateTime createdAt;
 
     public static BranchResponse from(Branch b) {
@@ -21,6 +23,8 @@ public class BranchResponse {
                 .name(b.getName())
                 .address(b.getAddress())
                 .isActive(b.getIsActive())
+                .phone(b.getPhone())
+                .workingHours(b.getWorkingHours())
                 .createdAt(b.getCreatedAt())
                 .build();
     }

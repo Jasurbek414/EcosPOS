@@ -1,5 +1,6 @@
 package uz.savdo.dto.supplier;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -13,4 +14,7 @@ public class SupplierRequest {
     private String address;
 
     private String contactPerson;
+
+    @Email(message = "Email formati noto'g'ri")
+    private String email;
 }

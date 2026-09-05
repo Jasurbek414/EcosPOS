@@ -14,6 +14,7 @@ public class SupplierResponse {
     private String phone;
     private String address;
     private String contactPerson;
+    private String email;
     private Boolean isActive;
     private LocalDateTime createdAt;
 
@@ -24,6 +25,7 @@ public class SupplierResponse {
                 .phone(s.getPhone())
                 .address(s.getAddress())
                 .contactPerson(s.getContactPerson())
+                .email(s.getEmail())
                 .isActive(s.getIsActive())
                 .createdAt(s.getCreatedAt())
                 .build();

@@ -40,7 +40,8 @@ public class GoodsReceiptController {
     private final GoodsReceiptService goodsReceiptService;
 
     @GetMapping
-    public List<GoodsReceiptSummaryResponse> list(@RequestParam(required = false) Long branchId) {
+    public List<GoodsReceiptSummaryResponse> list(@RequestParam(required = false) Long branchId,
+                                                   @RequestParam(required = false) Long supplierId) {
         List<GoodsReceipt> receipts;
         if (branchId != null) {
             currentUserService.assertCanAccessBranch(branchId);
@@ -52,6 +53,12 @@ public class GoodsReceiptController {
                     : allowedBranchIds.stream()
                             .flatMap(id -> goodsReceiptRepository.findAllByBranchIdAndIsDeletedFalseOrderByIdDesc(id).stream())
                             .toList();
+        }
+
+        if (supplierId != null) {
+            receipts = receipts.stream()
+                    .filter(r -> supplierId.equals(r.getSupplierId()))
+                    .toList();
         }
 
         return receipts.stream()

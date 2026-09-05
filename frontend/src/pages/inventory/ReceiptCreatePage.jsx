@@ -5,12 +5,14 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import { branchService, goodsReceiptService, productService, supplierService } from '../../services/api';
 
 export default function ReceiptCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isOwner } = useTenantAuthContext();
+  const { unitLabel } = useUnits();
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
@@ -21,7 +23,7 @@ export default function ReceiptCreatePage() {
     register,
     control,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
       supplierId: '',
@@ -55,6 +57,11 @@ export default function ReceiptCreatePage() {
       cancelled = true;
     };
   }, [isOwner, t]);
+
+  const productsById = products.reduce((acc, p) => {
+    acc[p.id] = p;
+    return acc;
+  }, {});
 
   const rowSubtotal = (item) => {
     const qty = Number(item?.quantity) || 0;
@@ -161,52 +168,62 @@ export default function ReceiptCreatePage() {
                 </tr>
               </thead>
               <tbody>
-                {fields.map((field, index) => (
-                  <tr key={field.id}>
-                    <td className="min-w-[180px]">
-                      <select className="input-field" {...register(`items.${index}.productId`)}>
-                        <option value="">{t('inventory.receipts.selectProduct')}</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="min-w-[110px]">
-                      <input
-                        type="number"
-                        step="0.001"
-                        min="0"
-                        className="input-field"
-                        {...register(`items.${index}.quantity`)}
-                      />
-                    </td>
-                    <td className="min-w-[130px]">
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        className="input-field"
-                        {...register(`items.${index}.unitCost`)}
-                      />
-                    </td>
-                    <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {rowSubtotal(watchedItems?.[index]).toLocaleString('uz-UZ')}
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        disabled={fields.length === 1}
-                        className="btn-icon danger"
-                        title={t('inventory.receipts.removeRow')}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {fields.map((field, index) => {
+                  const selectedProduct = productsById[watchedItems?.[index]?.productId];
+                  return (
+                    <tr key={field.id}>
+                      <td className="min-w-[180px]">
+                        <select className="input-field" {...register(`items.${index}.productId`, { required: true })}>
+                          <option value="">{t('inventory.receipts.selectProduct')}</option>
+                          {products.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.items?.[index]?.productId && <p className="field-error">{t('common.required')}</p>}
+                      </td>
+                      <td className="min-w-[130px]">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="0.001"
+                            min="0"
+                            className="input-field"
+                            {...register(`items.${index}.quantity`, { required: true, min: 0.001 })}
+                          />
+                          {selectedProduct && (
+                            <span className="text-slate-400 dark:text-slate-500 text-xs whitespace-nowrap">{unitLabel(selectedProduct.unit)}</span>
+                          )}
+                        </div>
+                        {errors.items?.[index]?.quantity && <p className="field-error">{t('common.required')}</p>}
+                      </td>
+                      <td className="min-w-[130px]">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="input-field"
+                          {...register(`items.${index}.unitCost`)}
+                        />
+                      </td>
+                      <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        {rowSubtotal(watchedItems?.[index]).toLocaleString('uz-UZ')}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          disabled={fields.length === 1}
+                          className="btn-icon danger"
+                          title={t('inventory.receipts.removeRow')}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

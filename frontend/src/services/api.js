@@ -98,6 +98,8 @@ export const authService = {
 export const branchService = {
   list: () => api.get('/branches'),
   listNames: () => api.get('/branches/all-names'),
+  get: (id) => api.get(`/branches/${id}`),
+  stats: (id) => api.get(`/branches/${id}/stats`),
   create: (data) => api.post('/branches', data),
   update: (id, data) => api.put(`/branches/${id}`, data),
   remove: (id) => api.delete(`/branches/${id}`),
@@ -172,7 +174,7 @@ export const fileService = {
 };
 
 export const goodsReceiptService = {
-  list: (branchId) => api.get('/goods-receipts', { params: { branchId } }),
+  list: (params) => api.get('/goods-receipts', { params }),
   get: (id) => api.get(`/goods-receipts/${id}`),
   create: (data) => api.post('/goods-receipts', data),
 };

@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Truck, Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { Truck, Plus, X, Pencil, Trash2, Search } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { supplierService } from '../../services/api';
+import { goodsReceiptService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 
 function SupplierModal({ supplier, onClose, onSaved }) {
@@ -19,6 +19,7 @@ function SupplierModal({ supplier, onClose, onSaved }) {
       phone: supplier?.phone || '',
       address: supplier?.address || '',
       contactPerson: supplier?.contactPerson || '',
+      email: supplier?.email || '',
     },
   });
 
@@ -65,6 +66,16 @@ function SupplierModal({ supplier, onClose, onSaved }) {
             <input type="text" className="input-field" placeholder={t('inventory.suppliers.phonePlaceholder')} {...register('phone')} />
           </div>
           <div>
+            <label className="field-label">{t('inventory.suppliers.email')}</label>
+            <input
+              type="email"
+              className="input-field"
+              placeholder={t('inventory.suppliers.emailPlaceholder')}
+              {...register('email', { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ })}
+            />
+            {errors.email && <p className="field-error">{t('inventory.suppliers.emailInvalid')}</p>}
+          </div>
+          <div>
             <label className="field-label">{t('inventory.suppliers.address')}</label>
             <input
               type="text"
@@ -100,7 +111,9 @@ export default function SuppliersPage() {
   const { t } = useTranslation();
   const { isManager } = useTenantAuthContext();
   const [suppliers, setSuppliers] = useState([]);
+  const [receiptCountBySupplier, setReceiptCountBySupplier] = useState({});
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -133,6 +146,37 @@ export default function SuppliersPage() {
       cancelled = true;
     };
   }, [t]);
+
+  // "Kirimlar soni" ustuni uchun — bitta yig'ma so'rov bilan barcha (foydalanuvchiga
+  // ruxsat berilgan) kirimlarni olib, mijoz tomonida ta'minotchi bo'yicha guruhlaymiz
+  // (TransfersPage.jsx'dagi "bitta so'rov + xotirada guruhlash" naqshi bilan bir xil).
+  // CASHIER uchun bu chaqiruv backend tomonidan cheklanmaydi (branchId berilmasa
+  // o'ziga ruxsat etilgan filialning kirimlarini qaytaradi), lekin xatolik yuz bersa
+  // ham sahifa buzilmasligi uchun xatolik jimgina yutiladi va ustunda "—" qoladi.
+  useEffect(() => {
+    let cancelled = false;
+    goodsReceiptService
+      .list({})
+      .then((res) => {
+        if (cancelled) return;
+        const counts = {};
+        res.data.forEach((r) => {
+          if (r.supplierId == null) return;
+          counts[r.supplierId] = (counts[r.supplierId] || 0) + 1;
+        });
+        setReceiptCountBySupplier(counts);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredSuppliers = useMemo(() => {
+    const search = searchInput.trim().toLowerCase();
+    if (!search) return suppliers;
+    return suppliers.filter((s) => [s.name, s.phone, s.contactPerson].some((v) => (v || '').toLowerCase().includes(search)));
+  }, [suppliers, searchInput]);
 
   const openCreate = () => {
     setEditing(null);
@@ -182,9 +226,20 @@ export default function SuppliersPage() {
         )}
       </div>
 
+      <div className="relative max-w-sm">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+        <input
+          type="text"
+          className="input-field !pl-9"
+          placeholder={t('inventory.suppliers.searchPlaceholder')}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </div>
+
       {loading ? (
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
-      ) : suppliers.length === 0 ? (
+      ) : filteredSuppliers.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
             <Truck size={24} className="text-slate-400 dark:text-slate-500" />
@@ -198,18 +253,22 @@ export default function SuppliersPage() {
               <tr>
                 <th>{t('inventory.suppliers.name')}</th>
                 <th>{t('inventory.suppliers.phone')}</th>
+                <th>{t('inventory.suppliers.email')}</th>
                 <th>{t('inventory.suppliers.address')}</th>
                 <th>{t('inventory.suppliers.contactPerson')}</th>
+                <th>{t('inventory.suppliers.receiptCount')}</th>
                 {isManager && <th>{t('common.actions')}</th>}
               </tr>
             </thead>
             <tbody>
-              {suppliers.map((s) => (
+              {filteredSuppliers.map((s) => (
                 <tr key={s.id}>
                   <td className="font-medium text-slate-900 dark:text-slate-100">{s.name}</td>
                   <td className="text-slate-600 dark:text-slate-300">{s.phone || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{s.email || '—'}</td>
                   <td className="text-slate-600 dark:text-slate-300">{s.address || '—'}</td>
                   <td className="text-slate-600 dark:text-slate-300">{s.contactPerson || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{receiptCountBySupplier[s.id] ?? '—'}</td>
                   {isManager && (
                     <td>
                       <div className="flex items-center gap-1">

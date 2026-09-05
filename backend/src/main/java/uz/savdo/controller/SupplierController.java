@@ -42,6 +42,7 @@ public class SupplierController {
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .contactPerson(request.getContactPerson())
+                .email(request.getEmail())
                 .isActive(true)
                 .build();
         supplier = supplierRepository.save(supplier);
@@ -59,6 +60,7 @@ public class SupplierController {
         supplier.setPhone(request.getPhone());
         supplier.setAddress(request.getAddress());
         supplier.setContactPerson(request.getContactPerson());
+        supplier.setEmail(request.getEmail());
         supplier = supplierRepository.save(supplier);
 
         return ResponseEntity.ok(SupplierResponse.from(supplier));

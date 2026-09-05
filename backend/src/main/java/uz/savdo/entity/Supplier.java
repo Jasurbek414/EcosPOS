@@ -29,6 +29,9 @@ public class Supplier extends BaseEntity {
     @Column(name = "contact_person", length = 150)
     private String contactPerson;
 
+    @Column(name = "email", length = 150)
+    private String email;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

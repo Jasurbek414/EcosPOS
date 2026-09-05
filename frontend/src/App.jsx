@@ -11,6 +11,7 @@ import SuperAdminLayout from './components/layout/SuperAdminLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import BranchListPage from './pages/branches/BranchListPage';
+import BranchDetailPage from './pages/branches/BranchDetailPage';
 import StaffListPage from './pages/staff/StaffListPage';
 import ProductsPage from './pages/inventory/ProductsPage';
 import CategoriesPage from './pages/inventory/CategoriesPage';
@@ -69,6 +70,7 @@ export default function App() {
               <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/branches" element={<BranchListPage />} />
+                <Route path="/branches/:id" element={<BranchDetailPage />} />
                 <Route path="/staff" element={<StaffListPage />} />
                 <Route path="/inventory" element={<Navigate to="/inventory/products" replace />} />
                 <Route path="/inventory/products" element={<ProductsPage />} />

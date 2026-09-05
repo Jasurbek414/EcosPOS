@@ -7,12 +7,18 @@ import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.branch.BranchNameResponse;
 import uz.savdo.dto.branch.BranchRequest;
 import uz.savdo.dto.branch.BranchResponse;
+import uz.savdo.dto.branch.BranchStatsResponse;
 import uz.savdo.entity.Branch;
+import uz.savdo.entity.Sale;
 import uz.savdo.exception.BadRequestException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.BranchRepository;
+import uz.savdo.repository.StockLevelRepository;
+import uz.savdo.repository.UserRepository;
 import uz.savdo.security.CurrentUserService;
+import uz.savdo.service.ReportService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +29,9 @@ public class BranchController {
 
     private final BranchRepository branchRepository;
     private final CurrentUserService currentUserService;
+    private final UserRepository userRepository;
+    private final StockLevelRepository stockLevelRepository;
+    private final ReportService reportService;
 
     @GetMapping
     public List<BranchResponse> list() {
@@ -48,6 +57,43 @@ public class BranchController {
                 .toList();
     }
 
+    @GetMapping("/{id}")
+    public BranchResponse getOne(@PathVariable Long id) {
+        currentUserService.assertCanAccessBranch(id);
+
+        Branch branch = branchRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filial topilmadi: " + id));
+        return BranchResponse.from(branch);
+    }
+
+    @GetMapping("/{id}/stats")
+    public BranchStatsResponse stats(@PathVariable Long id) {
+        currentUserService.assertCanAccessBranch(id);
+
+        int staffCount = (int) userRepository.findAllByBranchIdAndIsDeletedFalseOrderByIdAsc(id).stream()
+                .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
+                .count();
+        int productCount = stockLevelRepository.findAllByBranchIdAndIsDeletedFalseOrderByIdAsc(id).size();
+        int lowStockCount = reportService.countLowStock(List.of(id));
+
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+
+        List<Sale> monthSales = reportService.fetchSales(List.of(id), monthStart, today);
+        List<Sale> todaySales = monthSales.stream()
+                .filter(s -> s.getCreatedAt().toLocalDate().isEqual(today))
+                .toList();
+
+        return BranchStatsResponse.builder()
+                .staffCount(staffCount)
+                .productCount(productCount)
+                .lowStockCount(lowStockCount)
+                .todaySalesTotal(ReportService.sumRevenue(todaySales))
+                .todaySalesCount(todaySales.size())
+                .monthSalesTotal(ReportService.sumRevenue(monthSales))
+                .build();
+    }
+
     @PostMapping
     public ResponseEntity<BranchResponse> create(@Valid @RequestBody BranchRequest request) {
         currentUserService.assertIsOwner();
@@ -55,6 +101,8 @@ public class BranchController {
         Branch branch = Branch.builder()
                 .name(request.getName())
                 .address(request.getAddress())
+                .phone(request.getPhone())
+                .workingHours(request.getWorkingHours())
                 .isActive(true)
                 .build();
         branch = branchRepository.save(branch);
@@ -73,6 +121,8 @@ public class BranchController {
                 .orElseThrow(() -> new ResourceNotFoundException("Filial topilmadi: " + id));
         branch.setName(request.getName());
         branch.setAddress(request.getAddress());
+        branch.setPhone(request.getPhone());
+        branch.setWorkingHours(request.getWorkingHours());
         branch.setIsActive(request.getIsActive());
         branch = branchRepository.save(branch);
 
