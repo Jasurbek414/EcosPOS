@@ -196,20 +196,22 @@ function ProfileCard() {
               </div>
             )}
 
-            <div className={profile.branchName ? 'border-t border-slate-100 dark:border-slate-700 pt-6' : ''}>
-              <div className="flex items-center gap-2 mb-4">
-                <Pencil size={15} className="text-slate-400 dark:text-slate-500" />
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.editNameTitle')}</h3>
+            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${profile.branchName ? 'border-t border-slate-100 dark:border-slate-700 pt-6' : ''}`}>
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Pencil size={15} className="text-slate-400 dark:text-slate-500" />
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.editNameTitle')}</h3>
+                </div>
+                <ProfileNameForm profile={profile} onUpdated={setProfile} />
               </div>
-              <ProfileNameForm profile={profile} onUpdated={setProfile} />
-            </div>
 
-            <div className="border-t border-slate-100 dark:border-slate-700 pt-6 flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                <KeyRound size={15} className="text-slate-400 dark:text-slate-500" />
-                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.changePasswordTitle')}</h3>
+              <div className="lg:border-l lg:border-slate-100 lg:dark:border-slate-700 lg:pl-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <KeyRound size={15} className="text-slate-400 dark:text-slate-500" />
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.changePasswordTitle')}</h3>
+                </div>
+                <ChangePasswordForm />
               </div>
-              <ChangePasswordForm />
             </div>
           </>
         )}
