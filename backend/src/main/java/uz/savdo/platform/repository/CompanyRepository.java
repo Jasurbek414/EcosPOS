@@ -32,6 +32,9 @@ public class CompanyRepository {
             .dbPort(rs.getInt("db_port"))
             .dbName(rs.getString("db_name"))
             .dbUsername(rs.getString("db_username"))
+            .address(rs.getString("address"))
+            .phone(rs.getString("phone"))
+            .logoUrl(rs.getString("logo_url"))
             .status(CompanyStatus.valueOf(rs.getString("status")))
             .blockedReason(rs.getString("blocked_reason"))
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
@@ -103,6 +106,15 @@ public class CompanyRepository {
     /** Kompaniya nomini (display name) o'zgartirish — slug (login uchun) O'ZGARMAYDI. */
     public void updateName(Long id, String name) {
         jdbc.update("UPDATE companies SET name = ?, updated_at = now() WHERE id = ?", name, id);
+    }
+
+    /**
+     * Tenant OWNER'ning o'z-o'ziga xizmat ko'rsatish profilini yangilashi — nom, manzil,
+     * telefon va logo URL (chek/kvitansiyalarda ko'rsatish uchun). slug O'ZGARMAYDI.
+     */
+    public void updateProfile(Long id, String name, String address, String phone, String logoUrl) {
+        jdbc.update("UPDATE companies SET name = ?, address = ?, phone = ?, logo_url = ?, updated_at = now() WHERE id = ?",
+                name, address, phone, logoUrl, id);
     }
 
     /** Kompaniyaga biriktirilgan rejani o'zgartirish/olib tashlash (planId null bo'lsa — rejasiz). */

@@ -22,6 +22,9 @@ public class Company {
     private Integer dbPort;
     private String dbName;
     private String dbUsername;
+    private String address;
+    private String phone;
+    private String logoUrl;
     private CompanyStatus status;
     private String blockedReason;
     private LocalDateTime blockedAt;

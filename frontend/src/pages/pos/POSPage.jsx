@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import {
-  branchService, cashShiftService, categoryService, posProductService, productService, saleService,
+  branchService, cashShiftService, categoryService, companyInfoService, posProductService, productService,
+  resolveFileUrl, saleService,
 } from '../../services/api';
 
 const ROUND_STEPS = [10000, 50000, 100000];
@@ -221,16 +222,26 @@ function CloseShiftResult({ result, onDone }) {
   );
 }
 
-function ReceiptView({ receipt, onNewSale }) {
+function ReceiptView({ receipt, onNewSale, company }) {
   const { t } = useTranslation();
+  const resolvedLogoUrl = resolveFileUrl(company?.logoUrl);
   return (
     <div className="flex flex-col items-center gap-5 py-4">
       <div className="receipt-slip flex flex-col gap-4">
         <div className="text-center flex flex-col items-center gap-2">
-          <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center">
-            <ReceiptText size={20} className="text-white" />
-          </div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-wide">{t('pos.receipt.title')}</h2>
+          {resolvedLogoUrl ? (
+            <img src={resolvedLogoUrl} alt={company.name || ''} className="w-11 h-11 rounded-xl object-cover" />
+          ) : (
+            <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center">
+              <ReceiptText size={20} className="text-white" />
+            </div>
+          )}
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-wide">
+            {company?.name || t('pos.receipt.title')}
+          </h2>
+          {company?.name && <p className="text-slate-400 dark:text-slate-500 text-[11px] uppercase tracking-wide -mt-1">{t('pos.receipt.title')}</p>}
+          {company?.address && <p className="text-slate-500 dark:text-slate-400 text-xs">{company.address}</p>}
+          {company?.phone && <p className="text-slate-500 dark:text-slate-400 text-xs">{company.phone}</p>}
           <p className="text-slate-400 dark:text-slate-500 text-xs">
             #{receipt.id} · {new Date(receipt.createdAt).toLocaleString('uz-UZ')}
           </p>
@@ -384,6 +395,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [companyInfo, setCompanyInfo] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -397,6 +409,21 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       .finally(() => {
         if (!cancelled) setCatalogLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Kompaniya brend ma'lumotlari (nom/manzil/telefon/logotip) — sahifa ochilganda
+  // bir marta yuklanadi va chek chop etilganda ReceiptView'ga uzatiladi.
+  useEffect(() => {
+    let cancelled = false;
+    companyInfoService
+      .get()
+      .then((res) => {
+        if (!cancelled) setCompanyInfo(res.data);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -554,7 +581,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
       {receipt ? (
         <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
-          <ReceiptView receipt={receipt} onNewSale={handleNewSale} />
+          <ReceiptView receipt={receipt} onNewSale={handleNewSale} company={companyInfo} />
         </div>
       ) : (
         <div className="flex flex-col xl:flex-row gap-4 xl:flex-1 xl:min-h-0 xl:items-stretch">

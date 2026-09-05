@@ -83,6 +83,22 @@ public class UserController {
             throw new BadRequestException("MANAGER/CASHIER uchun filial (branchId) kiritilishi shart");
         }
 
+        User current = currentUserService.getCurrentUser();
+        if (current.getId().equals(id)
+                && (request.getRole() != UserRole.OWNER || !Boolean.TRUE.equals(request.getIsActive()))) {
+            throw new BadRequestException("O'z rolingizni yoki faollik holatingizni bu yerdan o'zgartira olmaysiz");
+        }
+
+        // Kompaniyada kamida bitta faol OWNER qolishi shart — oxirgi faol OWNER'ni
+        // rolini o'zgartirib yoki faolsizlantirib kompaniyani "egasiz" qoldirish oldini olinadi.
+        boolean isActiveOwner = user.getRole() == UserRole.OWNER && Boolean.TRUE.equals(user.getIsActive());
+        boolean removesOwnerRole = isActiveOwner && request.getRole() != UserRole.OWNER;
+        boolean deactivatesOwner = isActiveOwner && !Boolean.TRUE.equals(request.getIsActive());
+        if ((removesOwnerRole || deactivatesOwner)
+                && userRepository.countByRoleAndIsActiveTrueAndIsDeletedFalse(UserRole.OWNER) <= 1) {
+            throw new BadRequestException("Kompaniyada kamida bitta faol OWNER qolishi shart");
+        }
+
         user.setFullName(request.getFullName());
         user.setRole(request.getRole());
         user.setBranchId(request.getRole() == UserRole.OWNER ? null : request.getBranchId());

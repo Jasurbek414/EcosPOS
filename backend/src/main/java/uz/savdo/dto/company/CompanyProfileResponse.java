@@ -18,6 +18,9 @@ public class CompanyProfileResponse {
     private Long id;
     private String name;
     private String slug;
+    private String address;
+    private String phone;
+    private String logoUrl;
     private Long planId;
     private String planName;
     private LocalDateTime createdAt;
@@ -28,6 +31,9 @@ public class CompanyProfileResponse {
                 .id(c.getId())
                 .name(c.getName())
                 .slug(c.getSlug())
+                .address(c.getAddress())
+                .phone(c.getPhone())
+                .logoUrl(c.getLogoUrl())
                 .planId(c.getPlanId())
                 .planName(plan != null ? plan.getName() : null)
                 .createdAt(c.getCreatedAt())

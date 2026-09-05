@@ -201,4 +201,10 @@ export const companyProfileService = {
   update: (data) => api.put('/company', data),
 };
 
+// Har qanday autentifikatsiya qilingan tenant foydalanuvchisi (OWNER/MANAGER/CASHIER)
+// uchun — faqat chek(receipt)da ko'rsatiladigan brend ma'lumotlari (name/address/phone/logoUrl).
+export const companyInfoService = {
+  get: () => api.get('/company/info'),
+};
+
 export default api;

@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays } from 'lucide-react';
+import { UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { profileService, companyProfileService } from '../../services/api';
+import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
 import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 
 const ROLE_BADGE = { OWNER: 'badge-amber', MANAGER: 'badge-blue', CASHIER: 'badge-slate' };
+// ProductsPage.jsx'dagi rasm yuklash validatsiyasi bilan bir xil — alohida umumiy
+// util fayl yo'q bo'lgani uchun shu yerda takrorlanadi.
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 function InfoField({ icon: Icon, label, value }) {
   return (
@@ -201,18 +205,33 @@ function ProfileCard() {
   );
 }
 
-// Kompaniya nomini tahrirlash formasi — faqat `company` yuklangandan keyin mount qilinadi.
-function CompanyNameForm({ company, onUpdated }) {
+// Kompaniya nomi/manzil/telefonini tahrirlash formasi — faqat `company` yuklangandan
+// keyin mount qilinadi. Uchalasi ham oddiy matn maydonlari bo'lgani uchun bitta forma
+// va bitta PUT so'rovi orqali birgalikda saqlanadi. `logoUrl` joriy qiymati ham har
+// safar birga yuboriladi — backend partial-update semantikasidan qat'i nazar, forma
+// saqlanganda logotip o'chib qolmasligi uchun.
+function CompanyDetailsForm({ company, onUpdated }) {
   const { t } = useTranslation();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { name: company.name || '' } });
+  } = useForm({
+    defaultValues: {
+      name: company.name || '',
+      address: company.address || '',
+      phone: company.phone || '',
+    },
+  });
 
   const onSubmit = async (data) => {
     try {
-      const res = await companyProfileService.update({ name: data.name });
+      const res = await companyProfileService.update({
+        name: data.name,
+        address: data.address || null,
+        phone: data.phone || null,
+        logoUrl: company.logoUrl || null,
+      });
       onUpdated(res.data);
       toast.success(t('settings.companyUpdateSuccess'));
     } catch (err) {
@@ -233,11 +252,107 @@ function CompanyNameForm({ company, onUpdated }) {
         {errors.name && <p className="field-error">{t('common.required')}</p>}
       </div>
       <div>
+        <label className="field-label">{t('settings.address')}</label>
+        <input
+          type="text"
+          className="input-field max-w-sm"
+          placeholder={t('settings.addressPlaceholder')}
+          {...register('address')}
+        />
+      </div>
+      <div>
+        <label className="field-label">{t('settings.phone')}</label>
+        <input
+          type="text"
+          className="input-field max-w-sm"
+          placeholder={t('settings.phonePlaceholder')}
+          {...register('phone')}
+        />
+      </div>
+      <div>
         <button type="submit" disabled={isSubmitting} className="btn btn-primary w-fit">
           {t('settings.saveBtn')}
         </button>
       </div>
     </form>
+  );
+}
+
+// Kompaniya logotipini yuklash — ProductsPage.jsx'dagi ProductModal rasm yuklash
+// naqshi bilan bir xil (.inv-upload-box/.inv-upload-overlay), lekin fayl tanlangan
+// zahoti yuklanadi VA darhol saqlanadi (name/manzil/telefon formasidan mustaqil) —
+// logotip kabi kompaniya darajasidagi sozlama uchun foydalanuvchi rasmni tanlagan
+// zahoti qo'llanishini kutadi, alohida "Saqlash" bosishni talab qilish keraksiz qadam bo'lardi.
+function CompanyLogoUpload({ company, onUpdated }) {
+  const { t } = useTranslation();
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const resolvedLogoUrl = resolveFileUrl(company.logoUrl);
+
+  const handleSelect = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error(t('inventory.products.imageInvalidType'));
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(t('inventory.products.imageTooLarge'));
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadRes = await fileService.upload(file);
+      const updateRes = await companyProfileService.update({
+        name: company.name,
+        address: company.address || null,
+        phone: company.phone || null,
+        logoUrl: uploadRes.data.url,
+      });
+      onUpdated(updateRes.data);
+      toast.success(t('settings.companyUpdateSuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('inventory.products.imageUploadError'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="field-label">{t('settings.logo')}</label>
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept={ALLOWED_IMAGE_TYPES.join(',')}
+        className="hidden"
+        onChange={handleSelect}
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="inv-upload-box"
+        disabled={uploading}
+        title={t('settings.uploadLogoHint')}
+      >
+        {resolvedLogoUrl ? (
+          <img src={resolvedLogoUrl} alt={company.name} />
+        ) : (
+          <>
+            <ImagePlus size={22} />
+            <span className="inv-upload-box-hint">{t('settings.uploadLogoHint')}</span>
+          </>
+        )}
+        {uploading && (
+          <div className="inv-upload-overlay">
+            <Loader2 size={22} className="animate-spin" />
+          </div>
+        )}
+      </button>
+    </div>
   );
 }
 
@@ -269,9 +384,13 @@ function CompanyCard() {
   return (
     <div className="card overflow-hidden">
       <div className="settings-card-banner settings-card-banner-dark">
-        <div className="settings-avatar settings-avatar-square">
-          <Building2 size={22} />
-        </div>
+        {!loading && company?.logoUrl ? (
+          <img src={resolveFileUrl(company.logoUrl)} alt={company.name} className="settings-avatar settings-avatar-square object-cover" />
+        ) : (
+          <div className="settings-avatar settings-avatar-square">
+            <Building2 size={22} />
+          </div>
+        )}
         <div className="min-w-0">
           <h2 className="text-white font-bold text-base truncate">{loading || !company ? t('settings.companyTitle') : company.name}</h2>
           <span className="text-slate-400 dark:text-slate-500 text-xs">{t('settings.companyTitle')}</span>
@@ -307,8 +426,13 @@ function CompanyCard() {
             </div>
 
             <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.logo')}</h3>
+              <CompanyLogoUpload company={company} onUpdated={setCompany} />
+            </div>
+
+            <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
               <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.editCompanyNameTitle')}</h3>
-              <CompanyNameForm company={company} onUpdated={setCompany} />
+              <CompanyDetailsForm company={company} onUpdated={setCompany} />
             </div>
           </>
         )}

@@ -3,6 +3,7 @@ package uz.savdo.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import uz.savdo.dto.company.CompanyInfoResponse;
 import uz.savdo.dto.company.CompanyProfileResponse;
 import uz.savdo.dto.company.CompanyProfileUpdateRequest;
 import uz.savdo.exception.ResourceNotFoundException;
@@ -46,9 +47,25 @@ public class CompanyProfileController {
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
 
-        companyRepository.updateName(companyId, request.getName());
+        companyRepository.updateProfile(companyId, request.getName(), request.getAddress(),
+                request.getPhone(), request.getLogoUrl());
         company.setName(request.getName());
+        company.setAddress(request.getAddress());
+        company.setPhone(request.getPhone());
+        company.setLogoUrl(request.getLogoUrl());
 
         return CompanyProfileResponse.from(company, resolvePlan(company));
+    }
+
+    /**
+     * Chek/kvitansiyalarda ko'rsatish uchun minimal biznes ma'lumotlari — istalgan
+     * autentifikatsiyalangan tenant foydalanuvchisiga ochiq (MANAGER/CASHIER ham chek
+     * chiqaradi), shuning uchun assertIsOwner() ATAYLAB chaqirilmagan.
+     */
+    @GetMapping("/info")
+    public CompanyInfoResponse info(@RequestAttribute("companyId") Long companyId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+        return CompanyInfoResponse.from(company);
     }
 }

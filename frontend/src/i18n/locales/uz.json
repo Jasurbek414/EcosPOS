@@ -111,10 +111,46 @@
     "resetPasswordWarning": "Bu parol faqat HOZIR ko'rsatiladi va boshqa hech qayerda saqlanmaydi. Uni nusxalab, xodimga xavfsiz yo'l bilan yetkazing.",
     "loadError": "Xodimlar ro'yxatini yuklab bo'lmadi",
     "empty": "Hozircha xodimlar yo'q",
+    "searchPlaceholder": "F.I.O. yoki login bo'yicha qidirish...",
+    "filterAll": "Barchasi",
+    "editSelfHint": "O'zingizning rolingiz va faolligingizni bu yerdan o'zgartira olmaysiz",
     "roles": {
       "OWNER": "Egasi",
       "MANAGER": "Menejer",
       "CASHIER": "Kassir"
+    },
+    "stats": {
+      "total": "Jami faol xodimlar",
+      "owners": "Egalar",
+      "managers": "Menejerlar",
+      "cashiers": "Kassirlar"
+    },
+    "rolesPermissions": {
+      "title": "Rollar va huquqlar",
+      "subtitle": "Har bir rol tizimda nimalarni qila olishi haqida ma'lumot",
+      "action": "Amal",
+      "yes": "Ha",
+      "no": "Yo'q",
+      "rows": {
+        "pos": "Kassa (sotuv)",
+        "stockView": "Ombor — ko'rish",
+        "stockManage": "Ombor — kirim/tuzatish/ko'chirish",
+        "catalogView": "Katalog (mahsulot/kategoriya/ta'minotchi) — ko'rish",
+        "catalogManage": "Katalog — qo'shish/tahrirlash",
+        "reports": "Hisobotlar",
+        "staffView": "Xodimlar — ko'rish",
+        "staffManage": "Xodimlar — qo'shish/tahrirlash/o'chirish",
+        "branchManage": "Filiallar — boshqarish",
+        "companySettings": "Kompaniya sozlamalari (nom/manzil/logo/reja)",
+        "ownProfile": "O'z profili/paroli"
+      },
+      "notes": {
+        "allBranches": "Barcha filiallarda",
+        "ownBranch": "Faqat o'z filialida",
+        "ownBranchTransfer": "Faqat o'z filiali (yoki ko'chirishda kamida bitta tomon o'ziniki)",
+        "all": "Barchasi",
+        "ownBranchViewOnly": "Faqat o'zinikini ko'radi"
+      }
     }
   },
   "inventory": {
@@ -556,9 +592,15 @@
     "changePasswordError": "Parolni o'zgartirishda xatolik",
     "passwordMismatch": "Parollar mos kelmadi",
     "companyTitle": "Kompaniya ma'lumotlari",
-    "editCompanyNameTitle": "Kompaniya nomini tahrirlash",
+    "editCompanyNameTitle": "Kompaniya ma'lumotlarini tahrirlash",
     "companyName": "Kompaniya nomi",
     "companyNamePlaceholder": "Kompaniya nomi",
+    "address": "Manzil",
+    "addressPlaceholder": "Kompaniya manzili",
+    "phone": "Telefon",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "logo": "Logotip",
+    "uploadLogoHint": "Logotip yuklash uchun bosing",
     "slug": "Kod (slug)",
     "slugHint": "Bu tizimga kirish kodi — bu yerdan o'zgartirib bo'lmaydi",
     "plan": "Tarif",

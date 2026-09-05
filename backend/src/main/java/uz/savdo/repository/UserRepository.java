@@ -23,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** Provisioning paytida seed qilingan "admin" foydalanuvchisini topish uchun. */
     Optional<User> findFirstByRoleAndIsDeletedFalseOrderByIdAsc(UserRole role);
+
+    /** Kompaniyada nechta faol OWNER qolganini tekshirish uchun (oxirgi OWNER'ni himoya qilish). */
+    long countByRoleAndIsActiveTrueAndIsDeletedFalse(UserRole role);
 }
