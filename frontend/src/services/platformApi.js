@@ -63,6 +63,9 @@ export const companyService = {
   unblock: (id) => platformApi.patch(`/companies/${id}/unblock`),
   resetAdminPassword: (id) => platformApi.post(`/companies/${id}/reset-admin-password`),
   assignPlan: (id, planId) => platformApi.patch(`/companies/${id}/plan`, { planId }),
+  // "Filiallar funksiyasi" — tenant sidebar'idagi Filiallar bo'limini butunlay
+  // yoqish/o'chirish uchun superadmin boshqaruvi (CompanyDetailPage'dagi BranchesFeatureToggle).
+  toggleBranchesFeature: (id, enabled) => platformApi.patch(`/companies/${id}/branches-feature`, { enabled }),
 };
 
 // Tariflarni boshqarish (Tariflar bo'limi) — platformAdminService bilan bir xil

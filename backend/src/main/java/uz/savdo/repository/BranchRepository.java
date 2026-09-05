@@ -13,4 +13,6 @@ public interface BranchRepository extends JpaRepository<Branch, Long> {
     List<Branch> findAllByIsDeletedFalseOrderByIdAsc();
 
     Optional<Branch> findByIdAndIsDeletedFalse(Long id);
+
+    long countByIsDeletedFalse();
 }

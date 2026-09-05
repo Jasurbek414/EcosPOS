@@ -25,6 +25,7 @@ public class CompanyInfoResponse {
     private String receiptHeaderText;
     private Boolean receiptShowBranchName;
     private String receiptCurrencyLabel;
+    private Boolean branchesFeatureEnabled;
 
     public static CompanyInfoResponse from(Company c) {
         return CompanyInfoResponse.builder()
@@ -40,6 +41,7 @@ public class CompanyInfoResponse {
                 .receiptHeaderText(c.getReceiptHeaderText())
                 .receiptShowBranchName(c.getReceiptShowBranchName())
                 .receiptCurrencyLabel(c.getReceiptCurrencyLabel())
+                .branchesFeatureEnabled(c.getBranchesFeatureEnabled())
                 .build();
     }
 }

@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History, Pencil } from 'lucide-react';
+import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
 import { companyService, platformPlanService } from '../../services/platformApi';
 import { STATUS_BADGE } from './constants';
 
@@ -193,6 +193,51 @@ function PlanAssignField({ company, onSaved }) {
           {t('common.cancel')}
         </button>
       </div>
+    </div>
+  );
+}
+
+// "Filiallar funksiyasi" — kompaniyaning butun tenant sidebar'idagi Filiallar bo'limini
+// ko'rsatish/yashirishni boshqaradi. PlanAssignField bilan bir xil "toggle-to-edit emas,
+// to'g'ridan-to'g'ri amal" naqshi: joriy holat + bitta tugma, faqat OFF qilishda
+// window.confirm (BranchListPage.jsx'dagi handleDelete kabi), chunki bu butun bir menyu
+// bandini tenant foydalanuvchilaridan yashiradi.
+function BranchesFeatureToggle({ company, onSaved }) {
+  const { t } = useTranslation();
+  const [saving, setSaving] = useState(false);
+  const enabled = company.branchesFeatureEnabled !== false;
+
+  const handleToggle = async () => {
+    if (enabled && !window.confirm(t('branches.disableConfirm'))) return;
+    setSaving(true);
+    try {
+      const res = await companyService.toggleBranchesFeature(company.id, !enabled);
+      onSaved(res.data);
+      toast.success(t('superadmin.updateCompanySuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('superadmin.updateCompanyError'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-end justify-between gap-3">
+      <div className="flex flex-col gap-1">
+        <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('branches.featureTitle')}</span>
+        <span className={enabled ? 'badge badge-green w-fit' : 'badge badge-slate w-fit'}>
+          {enabled ? t('branches.featureEnabled') : t('branches.featureDisabled')}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={saving}
+        className={`flex items-center gap-1.5 text-xs font-semibold cursor-pointer shrink-0 ${enabled ? 'text-red-600 hover:text-red-700' : 'text-amber-700 hover:text-amber-800'}`}
+      >
+        {enabled ? <ToggleLeft size={15} /> : <ToggleRight size={15} />}
+        {enabled ? t('branches.disableFeature') : t('branches.enableFeature')}
+      </button>
     </div>
   );
 }
@@ -418,6 +463,13 @@ export default function CompanyDetailPage() {
               <div className="card p-7 flex flex-col gap-4">
                 <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('plans.title')}</h2>
                 <PlanAssignField company={company} onSaved={setCompany} />
+              </div>
+
+              {/* Filiallar funksiyasi — Reja bilan bir xil "kompaniya imkoniyati" boshqaruvi,
+                  shu sabab vizual jihatdan yonma-yon joylashtirildi. */}
+              <div className="card p-7 flex flex-col gap-4">
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('branches.featureTitle')}</h2>
+                <BranchesFeatureToggle company={company} onSaved={setCompany} />
               </div>
 
               {adminCreds && <AdminCredentialsPanel result={adminCreds} onClose={() => setAdminCreds(null)} />}

@@ -18,6 +18,7 @@ public class CompanyDetailResponse {
     private String planName;
     private String blockedReason;
     private LocalDateTime blockedAt;
+    private Boolean branchesFeatureEnabled;
     private LocalDateTime createdAt;
 
     /** Kompaniyaga reja biriktirilmagan bo'lsa {@code plan} null uzatiladi. */
@@ -31,6 +32,7 @@ public class CompanyDetailResponse {
                 .planName(plan != null ? plan.getName() : null)
                 .blockedReason(c.getBlockedReason())
                 .blockedAt(c.getBlockedAt())
+                .branchesFeatureEnabled(c.getBranchesFeatureEnabled())
                 .createdAt(c.getCreatedAt())
                 .build();
     }

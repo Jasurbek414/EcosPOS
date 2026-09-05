@@ -14,6 +14,7 @@ import uz.savdo.platform.dto.CompanyDetailResponse;
 import uz.savdo.platform.dto.CompanyResponse;
 import uz.savdo.platform.dto.CreateCompanyRequest;
 import uz.savdo.platform.dto.CreateCompanyResponse;
+import uz.savdo.platform.dto.ToggleBranchesFeatureRequest;
 import uz.savdo.platform.dto.UpdateCompanyRequest;
 import uz.savdo.platform.entity.Company;
 import uz.savdo.platform.entity.Plan;
@@ -113,6 +114,22 @@ public class CompanyController {
 
         company.setPlanId(request.getPlanId());
         return CompanyDetailResponse.from(company, newPlan);
+    }
+
+    @PatchMapping("/{id}/branches-feature")
+    public CompanyDetailResponse toggleBranchesFeature(@AuthenticationPrincipal PlatformUser currentAdmin,
+                                                         @PathVariable Long id,
+                                                         @Valid @RequestBody ToggleBranchesFeatureRequest request) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+
+        companyRepository.updateBranchesFeatureEnabled(id, request.getEnabled());
+        platformAuditLogService.log(currentAdmin.getId(), "COMPANY_BRANCHES_FEATURE_TOGGLED", id,
+                "Filiallar funksiyasi: " + (request.getEnabled() ? "yoqildi" : "o'chirildi"));
+
+        company.setBranchesFeatureEnabled(request.getEnabled());
+        Plan plan = company.getPlanId() != null ? planRepository.findById(company.getPlanId()).orElse(null) : null;
+        return CompanyDetailResponse.from(company, plan);
     }
 
     @PatchMapping("/{id}/block")

@@ -16,6 +16,7 @@ public class CompanyResponse {
     private String status;
     private Long planId;
     private String planName;
+    private Boolean branchesFeatureEnabled;
     private LocalDateTime createdAt;
 
     /** Kompaniyaga reja biriktirilmagan bo'lsa {@code plan} null uzatiladi. */
@@ -27,6 +28,7 @@ public class CompanyResponse {
                 .status(c.getStatus().name())
                 .planId(c.getPlanId())
                 .planName(plan != null ? plan.getName() : null)
+                .branchesFeatureEnabled(c.getBranchesFeatureEnabled())
                 .createdAt(c.getCreatedAt())
                 .build();
     }

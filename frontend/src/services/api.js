@@ -103,6 +103,9 @@ export const branchService = {
   create: (data) => api.post('/branches', data),
   update: (id, data) => api.put(`/branches/${id}`, data),
   remove: (id) => api.delete(`/branches/${id}`),
+  // Tarif bo'yicha filiallar soni limiti + "Filiallar funksiyasi" yoqilganligi —
+  // BranchListPage'da "+ Yangi filial" tugmasini disable qilish uchun ishlatiladi.
+  limits: () => api.get('/branches/limits'),
 };
 
 export const userService = {

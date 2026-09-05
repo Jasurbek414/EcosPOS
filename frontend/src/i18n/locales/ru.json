@@ -103,7 +103,17 @@
       "todaySales": "Продажи сегодня",
       "monthSales": "Продажи за месяц",
       "checks": "чеков"
-    }
+    },
+    "featureTitle": "Функция филиалов",
+    "featureEnabled": "Включена",
+    "featureDisabled": "Отключена",
+    "enableFeature": "Включить",
+    "disableFeature": "Отключить",
+    "disableConfirm": "Отключить функцию филиалов? В этом случае раздел \"Филиалы\" будет скрыт для всех пользователей компании.",
+    "limitReached": "Лимит тарифа исчерпан",
+    "featureDisabledTooltip": "Эта функция не активирована",
+    "usageLabel": "Лимит филиалов",
+    "usageUnlimited": "филиал (без ограничений)"
   },
   "staff": {
     "title": "Сотрудники",

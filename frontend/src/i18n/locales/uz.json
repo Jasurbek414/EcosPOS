@@ -103,7 +103,17 @@
       "todaySales": "Bugungi savdo",
       "monthSales": "Shu oy savdo",
       "checks": "chek"
-    }
+    },
+    "featureTitle": "Filiallar funksiyasi",
+    "featureEnabled": "Yoqilgan",
+    "featureDisabled": "O'chirilgan",
+    "enableFeature": "Yoqish",
+    "disableFeature": "O'chirish",
+    "disableConfirm": "Filiallar funksiyasini o'chirmoqchimisiz? Bu holatda \"Filiallar\" bo'limi kompaniyaning barcha foydalanuvchilari uchun yashiriladi.",
+    "limitReached": "Tarif limiti to'lgan",
+    "featureDisabledTooltip": "Bu funksiya faollashtirilmagan",
+    "usageLabel": "Filiallar limiti",
+    "usageUnlimited": "filial (cheksiz)"
   },
   "staff": {
     "title": "Xodimlar",

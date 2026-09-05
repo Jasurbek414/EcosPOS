@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Building2, Plus, Trash2, Search, CheckCircle2, X } from 'lucide-react';
+import { Building2, Plus, Trash2, Search, CheckCircle2, X, Gauge } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { branchService } from '../../services/api';
 
@@ -100,6 +100,23 @@ export default function BranchListPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
 
+  // Tarif bo'yicha filiallar limiti — StockPage.jsx/AccountingPage.jsx'dagi kabi
+  // mustaqil, o'z bo'limiga xos useState/useEffect (asosiy `branches` ro'yxatidan alohida).
+  const [limits, setLimits] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    branchService
+      .limits()
+      .then((res) => {
+        if (!cancelled) setLimits(res.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const reload = useCallback(async () => {
     setLoading(true);
     try {
@@ -157,6 +174,18 @@ export default function BranchListPage() {
 
   const activeCount = useMemo(() => branches.filter((b) => b.isActive ?? true).length, [branches]);
 
+  // Yaratish tugmasini bloklash sabablari — limit tugagan (faqat maxBranches son bo'lganda)
+  // yoki funksiya butunlay o'chirilgan (OWNER eski tab'da sahifani ochiq qoldirgan bo'lishi
+  // mumkin, sidebar havolasi allaqachon yashirilgan bo'lsa ham).
+  const limitReached = limits != null && limits.maxBranches != null && limits.currentCount >= limits.maxBranches;
+  const featureDisabled = limits?.featureEnabled === false;
+  const createDisabled = limitReached || featureDisabled;
+  const createDisabledTitle = featureDisabled
+    ? t('branches.featureDisabledTooltip')
+    : limitReached
+      ? t('branches.limitReached')
+      : undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -165,7 +194,13 @@ export default function BranchListPage() {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('branches.subtitle')}</p>
         </div>
         {isOwner && (
-          <button type="button" onClick={() => setModalOpen(true)} className="btn btn-primary">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            disabled={createDisabled}
+            title={createDisabledTitle}
+            className="btn btn-primary"
+          >
             <Plus size={16} />
             {t('branches.newBranch')}
           </button>
@@ -173,7 +208,7 @@ export default function BranchListPage() {
       </div>
 
       {!loading && branches.length > 0 && (
-        <div className="grid grid-cols-2 gap-5 max-w-lg">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 max-w-2xl">
           <div className="card p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600">
               <Building2 size={22} />
@@ -196,6 +231,23 @@ export default function BranchListPage() {
               <p className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-0.5">{activeCount}</p>
             </div>
           </div>
+          {limits && (
+            <div className="card p-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${limitReached ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                <Gauge size={22} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide truncate">
+                  {t('branches.usageLabel')}
+                </p>
+                <p className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-0.5">
+                  {limits.maxBranches == null
+                    ? `${limits.currentCount} ${t('branches.usageUnlimited')}`
+                    : `${limits.currentCount} / ${limits.maxBranches}`}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

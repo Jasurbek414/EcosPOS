@@ -37,6 +37,7 @@ public class Company {
     private String blockedReason;
     private LocalDateTime blockedAt;
     private Long planId;
+    private Boolean branchesFeatureEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;

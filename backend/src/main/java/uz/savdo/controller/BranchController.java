@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uz.savdo.dto.branch.BranchLimitsResponse;
 import uz.savdo.dto.branch.BranchNameResponse;
 import uz.savdo.dto.branch.BranchRequest;
 import uz.savdo.dto.branch.BranchResponse;
@@ -11,7 +12,12 @@ import uz.savdo.dto.branch.BranchStatsResponse;
 import uz.savdo.entity.Branch;
 import uz.savdo.entity.Sale;
 import uz.savdo.exception.BadRequestException;
+import uz.savdo.exception.ForbiddenException;
 import uz.savdo.exception.ResourceNotFoundException;
+import uz.savdo.platform.entity.Company;
+import uz.savdo.platform.entity.Plan;
+import uz.savdo.platform.repository.CompanyRepository;
+import uz.savdo.platform.repository.PlanRepository;
 import uz.savdo.repository.BranchRepository;
 import uz.savdo.repository.StockLevelRepository;
 import uz.savdo.repository.UserRepository;
@@ -32,6 +38,17 @@ public class BranchController {
     private final UserRepository userRepository;
     private final StockLevelRepository stockLevelRepository;
     private final ReportService reportService;
+    private final CompanyRepository companyRepository;
+    private final PlanRepository planRepository;
+
+    /** Kompaniyaning rejasidan (plan) kelgan filiallar soni chegarasi — reja yo'q/maxBranches null bo'lsa cheksiz. */
+    private Integer resolveMaxBranches(Company company) {
+        if (company.getPlanId() == null) {
+            return null;
+        }
+        Plan plan = planRepository.findById(company.getPlanId()).orElse(null);
+        return plan != null ? plan.getMaxBranches() : null;
+    }
 
     @GetMapping
     public List<BranchResponse> list() {
@@ -55,6 +72,23 @@ public class BranchController {
                 .filter(Branch::getIsActive)
                 .map(BranchNameResponse::from)
                 .toList();
+    }
+
+    /**
+     * Joriy filiallar soni, rejadan kelgan yuqori chegara va "Filiallar" funksiyasi
+     * yoqilgan/o'chirilganligi — frontend "X / Y filiallar" ko'rsatishi va limit
+     * to'lganda "Yangi filial" tugmasini oldindan o'chirib qo'yishi uchun. {@code list()}
+     * kabi barcha autentifikatsiyalangan foydalanuvchilarga ochiq.
+     */
+    @GetMapping("/limits")
+    public BranchLimitsResponse limits(@RequestAttribute("companyId") Long companyId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+        return BranchLimitsResponse.builder()
+                .currentCount((int) branchRepository.countByIsDeletedFalse())
+                .maxBranches(resolveMaxBranches(company))
+                .featureEnabled(Boolean.TRUE.equals(company.getBranchesFeatureEnabled()))
+                .build();
     }
 
     @GetMapping("/{id}")
@@ -95,8 +129,23 @@ public class BranchController {
     }
 
     @PostMapping
-    public ResponseEntity<BranchResponse> create(@Valid @RequestBody BranchRequest request) {
+    public ResponseEntity<BranchResponse> create(@RequestAttribute("companyId") Long companyId,
+                                                  @Valid @RequestBody BranchRequest request) {
         currentUserService.assertIsOwner();
+
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+        if (!Boolean.TRUE.equals(company.getBranchesFeatureEnabled())) {
+            throw new ForbiddenException("Filiallar funksiyasi bu kompaniya uchun faollashtirilmagan");
+        }
+        Integer maxBranches = resolveMaxBranches(company);
+        if (maxBranches != null) {
+            long currentCount = branchRepository.countByIsDeletedFalse();
+            if (currentCount >= maxBranches) {
+                throw new BadRequestException("Filiallar limiti to'lgan (" + currentCount + "/" + maxBranches
+                        + "). Tarifni yangilang.");
+            }
+        }
 
         Branch branch = Branch.builder()
                 .name(request.getName())

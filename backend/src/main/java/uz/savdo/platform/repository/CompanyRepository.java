@@ -47,6 +47,7 @@ public class CompanyRepository {
             .blockedReason(rs.getString("blocked_reason"))
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
             .planId(rs.getObject("plan_id", Long.class))
+            .branchesFeatureEnabled(rs.getBoolean("branches_feature_enabled"))
             .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
             .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
             .isDeleted(rs.getBoolean("is_deleted"))
@@ -146,5 +147,14 @@ public class CompanyRepository {
     /** Kompaniyaga biriktirilgan rejani o'zgartirish/olib tashlash (planId null bo'lsa — rejasiz). */
     public void updatePlan(Long id, Long planId) {
         jdbc.update("UPDATE companies SET plan_id = ?, updated_at = now() WHERE id = ?", planId, id);
+    }
+
+    /**
+     * Superadminning "Filiallar" funksiyasini kompaniya uchun yoqish/o'chirish kaliti —
+     * rejaning (plan) sonli maxBranches chegarasidan mustaqil, qo'shimcha qo'lda qaror.
+     */
+    public void updateBranchesFeatureEnabled(Long id, boolean enabled) {
+        jdbc.update("UPDATE companies SET branches_feature_enabled = ?, updated_at = now() WHERE id = ?",
+                enabled, id);
     }
 }
