@@ -85,6 +85,7 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, categories, onClo
                   </option>
                 ))}
             </select>
+            {errors.category && <p className="field-error">{t('common.required')}</p>}
           </div>
           <div>
             <label className="field-label">{t('expenses.amount')}</label>
@@ -96,7 +97,9 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, categories, onClo
               autoFocus
               {...register('amount', { required: true, min: 0.01, valueAsNumber: true })}
             />
-            {errors.amount && <p className="field-error">{t('common.required')}</p>}
+            {errors.amount && (
+              <p className="field-error">{errors.amount.type === 'min' ? t('common.mustBePositive') : t('common.required')}</p>
+            )}
           </div>
           <div>
             <label className="field-label">{t('expenses.date')}</label>
@@ -140,7 +143,7 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, categories, onClo
 export default function ExpensesPage() {
   const { t } = useTranslation();
   const { user, isOwner } = useTenantAuthContext();
-  const { categories, categoryLabel } = useExpenseCategories();
+  const { categories, categoryLabel, loading: categoriesLoading } = useExpenseCategories();
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
@@ -266,7 +269,19 @@ export default function ExpensesPage() {
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('expenses.title')}</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('expenses.subtitle')}</p>
         </div>
-        <button type="button" onClick={() => setCreateOpen(true)} className="btn btn-primary">
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          disabled={categoriesLoading || categories.filter((c) => c.isActive).length === 0}
+          title={
+            categoriesLoading
+              ? t('common.loading')
+              : categories.filter((c) => c.isActive).length === 0
+                ? t('expenses.noActiveCategoriesHint')
+                : undefined
+          }
+          className="btn btn-primary"
+        >
           <Plus size={16} />
           {t('expenses.newExpense')}
         </button>

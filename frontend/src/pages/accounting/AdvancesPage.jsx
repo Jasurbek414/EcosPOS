@@ -106,7 +106,9 @@ function CreateTransactionModal({ employees, onClose, onCreated }) {
               placeholder="0"
               {...register('amount', { required: true, min: 0.01, valueAsNumber: true })}
             />
-            {errors.amount && <p className="field-error">{t('common.required')}</p>}
+            {errors.amount && (
+              <p className="field-error">{errors.amount.type === 'min' ? t('common.mustBePositive') : t('common.required')}</p>
+            )}
           </div>
           <div>
             <label className="field-label">{t('advances.date')}</label>

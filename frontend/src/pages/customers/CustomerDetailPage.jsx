@@ -96,7 +96,7 @@ function EditCustomerInfoForm({ customer, onSaved, onCancel }) {
 // (bu yerda foydalanuvchi turini o'zi tanlamaydi, chunki ikkala amal ham alohida tugma).
 // WRITE_OFF uchun submitdan oldin qo'shimcha window.confirm — bu qaytarib bo'lmaydigan
 // moliyaviy amal.
-function DebtTransactionModal({ type, customerId, defaultAmount, onClose, onCreated }) {
+function DebtTransactionModal({ type, customerId, defaultAmount, maxAmount, onClose, onCreated }) {
   const { t } = useTranslation();
   const {
     register,
@@ -112,6 +112,15 @@ function DebtTransactionModal({ type, customerId, defaultAmount, onClose, onCrea
   });
 
   const isWriteOff = type === 'WRITE_OFF';
+  // To'lov/hisobdan chiqarish miqdori hech qachon joriy qarzdan OSHMASLIGI kerak —
+  // aks holda balans manfiy bo'lib qolib, "sog'lom" (yashil) rangda noto'g'ri
+  // ko'rsatilib qolar edi. maxAmount<=0 bo'lsa (qarz yo'q) chegara qo'yilmaydi -
+  // bunday holatda WRITE_OFF tugmasi allaqachon o'chirilgan, PAYMENT esa min:0.01
+  // bilan baribir 0 qarzga to'lov yozishga urinishni tabiiy tarzda cheklaydi.
+  const amountRules = { required: true, min: 0.01, valueAsNumber: true };
+  if (maxAmount != null && maxAmount > 0) {
+    amountRules.max = maxAmount;
+  }
 
   const onSubmit = async (data) => {
     if (isWriteOff && !window.confirm(t('customers.writeOffConfirm'))) return;
@@ -150,9 +159,17 @@ function DebtTransactionModal({ type, customerId, defaultAmount, onClose, onCrea
               className="input-field"
               placeholder="0"
               autoFocus
-              {...register('amount', { required: true, min: 0.01, valueAsNumber: true })}
+              {...register('amount', amountRules)}
             />
-            {errors.amount && <p className="field-error">{t('common.required')}</p>}
+            {errors.amount && (
+              <p className="field-error">
+                {errors.amount.type === 'min'
+                  ? t('common.mustBePositive')
+                  : errors.amount.type === 'max'
+                    ? t('customers.amountExceedsDebt')
+                    : t('common.required')}
+              </p>
+            )}
           </div>
           <div>
             <label className="field-label">{t('customers.date')}</label>
@@ -391,10 +408,15 @@ export default function CustomerDetailPage() {
                 <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">
                   {t('customers.balance')}
                 </span>
-                <span className={`text-3xl font-extrabold tabular-nums ${balance > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                <span
+                  className={`text-3xl font-extrabold tabular-nums ${
+                    balance > 0 ? 'text-amber-600' : balance < 0 ? 'text-red-600' : 'text-emerald-600'
+                  }`}
+                >
                   {money(balance)}
                 </span>
                 {balance === 0 && <span className="text-slate-400 dark:text-slate-500 text-xs">{t('customers.noDebt')}</span>}
+                {balance < 0 && <span className="text-red-500 text-xs">{t('customers.negativeBalanceHint')}</span>}
               </div>
 
               <div className="card p-6 flex flex-col gap-3">
@@ -433,6 +455,7 @@ export default function CustomerDetailPage() {
           type={txModalType}
           customerId={customer?.id}
           defaultAmount={txModalType === 'WRITE_OFF' ? balance : undefined}
+          maxAmount={balance}
           onClose={() => setTxModalType(null)}
           onCreated={handleTxCreated}
         />

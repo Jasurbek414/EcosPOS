@@ -26,7 +26,7 @@ function CreatePaymentModal({ employees, onClose, onCreated }) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm({
     defaultValues: {
       userId: '',
@@ -40,14 +40,16 @@ function CreatePaymentModal({ employees, onClose, onCreated }) {
   const selectedUserId = watch('userId');
 
   // Xodim tanlanganda bazaviy maoshini (agar belgilangan bo'lsa) qulaylik uchun
-  // summa maydoniga oldindan to'ldiramiz — foydalanuvchi baribir tahrirlashi mumkin.
+  // summa maydoniga oldindan to'ldiramiz. Lekin foydalanuvchi summani QO'LDA
+  // tahrirlagan bo'lsa (dirtyFields.amount), boshqa xodim tanlansa ham bu qiymatning
+  // ustidan yozilmaydi — aks holda qo'lda kiritilgan summa sirtqi yo'qolib qolar edi.
   useEffect(() => {
-    if (!selectedUserId) return;
+    if (!selectedUserId || dirtyFields.amount) return;
     const emp = employees.find((e) => String(e.id) === String(selectedUserId));
     if (emp?.baseSalary != null) {
       setValue('amount', Number(emp.baseSalary));
     }
-  }, [selectedUserId, employees, setValue]);
+  }, [selectedUserId, employees, setValue, dirtyFields.amount]);
 
   const onSubmit = async (data) => {
     try {
@@ -96,7 +98,9 @@ function CreatePaymentModal({ employees, onClose, onCreated }) {
               placeholder="0"
               {...register('amount', { required: true, min: 0.01, valueAsNumber: true })}
             />
-            {errors.amount && <p className="field-error">{t('common.required')}</p>}
+            {errors.amount && (
+              <p className="field-error">{errors.amount.type === 'min' ? t('common.mustBePositive') : t('common.required')}</p>
+            )}
           </div>
           <div>
             <label className="field-label">{t('payroll.periodMonth')}</label>

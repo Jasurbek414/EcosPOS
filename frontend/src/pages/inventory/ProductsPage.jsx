@@ -215,6 +215,7 @@ function ProductModal({ product, categories, units, onClose, onSaved, onCategory
                     </option>
                   ))}
               </select>
+              {errors.unit && <p className="field-error">{t('common.required')}</p>}
             </div>
             <div>
               <label className="field-label">{t('inventory.products.barcode')}</label>
@@ -281,7 +282,7 @@ function ProductModal({ product, categories, units, onClose, onSaved, onCategory
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { user, isManager } = useTenantAuthContext();
-  const { units, unitLabel } = useUnits();
+  const { units, unitLabel, loading: unitsLoading } = useUnits();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -440,7 +441,19 @@ export default function ProductsPage() {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('inventory.products.subtitle')}</p>
         </div>
         {isManager && (
-          <button type="button" onClick={openCreate} className="btn btn-primary">
+          <button
+            type="button"
+            onClick={openCreate}
+            disabled={unitsLoading || units.filter((u) => u.isActive).length === 0}
+            title={
+              unitsLoading
+                ? t('common.loading')
+                : units.filter((u) => u.isActive).length === 0
+                  ? t('inventory.products.noActiveUnitsHint')
+                  : undefined
+            }
+            className="btn btn-primary"
+          >
             <Plus size={16} />
             {t('inventory.products.newProduct')}
           </button>

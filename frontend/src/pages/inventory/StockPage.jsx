@@ -317,6 +317,15 @@ export default function StockPage() {
 
       {loading ? (
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+      ) : isOwner && branches.length === 0 ? (
+        // Umuman filial yo'q holati "ombor bo'sh" degan noto'g'ri taassurot qoldirmasligi
+        // uchun alohida, aniq xabar bilan ajratiladi.
+        <div className="card py-20 flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+            <Layers size={24} className="text-slate-400 dark:text-slate-500" />
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.stock.noBranchesHint')}</p>
+        </div>
       ) : filteredStock.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

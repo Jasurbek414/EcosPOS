@@ -524,6 +524,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   // creditSalesEnabled o'chirilgan bo'lsa ham ro'yxat zararsiz yuklanadi (tugma shunchaki
   // ko'rinmaydi), shuning uchun bu yerda flag bilan shartlanmaydi.
   const [customers, setCustomers] = useState([]);
+  const [customersLoading, setCustomersLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
@@ -574,7 +575,10 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       .then((res) => {
         if (!cancelled) setCustomers(res.data.filter((c) => c.isActive));
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCustomersLoading(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -929,8 +933,11 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                     className="input-field"
                     value={selectedCustomerId}
                     onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    disabled={customersLoading}
                   >
-                    <option value="">{t('pos.terminal.selectCustomer')}</option>
+                    <option value="">
+                      {customersLoading ? t('common.loading') : t('pos.terminal.selectCustomer')}
+                    </option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.fullName}

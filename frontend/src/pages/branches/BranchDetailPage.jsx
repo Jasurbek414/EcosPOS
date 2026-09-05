@@ -110,6 +110,15 @@ export default function BranchDetailPage() {
   // kirilgan zahoti tahrirlash formasi ochiq bo'lishini ta'minlaydi.
   const [editingInfo, setEditingInfo] = useState(() => Boolean(location.state?.autoEdit));
 
+  // Holatni BIR MARTA ishlatilgach tozalaymiz — aks holda orqaga/oldinga tugmasi bilan
+  // shu sahifaga qaytilganda tahrirlash formasi kutilmaganda yana ochilib qolar edi.
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const reloadStats = useCallback(async () => {
     try {
       const res = await branchService.stats(id);
@@ -148,6 +157,10 @@ export default function BranchDetailPage() {
 
   const handleToggleActive = async () => {
     if (!branch) return;
+    // Faolsizlantirish (o'chirish kabi) qaytarib bo'lmas ta'sirga ega bo'lishi mumkin
+    // (shu filialdagi kassir/menejer darhol ishlay olmay qoladi) — shuning uchun
+    // "O'chirish" tugmasi kabi tasdiqlash so'raladi. Qayta faollashtirish esa zararsiz.
+    if (branch.isActive && !window.confirm(t('branches.deactivateConfirm'))) return;
     try {
       const res = await branchService.update(branch.id, {
         name: branch.name,

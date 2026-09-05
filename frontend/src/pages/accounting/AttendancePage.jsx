@@ -66,6 +66,11 @@ export default function AttendancePage() {
 
   const [staff, setStaff] = useState([]);
   const [selections, setSelections] = useState({});
+  // Serverdan oxirgi marta yuklangan (saqlangan) holat — joriy `selections` bilan
+  // solishtirib "saqlanmagan o'zgarish bormi" ni aniqlash uchun. Filial/sana
+  // almashtirilganda yoki sahifadan chiqishda shu o'zgarishlar ogohlantirishsiz
+  // yo'qolib ketmasligi kerak (kamida bitta xodim belgilanib, saqlanmagan holatda).
+  const [savedSelections, setSavedSelections] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -108,6 +113,7 @@ export default function AttendancePage() {
           existing[a.userId] = a.status;
         });
         setSelections(existing);
+        setSavedSelections(existing);
       })
       .catch(() => {
         if (!cancelled) toast.error(t('attendance.loadError'));
@@ -138,6 +144,38 @@ export default function AttendancePage() {
       cancelled = true;
     };
   }, [branchId, date]);
+
+  const isDirty = useMemo(
+    () => JSON.stringify(selections) !== JSON.stringify(savedSelections),
+    [selections, savedSelections]
+  );
+
+  // Brauzer yopilishi/sahifa yangilanishi orqali saqlanmagan belgilashlar
+  // ogohlantirishsiz yo'qolib ketmasligi uchun.
+  useEffect(() => {
+    const handler = (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Filial yoki sana almashtirilsa `selections` serverdan qayta yuklanadi (yuqoridagi
+  // effekt) — saqlanmagan belgilashlar bo'lsa, buni ogohlantirishsiz yo'qotmaslik uchun
+  // avval tasdiqlash so'raladi.
+  const confirmDiscardIfDirty = () => !isDirty || window.confirm(t('attendance.unsavedChangesConfirm'));
+
+  const handleBranchChange = (value) => {
+    if (!confirmDiscardIfDirty()) return;
+    setBranchId(value);
+  };
+
+  const handleDateChange = (value) => {
+    if (!confirmDiscardIfDirty()) return;
+    setDate(value);
+  };
 
   const setStatus = (userId, status) => {
     setSelections((prev) => {
@@ -172,6 +210,7 @@ export default function AttendancePage() {
     try {
       await attendanceService.markBulk({ branchId: Number(branchId), attendanceDate: date, entries });
       toast.success(t('attendance.saveSuccess'));
+      setSavedSelections(selections);
       reloadHistory();
     } catch (err) {
       toast.error(err.response?.data?.message || t('attendance.saveError'));
@@ -199,12 +238,12 @@ export default function AttendancePage() {
       <div className="card p-4 flex items-center gap-4 flex-wrap">
         <div>
           <label className="field-label">{t('attendance.date')}</label>
-          <DateInput value={date} max={toISODate(new Date())} onChange={setDate} />
+          <DateInput value={date} max={toISODate(new Date())} onChange={handleDateChange} />
         </div>
         {isOwner && (
           <div>
             <label className="field-label">{t('attendance.branch')}</label>
-            <select className="input-field min-w-[200px]" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+            <select className="input-field min-w-[200px]" value={branchId} onChange={(e) => handleBranchChange(e.target.value)}>
               <option value="">{t('staff.selectBranch')}</option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -258,7 +297,8 @@ export default function AttendancePage() {
               </tbody>
             </table>
           </div>
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-3">
+            {isDirty && <span className="text-amber-600 text-xs font-medium">{t('attendance.unsavedChanges')}</span>}
             <button type="button" onClick={handleSave} disabled={saving} className="btn btn-primary">
               {t('common.save')}
             </button>

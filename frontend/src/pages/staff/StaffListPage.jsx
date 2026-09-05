@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -437,13 +437,31 @@ function ResetPasswordPanel({ result, onClose }) {
 export default function StaffListPage() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isOwner } = useTenantAuthContext();
   const [staff, setStaff] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   // Filial profilidagi "Yangi login yaratish" tugmasi shu holatni yuborib, kelgan
   // zahoti xodim yaratish oynasini filial+MANAGER rol oldindan tanlangan holda ochadi.
+  // Standart qiymatlar BIR MARTA (mount paytida) o'qib olinadi va alohida state'da
+  // saqlanadi (location.state'ni to'g'ridan-to'g'ri JSX'da o'qish EMAS) — aks holda
+  // keyinroq oddiy "+ Yangi xodim" tugmasi bosilganda ham shu eski filial/rol
+  // qiymatlari sirtqi qayta ishlatilib qolar edi (foydalanuvchi buni sezmasdan).
   const [createOpen, setCreateOpen] = useState(() => Boolean(location.state?.autoCreate));
+  const [createDefaults, setCreateDefaults] = useState(() =>
+    location.state?.autoCreate ? { branchId: location.state.branchId, role: 'MANAGER' } : null
+  );
+
+  // Navigatsiya holatini (location.state) BIR MARTA ishlatilgach darhol tozalaymiz —
+  // aks holda orqaga/oldinga tugmasi bilan shu sahifaga qaytilganda autoCreate qayta
+  // ishga tushib, tahrirlash/yaratish oynasi kutilmaganda yana ochilib qolishi mumkin edi.
+  useEffect(() => {
+    if (location.state) {
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [editing, setEditing] = useState(null);
   const [resetResult, setResetResult] = useState(null);
   const [searchInput, setSearchInput] = useState('');
@@ -488,7 +506,15 @@ export default function StaffListPage() {
 
   const handleCreated = () => {
     setCreateOpen(false);
+    setCreateDefaults(null);
     reload();
+  };
+
+  // Oddiy "+ Yangi xodim" tugmasi HAR DOIM standart (bo'sh) qiymatlar bilan ochilishi
+  // kerak — avvalgi autoCreate holatidan qolib ketgan filial/rol bo'lmasligi uchun.
+  const openBlankCreateModal = () => {
+    setCreateDefaults(null);
+    setCreateOpen(true);
   };
 
   const handleSaved = () => {
@@ -547,7 +573,7 @@ export default function StaffListPage() {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('staff.subtitle')}</p>
         </div>
         {isOwner && (
-          <button type="button" onClick={() => setCreateOpen(true)} className="btn btn-primary">
+          <button type="button" onClick={openBlankCreateModal} className="btn btn-primary">
             <Plus size={16} />
             {t('staff.newStaff')}
           </button>
@@ -664,9 +690,12 @@ export default function StaffListPage() {
       {createOpen && (
         <CreateStaffModal
           branches={branches}
-          defaultBranchId={location.state?.autoCreate ? location.state?.branchId : undefined}
-          defaultRole={location.state?.autoCreate ? 'MANAGER' : undefined}
-          onClose={() => setCreateOpen(false)}
+          defaultBranchId={createDefaults?.branchId}
+          defaultRole={createDefaults?.role}
+          onClose={() => {
+            setCreateOpen(false);
+            setCreateDefaults(null);
+          }}
           onCreated={handleCreated}
         />
       )}
