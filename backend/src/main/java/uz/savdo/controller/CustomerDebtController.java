@@ -46,6 +46,16 @@ public class CustomerDebtController {
     public List<DebtTransactionResponse> list(@RequestParam(required = false) Long customerId,
                                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                                @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        // Bitta mijozga cheklangan so'rov (customerId berilgan) — kassir shu mijozdan
+        // to'lov qabul qilishdan oldin uning tarixini ko'rishi tabiiy, shuning uchun
+        // hammaga ochiq. Lekin customerId berilmasa — bu KOMPANIYA BO'YLAB TO'LIQ qarz
+        // daftari (barcha mijozlarning summasi/izohi) — bu moliyaviy hisobot darajasidagi
+        // ma'lumot, faqat OWNER/MANAGER ko'rishi kerak (ExpenseController/
+        // SalaryPaymentController/EmployeeAdvanceController bilan bir xil qoida).
+        if (customerId == null) {
+            currentUserService.assertCanViewReports();
+        }
+
         List<CustomerDebtTransaction> transactions = debtTransactionRepository.findAllByIsDeletedFalse();
 
         List<CustomerDebtTransaction> filtered = transactions.stream()
@@ -65,6 +75,12 @@ public class CustomerDebtController {
 
     @GetMapping("/balances")
     public List<CustomerBalanceResponse> balances(@RequestParam(required = false) Long customerId) {
+        // list() dagi bilan bir xil qoida: bitta mijoz balansi — hammaga; hammasi
+        // birdaniga (kompaniya bo'ylab qarzdorlik ro'yxati) — faqat OWNER/MANAGER.
+        if (customerId == null) {
+            currentUserService.assertCanViewReports();
+        }
+
         List<Customer> customers;
         if (customerId != null) {
             Customer customer = customerRepository.findByIdAndIsDeletedFalse(customerId)

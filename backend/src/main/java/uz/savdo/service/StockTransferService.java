@@ -63,7 +63,10 @@ public class StockTransferService {
             throw new BadRequestException("Mahsulot faol emas: " + product.getName());
         }
 
-        StockLevel sourceLevel = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(productId, fromBranchId)
+        // Qulflangan o'qish (PESSIMISTIC_WRITE) — shu mahsulot+filial ustida parallel
+        // keladigan sotuv/boshqa ko'chirish tranzaksiya commit bo'lgunicha kutadi,
+        // qoldiq manfiy bo'lib qolishining oldini oladi (SaleService bilan bir xil naqsh).
+        StockLevel sourceLevel = stockLevelRepository.findWithLockByProductIdAndBranchIdAndIsDeletedFalse(productId, fromBranchId)
                 .orElse(null);
         BigDecimal available = sourceLevel != null ? sourceLevel.getQuantity() : BigDecimal.ZERO;
         if (available.compareTo(quantity) < 0) {
@@ -98,7 +101,7 @@ public class StockTransferService {
         stockMovementRepository.save(outMovement);
 
         // Qabul qiluvchi filial: upsert (yo'q bo'lsa 0'dan yaratiladi) + musbat StockMovement.
-        StockLevel destLevel = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(productId, toBranchId)
+        StockLevel destLevel = stockLevelRepository.findWithLockByProductIdAndBranchIdAndIsDeletedFalse(productId, toBranchId)
                 .orElseGet(() -> StockLevel.builder()
                         .productId(productId)
                         .branchId(toBranchId)

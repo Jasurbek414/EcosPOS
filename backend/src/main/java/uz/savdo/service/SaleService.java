@@ -57,30 +57,54 @@ public class SaleService {
 
     @Transactional
     public Sale createSale(SaleRequest request, Long currentUserId) {
-        CashShift shift = cashShiftRepository.findByCashierIdAndStatusAndIsDeletedFalse(currentUserId, ShiftStatus.OPEN)
+        // Qulflangan o'qish — CashShiftService#closeShift bilan bir xil smena ustida
+        // bir vaqtda ishlab qolish (poyga holati) oldini oladi: smena aynan shu payt
+        // yopilayotgan bo'lsa, bu tranzaksiya yopilish commit bo'lgunicha kutadi va
+        // keyin smena allaqachon CLOSED ekanini ko'rib to'g'ri rad javobi qaytaradi.
+        CashShift shift = cashShiftRepository.findWithLockByCashierIdAndStatusAndIsDeletedFalse(currentUserId, ShiftStatus.OPEN)
                 .orElseThrow(() -> new BadRequestException("Kassa smenasi ochilmagan — avval smenani oching"));
 
         Long branchId = shift.getBranchId();
 
-        Map<Long, Product> productsById = new LinkedHashMap<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        // Bitta mahsulot so'rovda bir nechta qatorda kelishi mumkin (masalan bir xil
+        // tovar ikki marta skanerlangan) — miqdorlarni mahsulot bo'yicha JAMLAYMIZ va
+        // zaxirani shu jamlangan miqdorga nisbatan (bir marta, qulflangan holda)
+        // tekshiramiz/kamaytiramiz. Aks holda har qator zaxirani mustaqil-mustaqil
+        // (bir-biridan bexabar) tekshirib, qoldiqni manfiy qilib qo'yishi mumkin edi.
+        Map<Long, BigDecimal> totalQuantityByProductId = new LinkedHashMap<>();
         for (SaleItemRequest itemRequest : request.getItems()) {
-            Product product = productRepository.findByIdAndIsDeletedFalse(itemRequest.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Mahsulot topilmadi: " + itemRequest.getProductId()));
+            totalQuantityByProductId.merge(itemRequest.getProductId(), itemRequest.getQuantity(), BigDecimal::add);
+        }
+
+        Map<Long, Product> productsById = new LinkedHashMap<>();
+        Map<Long, StockLevel> lockedStockByProductId = new LinkedHashMap<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for (Map.Entry<Long, BigDecimal> entry : totalQuantityByProductId.entrySet()) {
+            Long productId = entry.getKey();
+            BigDecimal requestedQuantity = entry.getValue();
+
+            Product product = productRepository.findByIdAndIsDeletedFalse(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Mahsulot topilmadi: " + productId));
             if (!product.getIsActive()) {
                 throw new BadRequestException("Mahsulot faol emas: " + product.getName());
             }
 
-            BigDecimal available = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(product.getId(), branchId)
-                    .map(StockLevel::getQuantity)
-                    .orElse(BigDecimal.ZERO);
-            if (available.compareTo(itemRequest.getQuantity()) < 0) {
+            // Qatorni tranzaksiya oxirigacha QULFLAYMIZ (PESSIMISTIC_WRITE) — shu
+            // mahsulot+filial ustida parallel keladigan boshqa sotuv/ko'chirish
+            // so'rovi shu tranzaksiya commit bo'lgunicha kutadi, shu bilan poyga
+            // holati (race condition) tufayli qoldiq manfiy bo'lib qolishi oldi olinadi.
+            StockLevel stockLevel = stockLevelRepository
+                    .findWithLockByProductIdAndBranchIdAndIsDeletedFalse(productId, branchId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Zaxira topilmadi: mahsulot=" + productId + ", filial=" + branchId));
+            if (stockLevel.getQuantity().compareTo(requestedQuantity) < 0) {
                 throw new BadRequestException("Omborda yetarli mahsulot yo'q: " + product.getName()
-                        + " (mavjud: " + available + ", so'ralgan: " + itemRequest.getQuantity() + ")");
+                        + " (mavjud: " + stockLevel.getQuantity() + ", so'ralgan: " + requestedQuantity + ")");
             }
 
-            productsById.put(product.getId(), product);
-            totalAmount = totalAmount.add(itemRequest.getQuantity().multiply(product.getSalePrice()));
+            productsById.put(productId, product);
+            lockedStockByProductId.put(productId, stockLevel);
+            totalAmount = totalAmount.add(requestedQuantity.multiply(product.getSalePrice()));
         }
 
         BigDecimal amountPaid;
@@ -157,8 +181,29 @@ public class SaleService {
                     .subtotal(subtotal)
                     .build();
             saleItemRepository.save(item);
+        }
 
-            applyStockSale(product.getId(), branchId, itemRequest.getQuantity(), sale.getId(), currentUserId);
+        // Zaxirani mahsulot bo'yicha JAMLANGAN miqdorga (bir marta har mahsulot uchun)
+        // kamaytiramiz — yuqorida allaqachon qulflab qo'yilgan StockLevel'lardan
+        // foydalanamiz, qayta so'rov yubormaymiz (qulf boshqa tranzaksiyani ushbu
+        // qatorlardan uzoqda ushlab turmasligi uchun bitta izchil o'qish yetarli).
+        for (Map.Entry<Long, BigDecimal> entry : totalQuantityByProductId.entrySet()) {
+            Long productId = entry.getKey();
+            BigDecimal requestedQuantity = entry.getValue();
+            StockLevel stockLevel = lockedStockByProductId.get(productId);
+            stockLevel.setQuantity(stockLevel.getQuantity().subtract(requestedQuantity));
+            stockLevelRepository.save(stockLevel);
+
+            StockMovement movement = StockMovement.builder()
+                    .productId(productId)
+                    .branchId(branchId)
+                    .type(MovementType.SALE)
+                    .quantity(requestedQuantity.negate())
+                    .referenceType("SALE")
+                    .referenceId(sale.getId())
+                    .createdByUserId(currentUserId)
+                    .build();
+            stockMovementRepository.save(movement);
         }
 
         if (request.getPaymentMethod() == PaymentMethod.CREDIT) {
@@ -177,25 +222,5 @@ public class SaleService {
         }
 
         return sale;
-    }
-
-    private void applyStockSale(Long productId, Long branchId, BigDecimal quantity,
-                                 Long saleId, Long currentUserId) {
-        StockLevel stockLevel = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(productId, branchId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Zaxira topilmadi: mahsulot=" + productId + ", filial=" + branchId));
-        stockLevel.setQuantity(stockLevel.getQuantity().subtract(quantity));
-        stockLevelRepository.save(stockLevel);
-
-        StockMovement movement = StockMovement.builder()
-                .productId(productId)
-                .branchId(branchId)
-                .type(MovementType.SALE)
-                .quantity(quantity.negate())
-                .referenceType("SALE")
-                .referenceId(saleId)
-                .createdByUserId(currentUserId)
-                .build();
-        stockMovementRepository.save(movement);
     }
 }

@@ -60,7 +60,10 @@ public class CashShiftService {
 
     @Transactional
     public CashShift closeShift(Long shiftId, BigDecimal closingCash, String note, Long currentUserId) {
-        CashShift shift = cashShiftRepository.findByIdAndIsDeletedFalse(shiftId)
+        // Qulflangan o'qish — shu smena ustida bir vaqtda ishlayotgan SaleService#createSale
+        // (o'zining ochiq-smena qidiruvini ham qulflab o'qiydi) bilan poyga holatini oldini
+        // oladi: ikkalasidan biri boshqasi commit bo'lgunicha kutadi.
+        CashShift shift = cashShiftRepository.findWithLockByIdAndIsDeletedFalse(shiftId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kassa smenasi topilmadi: " + shiftId));
         currentUserService.assertCanAccessBranch(shift.getBranchId());
 

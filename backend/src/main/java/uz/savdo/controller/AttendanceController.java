@@ -46,6 +46,13 @@ public class AttendanceController {
             currentUserService.assertCanManageAttendance(branchId);
             records = employeeAttendanceRepository.findAllByBranchIdAndIsDeletedFalse(branchId);
         } else {
+            // branchId ko'rsatilmagan holat ham xuddi yuqoridagi kabi CASHIER'ni rad
+            // etishi kerak — aks holda CASHIER shu parametrni shunchaki bermay,
+            // yuqoridagi assertCanManageAttendance tekshiruvini butunlay chetlab
+            // o'tishi mumkin edi (allowedBranchIds() o'zi rol tekshiruvi qilmaydi).
+            if (!currentUserService.isOwner()) {
+                currentUserService.assertCanManageAttendance(currentUserService.getCurrentUser().getBranchId());
+            }
             List<Long> allowedBranchIds = currentUserService.allowedBranchIds();
             records = allowedBranchIds == null
                     ? employeeAttendanceRepository.findAllByIsDeletedFalse()
