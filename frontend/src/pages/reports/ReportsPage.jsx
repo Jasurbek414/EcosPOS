@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Wallet, Package, TrendingUp, Percent, BarChart3 } from 'lucide-react';
+import { Wallet, Package, TrendingUp, TrendingDown, Percent, BarChart3, Receipt } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useThemeContext } from '../../hooks/useThemeContext';
@@ -140,7 +140,14 @@ export default function ReportsPage() {
       icon: Percent,
       accent: 'bg-violet-50 text-violet-600',
     },
+    { label: t('reports.totalExpenses'), value: money(profit?.totalExpenses), icon: Receipt, accent: 'bg-red-50 text-red-600' },
   ];
+
+  // Sof foyda — boshliq birinchi qaraganda tushunishi kerak bo'lgan yagona eng
+  // muhim raqam, shuning uchun alohida katta hero-karta sifatida sahifa
+  // yuqorisida, oddiy 4 ta kartadan OLDIN ko'rsatiladi.
+  const netProfit = Number(profit?.netProfit ?? 0);
+  const isNetPositive = netProfit >= 0;
 
   const formatPeriod = (period) => {
     if (!period) return '';
@@ -196,7 +203,32 @@ export default function ReportsPage() {
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div
+            className={`card p-6 flex items-center gap-5 border-2 ${
+              isNetPositive
+                ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20'
+                : 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20'
+            }`}
+          >
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+                isNetPositive ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'
+              }`}
+            >
+              {isNetPositive ? <TrendingUp size={26} /> : <TrendingDown size={26} />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">
+                {t('reports.netProfit')}
+              </p>
+              <p className={`text-2xl font-bold mt-0.5 ${isNetPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
+                {money(netProfit)}
+              </p>
+              <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{t('reports.netProfitHint')}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {summaryCards.map((card) => (
               <div key={card.label} className="card p-5 flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.accent}`}>

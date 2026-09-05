@@ -57,6 +57,7 @@
     "todayRevenueCard": "Продажи сегодня",
     "todayProfitCard": "Прибыль сегодня",
     "monthRevenueCard": "Продажи за месяц",
+    "monthNetProfitCard": "Чистая прибыль (за месяц)",
     "lowStockCard": "Заканчивающиеся товары",
     "currency": "сум"
   },
@@ -412,6 +413,9 @@
     "totalCost": "Общая себестоимость",
     "totalProfit": "Общая прибыль",
     "profitMargin": "Процент прибыли",
+    "totalExpenses": "Общие расходы",
+    "netProfit": "Чистая прибыль",
+    "netProfitHint": "Реальная прибыль после вычета расходов и зарплаты",
     "currency": "сум",
     "chartTitle": "Продажи и прибыль по периодам",
     "revenue": "Продажи",

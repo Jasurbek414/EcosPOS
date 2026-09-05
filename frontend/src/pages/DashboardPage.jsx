@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Building2, Users, ShieldCheck, Sparkles, Wallet, TrendingUp, BarChart3, Package } from 'lucide-react';
+import { Building2, Users, ShieldCheck, Sparkles, Wallet, TrendingUp, TrendingDown, BarChart3, Package } from 'lucide-react';
 import { useTenantAuthContext } from '../hooks/useTenantAuthContext';
 import { branchService, userService, reportService } from '../services/api';
 
@@ -50,11 +50,19 @@ export default function DashboardPage() {
 
   const money = (v) => `${Number(v ?? 0).toLocaleString('uz-UZ')} ${t('dashboard.currency')}`;
 
+  const isMonthNetPositive = Number(stats?.monthNetProfit ?? 0) >= 0;
+
   const statCards = stats
     ? [
         { label: t('dashboard.todayRevenueCard'), value: money(stats.todayRevenue), icon: Wallet, accent: 'bg-blue-50 text-blue-600' },
         { label: t('dashboard.todayProfitCard'), value: money(stats.todayProfit), icon: TrendingUp, accent: 'bg-emerald-50 text-emerald-600' },
         { label: t('dashboard.monthRevenueCard'), value: money(stats.monthRevenue), icon: BarChart3, accent: 'bg-violet-50 text-violet-600' },
+        {
+          label: t('dashboard.monthNetProfitCard'),
+          value: money(stats.monthNetProfit),
+          icon: isMonthNetPositive ? TrendingUp : TrendingDown,
+          accent: isMonthNetPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600',
+        },
       ]
     : [];
 
@@ -83,7 +91,7 @@ export default function DashboardPage() {
       </div>
 
       {isManager && stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
           {statCards.map((card) => (
             <div key={card.label} className="card p-5 flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.accent}`}>

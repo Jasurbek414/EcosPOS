@@ -57,6 +57,7 @@
     "todayRevenueCard": "Bugungi savdo",
     "todayProfitCard": "Bugungi foyda",
     "monthRevenueCard": "Shu oy savdo",
+    "monthNetProfitCard": "Sof foyda (shu oy)",
     "lowStockCard": "Kam qolgan mahsulotlar",
     "currency": "so'm"
   },
@@ -412,6 +413,9 @@
     "totalCost": "Jami tannarx",
     "totalProfit": "Jami foyda",
     "profitMargin": "Foyda foizi",
+    "totalExpenses": "Jami xarajat",
+    "netProfit": "Sof foyda",
+    "netProfitHint": "Xarajat va ish haqi chegirilgandan keyingi haqiqiy foyda",
     "currency": "so'm",
     "chartTitle": "Davr bo'yicha savdo va foyda",
     "revenue": "Savdo",
