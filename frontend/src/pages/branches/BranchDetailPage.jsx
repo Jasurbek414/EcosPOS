@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Building2, Pencil, Trash2, Power, Users, Boxes } from 'lucide-react';
+import { ArrowLeft, Building2, Pencil, Trash2, Power, Users, Boxes, UserPlus } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { branchService } from '../../services/api';
 import BranchStatsHeader from '../../components/ui/BranchStatsHeader';
@@ -284,6 +284,23 @@ export default function BranchDetailPage() {
                 </div>
                 <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">{t('branches.viewStaff')}</span>
               </Link>
+
+              {/* Filial va uning login-akkaunti (MANAGER) o'zaro bog'liq bo'lishi uchun —
+                  Xodimlar menyusiga alohida o'tmasdan, shu filialga tayinlangan yangi
+                  login to'g'ridan-to'g'ri shu yerdan yaratiladi (rol+filial oldindan
+                  tanlangan holda, StaffListPage.jsx location.state.autoCreate orqali). */}
+              {isOwner && (
+                <Link
+                  to="/staff"
+                  state={{ branchId: branch.id, autoCreate: true }}
+                  className="card p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <UserPlus size={16} />
+                  </div>
+                  <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">{t('branches.createLogin')}</span>
+                </Link>
+              )}
 
               <Link
                 to="/inventory/stock"

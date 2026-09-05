@@ -95,6 +95,7 @@
     "activateBtn": "Faollashtirish",
     "deactivateBtn": "Nofaollashtirish",
     "viewStaff": "Xodimlarni ko'rish",
+    "createLogin": "Yangi login yaratish (menejer)",
     "viewStock": "Ombor qoldiqlarini ko'rish",
     "stats": {
       "total": "Jami filiallar",

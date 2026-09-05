@@ -169,13 +169,21 @@ function RolesPermissionsCard() {
   );
 }
 
-function CreateStaffModal({ branches, onClose, onCreated }) {
+function CreateStaffModal({ branches, defaultBranchId, defaultRole, onClose, onCreated }) {
   const { t } = useTranslation();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { username: '', password: '', fullName: '', role: 'CASHIER', branchId: '' } });
+  } = useForm({
+    defaultValues: {
+      username: '',
+      password: '',
+      fullName: '',
+      role: defaultRole || 'CASHIER',
+      branchId: defaultBranchId != null ? String(defaultBranchId) : '',
+    },
+  });
 
   const onSubmit = async (data) => {
     try {
@@ -433,7 +441,9 @@ export default function StaffListPage() {
   const [staff, setStaff] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [createOpen, setCreateOpen] = useState(false);
+  // Filial profilidagi "Yangi login yaratish" tugmasi shu holatni yuborib, kelgan
+  // zahoti xodim yaratish oynasini filial+MANAGER rol oldindan tanlangan holda ochadi.
+  const [createOpen, setCreateOpen] = useState(() => Boolean(location.state?.autoCreate));
   const [editing, setEditing] = useState(null);
   const [resetResult, setResetResult] = useState(null);
   const [searchInput, setSearchInput] = useState('');
@@ -651,7 +661,15 @@ export default function StaffListPage() {
         </div>
       )}
 
-      {createOpen && <CreateStaffModal branches={branches} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />}
+      {createOpen && (
+        <CreateStaffModal
+          branches={branches}
+          defaultBranchId={location.state?.autoCreate ? location.state?.branchId : undefined}
+          defaultRole={location.state?.autoCreate ? 'MANAGER' : undefined}
+          onClose={() => setCreateOpen(false)}
+          onCreated={handleCreated}
+        />
+      )}
       {editing && (
         <EditStaffModal
           staffMember={editing}

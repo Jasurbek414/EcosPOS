@@ -280,13 +280,16 @@ export default function StockPage() {
 
       <div className="flex items-center gap-3 flex-wrap">
         {isOwner && (
-          <select className="input-field max-w-xs" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-            {branches.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="field-label !mb-0.5">{t('reports.branch')}</label>
+            <select className="input-field max-w-xs" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
