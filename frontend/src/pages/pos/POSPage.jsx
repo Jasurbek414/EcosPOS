@@ -12,8 +12,6 @@ import {
   resolveFileUrl, saleService,
 } from '../../services/api';
 
-const ROUND_STEPS = [10000, 50000, 100000];
-
 const CARD_COLORS = [
   '#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#c026d3', '#65a30d',
 ];
@@ -495,11 +493,12 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   const cardAmountNumeric = Number(cardAmountInput) || 0;
   // MIXED'da naqd qismi = jami - karta qismi; CASH'da naqd qismi = jami.
   const cashDue = paymentMethod === 'MIXED' ? Math.max(0, total - cardAmountNumeric) : total;
-  const amountPaidDisplay = amountPaidInput === null ? String(cashDue || 0) : amountPaidInput;
+  // Standart bo'yicha bo'sh — kassir summani o'zi kiritadi, avval "0"ni
+  // o'chirishga majbur bo'lmasligi kerak (aniq summa avtomatik to'ldirilmaydi).
+  const amountPaidDisplay = amountPaidInput === null ? '' : amountPaidInput;
   const amountPaidNumeric = Number(amountPaidDisplay) || 0;
   const change = amountPaidNumeric - cashDue;
   const mixedCardValid = cardAmountNumeric > 0 && cardAmountNumeric < total;
-  const roundOptions = ROUND_STEPS.map((step) => Math.ceil((cashDue || 1) / step) * step).filter((v) => v > cashDue).slice(0, 3);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -814,21 +813,8 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                     className="input-field !text-lg !font-bold tabular-nums"
                     value={amountPaidDisplay}
                     onChange={(e) => setAmountPaidInput(e.target.value)}
+                    placeholder="0"
                   />
-                  {roundOptions.length > 0 && (
-                    <div className="flex gap-1.5">
-                      {roundOptions.map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setAmountPaidInput(String(val))}
-                          className="pos-round-btn"
-                        >
-                          {val.toLocaleString('uz-UZ')}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 dark:border-slate-700">
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t('pos.terminal.change')}</span>
                     <span className={`text-xl font-bold tabular-nums ${change < 0 ? 'text-red-600' : 'text-emerald-600'}`}>

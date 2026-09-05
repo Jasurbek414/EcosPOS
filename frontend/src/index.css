@@ -134,6 +134,18 @@ select.input-field {
   padding-right: 2.25rem;
   cursor: pointer;
 }
+/* <input type="number" class="input-field"> — brauzerning tepa-past son
+   strelkalari (spinner) hunuk ko'rinardi va dizaynga mos kelmasdi, butun
+   loyiha bo'ylab o'chirildi. */
+input.input-field[type='number']::-webkit-outer-spin-button,
+input.input-field[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input.input-field[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
 .field-label {
   display: block;
   font-size: 0.8125rem;
@@ -496,19 +508,6 @@ tbody tr:hover td { background: #fafafa; }
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
-.pos-round-btn {
-  flex: 1;
-  padding: 0.375rem 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: #f9fafb;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.pos-round-btn:hover { background: #f1f5f9; }
 .pos-checkout-btn {
   display: inline-flex;
   align-items: center;
@@ -992,8 +991,6 @@ tbody tr:hover td { background: #fafafa; }
   .pos-cart-row { border-bottom: 1px solid var(--border-color); }
   .pos-qty-btn { background: #273549; }
   .pos-qty-btn:hover { background: #334155; }
-  .pos-round-btn { background: #273549; }
-  .pos-round-btn:hover { background: #334155; }
   .pos-product-thumb { background: #273549; }
   .pos-pay-option { background: #273549; }
 
