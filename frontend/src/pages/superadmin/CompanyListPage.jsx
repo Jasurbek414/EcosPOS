@@ -36,7 +36,7 @@ export default function CompanyListPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return companies;
-    return companies.filter((c) => [c.name, c.slug, c.status, c.plan].some((v) => (v || '').toLowerCase().includes(q)));
+    return companies.filter((c) => [c.name, c.slug, c.status, c.planName].some((v) => (v || '').toLowerCase().includes(q)));
   }, [companies, query]);
 
   return (
@@ -113,7 +113,7 @@ export default function CompanyListPage() {
                   <td>
                     <span className={STATUS_BADGE[c.status] || 'badge badge-slate'}>{c.status}</span>
                   </td>
-                  <td className="text-slate-600 dark:text-slate-300">{c.plan || '—'}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{c.planName || '—'}</td>
                   <td className="text-slate-500 dark:text-slate-400 text-xs">
                     {c.createdAt ? new Date(c.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                   </td>

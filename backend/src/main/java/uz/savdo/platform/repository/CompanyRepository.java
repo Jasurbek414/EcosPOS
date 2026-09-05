@@ -35,7 +35,7 @@ public class CompanyRepository {
             .status(CompanyStatus.valueOf(rs.getString("status")))
             .blockedReason(rs.getString("blocked_reason"))
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
-            .plan(rs.getString("plan"))
+            .planId(rs.getObject("plan_id", Long.class))
             .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
             .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
             .isDeleted(rs.getBoolean("is_deleted"))
@@ -74,7 +74,7 @@ public class CompanyRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO companies (slug, name, db_host, db_port, db_name, db_username, status, plan) " +
+                    "INSERT INTO companies (slug, name, db_host, db_port, db_name, db_username, status, plan_id) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     new String[]{"id"});
             ps.setString(1, company.getSlug());
@@ -84,7 +84,11 @@ public class CompanyRepository {
             ps.setString(5, company.getDbName());
             ps.setString(6, company.getDbUsername());
             ps.setString(7, company.getStatus().name());
-            ps.setString(8, company.getPlan());
+            if (company.getPlanId() != null) {
+                ps.setLong(8, company.getPlanId());
+            } else {
+                ps.setNull(8, java.sql.Types.BIGINT);
+            }
             return ps;
         }, keyHolder);
         return keyHolder.getKey().longValue();
@@ -101,8 +105,8 @@ public class CompanyRepository {
         jdbc.update("UPDATE companies SET name = ?, updated_at = now() WHERE id = ?", name, id);
     }
 
-    /** Superadmin tomonidan qo'llab-quvvatlash uchun nom va rejani birgalikda yangilash. */
-    public void updateNameAndPlan(Long id, String name, String plan) {
-        jdbc.update("UPDATE companies SET name = ?, plan = ?, updated_at = now() WHERE id = ?", name, plan, id);
+    /** Kompaniyaga biriktirilgan rejani o'zgartirish/olib tashlash (planId null bo'lsa — rejasiz). */
+    public void updatePlan(Long id, Long planId) {
+        jdbc.update("UPDATE companies SET plan_id = ?, updated_at = now() WHERE id = ?", planId, id);
     }
 }

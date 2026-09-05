@@ -15,6 +15,7 @@ import uz.savdo.platform.dto.CreateCompanyResponse;
 import uz.savdo.platform.entity.Company;
 import uz.savdo.platform.enums.CompanyStatus;
 import uz.savdo.platform.repository.CompanyRepository;
+import uz.savdo.platform.repository.PlanRepository;
 import uz.savdo.platform.util.RandomPasswordGenerator;
 import uz.savdo.repository.UserRepository;
 import uz.savdo.tenant.TenantContext;
@@ -40,6 +41,7 @@ public class CompanyProvisioningService {
     private static final String DEFAULT_SEEDED_ADMIN_USERNAME = "admin";
 
     private final CompanyRepository companyRepository;
+    private final PlanRepository planRepository;
     private final DatabaseProvisioner databaseProvisioner;
     private final TenantDataSourceRegistry tenantDataSourceRegistry;
     private final UserRepository userRepository;
@@ -55,6 +57,9 @@ public class CompanyProvisioningService {
         if (companyRepository.existsBySlug(request.getSlug())) {
             throw new BadRequestException("Bu kompaniya kodi allaqachon band: " + request.getSlug());
         }
+        if (request.getPlanId() != null && planRepository.findById(request.getPlanId()).isEmpty()) {
+            throw new BadRequestException("Reja topilmadi: " + request.getPlanId());
+        }
 
         Company company = Company.builder()
                 .slug(request.getSlug())
@@ -64,7 +69,7 @@ public class CompanyProvisioningService {
                 .dbName(dbName)
                 .dbUsername(tenantDbUsername)
                 .status(CompanyStatus.PROVISIONING)
-                .plan(request.getPlan())
+                .planId(request.getPlanId())
                 .build();
         Long companyId = companyRepository.insert(company);
 

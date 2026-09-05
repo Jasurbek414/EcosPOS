@@ -25,7 +25,7 @@ public class Company {
     private CompanyStatus status;
     private String blockedReason;
     private LocalDateTime blockedAt;
-    private String plan;
+    private Long planId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;

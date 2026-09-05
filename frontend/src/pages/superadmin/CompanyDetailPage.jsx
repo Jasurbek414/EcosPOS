@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Building2, Ban, Unlock, KeyRound, X, ShieldAlert, Copy, History, Pencil } from 'lucide-react';
-import { companyService } from '../../services/platformApi';
+import { companyService, platformPlanService } from '../../services/platformApi';
 import { STATUS_BADGE } from './constants';
 
 function Field({ label, value }) {
@@ -69,20 +69,22 @@ function BlockModal({ onClose, onBlocked, companyId }) {
   );
 }
 
-// Kompaniya nomi/tarifini tahrirlash formasi — ProfilePage'dagi ProfileNameForm bilan
+// Kompaniya nomini tahrirlash formasi — ProfilePage'dagi ProfileNameForm bilan
 // bir xil naqsh: faqat `company` yuklangandan keyin mount qilinadi, shu sabab useForm
-// defaultValues to'g'ridan-to'g'ri to'g'ri qiymat bilan ishga tushadi.
+// defaultValues to'g'ridan-to'g'ri to'g'ri qiymat bilan ishga tushadi. Reja endi bu
+// formadan chiqarib olindi — u alohida "Reja" bo'limida PATCH /companies/{id}/plan
+// orqali boshqariladi.
 function EditCompanyInfoForm({ company, onSaved, onCancel }) {
   const { t } = useTranslation();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { name: company.name || '', plan: company.plan || '' } });
+  } = useForm({ defaultValues: { name: company.name || '' } });
 
   const onSubmit = async (data) => {
     try {
-      const res = await companyService.update(company.id, data);
+      const res = await companyService.update(company.id, { name: data.name });
       onSaved(res.data);
       toast.success(t('superadmin.updateCompanySuccess'));
     } catch (err) {
@@ -98,10 +100,6 @@ function EditCompanyInfoForm({ company, onSaved, onCancel }) {
           <input type="text" className="input-field" autoFocus {...register('name', { required: true })} />
           {errors.name && <p className="field-error">{t('common.required')}</p>}
         </div>
-        <div>
-          <label className="field-label">{t('superadmin.plan')}</label>
-          <input type="text" className="input-field" placeholder={t('superadmin.planPlaceholder')} {...register('plan')} />
-        </div>
       </div>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="btn btn-outline">
@@ -112,6 +110,90 @@ function EditCompanyInfoForm({ company, onSaved, onCancel }) {
         </button>
       </div>
     </form>
+  );
+}
+
+// Kompaniyaga biriktirilgan rejani o'zgartirish — alohida, kichik boshqaruv:
+// EditCompanyInfoForm'dagi kabi to'liq react-hook-form emas, oddiy local useState
+// bilan tanlagich + saqlash tugmasi, chunki bu yerda faqat bitta maydon bor.
+function PlanAssignField({ company, onSaved }) {
+  const { t } = useTranslation();
+  const [editing, setEditing] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!editing) return undefined;
+    let cancelled = false;
+    platformPlanService
+      .list()
+      .then((res) => {
+        if (!cancelled) setPlans(res.data.filter((p) => p.isActive));
+      })
+      .catch(() => {
+        if (!cancelled) toast.error(t('plans.loadError'));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editing, t]);
+
+  const startEditing = () => {
+    setSelectedPlanId(company.planId != null ? String(company.planId) : '');
+    setEditing(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await companyService.assignPlan(company.id, selectedPlanId ? Number(selectedPlanId) : null);
+      onSaved(res.data);
+      setEditing(false);
+      toast.success(t('plans.assignSuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('plans.assignError'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex items-end justify-between gap-3">
+        <Field label={t('superadmin.plan')} value={company.planName || t('plans.noPlan')} />
+        <button
+          type="button"
+          onClick={startEditing}
+          className="flex items-center gap-1.5 text-amber-700 text-xs font-semibold hover:text-amber-800 cursor-pointer shrink-0"
+        >
+          <Pencil size={13} />
+          {t('plans.assignPlan')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wide">{t('superadmin.plan')}</span>
+      <div className="flex items-center gap-2">
+        <select className="input-field" value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)}>
+          <option value="">{t('plans.noPlan')}</option>
+          {plans.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <button type="button" onClick={handleSave} disabled={saving} className="btn btn-primary shrink-0">
+          {t('common.save')}
+        </button>
+        <button type="button" onClick={() => setEditing(false)} className="btn btn-outline shrink-0">
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -314,7 +396,6 @@ export default function CompanyDetailPage() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <Field label={t('superadmin.id')} value={company.id} />
-                    <Field label={t('superadmin.plan')} value={company.plan} />
                     <Field
                       label={t('common.createdAt')}
                       value={company.createdAt ? new Date(company.createdAt).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
@@ -330,6 +411,13 @@ export default function CompanyDetailPage() {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Reja — nomdan alohida, o'zining PATCH /companies/{id}/plan amali bilan
+                  boshqariladigan mustaqil bo'lim. */}
+              <div className="card p-7 flex flex-col gap-4">
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('plans.title')}</h2>
+                <PlanAssignField company={company} onSaved={setCompany} />
               </div>
 
               {adminCreds && <AdminCredentialsPanel result={adminCreds} onClose={() => setAdminCreds(null)} />}

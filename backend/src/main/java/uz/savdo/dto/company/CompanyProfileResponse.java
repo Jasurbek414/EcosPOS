@@ -3,6 +3,7 @@ package uz.savdo.dto.company;
 import lombok.Builder;
 import lombok.Data;
 import uz.savdo.platform.entity.Company;
+import uz.savdo.platform.entity.Plan;
 
 import java.time.LocalDateTime;
 
@@ -17,15 +18,18 @@ public class CompanyProfileResponse {
     private Long id;
     private String name;
     private String slug;
-    private String plan;
+    private Long planId;
+    private String planName;
     private LocalDateTime createdAt;
 
-    public static CompanyProfileResponse from(Company c) {
+    /** Kompaniyaga reja biriktirilmagan bo'lsa {@code plan} null uzatiladi. */
+    public static CompanyProfileResponse from(Company c, Plan plan) {
         return CompanyProfileResponse.builder()
                 .id(c.getId())
                 .name(c.getName())
                 .slug(c.getSlug())
-                .plan(c.getPlan())
+                .planId(c.getPlanId())
+                .planName(plan != null ? plan.getName() : null)
                 .createdAt(c.getCreatedAt())
                 .build();
     }

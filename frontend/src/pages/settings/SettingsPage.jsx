@@ -294,7 +294,7 @@ function CompanyCard() {
                   <span className="text-slate-400 dark:text-slate-500 text-[11px] mt-0.5">{t('settings.slugHint')}</span>
                 </div>
               </div>
-              <InfoField icon={ShieldCheck} label={t('settings.plan')} value={company.plan} />
+              <InfoField icon={ShieldCheck} label={t('settings.plan')} value={company.planName || t('plans.noPlan')} />
               <InfoField
                 icon={CalendarDays}
                 label={t('common.createdAt')}

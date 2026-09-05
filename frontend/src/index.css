@@ -84,11 +84,19 @@ body {
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
+/* MUHIM: transform ISHLATILMAYDI (faqat opacity) — .animate-fade-in har bir sahifani
+   o'rab turadi (MainLayout/SuperAdminLayout'dagi <Outlet/> atrofida), ya'ni har qanday
+   modal ham shu div ICHIDA render bo'ladi. Agar animatsiya `transform` ishlatsa, u holda
+   "forwards" tufayli animatsiya tugagandan keyin ham transform:translateY(0) saqlanib
+   qoladi (translateY(0) transform:none BILAN BIR XIL EMAS) - bu esa CSS qoidasiga ko'ra
+   ICHIDAGI BARCHA position:fixed elementlar (jumladan .modal-overlay) uchun YANGI
+   containing block yaratadi, natijada modal butun ekranni EMAS, balki shu wrapper divning
+   chegarasini qoplaydi - "orqa fon buzulib ketishi" aynan shundan edi. */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-.animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
 
 /* ============= FORM ============= */
 .input-field {

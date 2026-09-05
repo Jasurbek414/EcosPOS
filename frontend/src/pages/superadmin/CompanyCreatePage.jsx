@@ -1,24 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CheckCircle2, ShieldAlert, Copy } from 'lucide-react';
-import { companyService } from '../../services/platformApi';
+import { companyService, platformPlanService } from '../../services/platformApi';
 
 export default function CompanyCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
+  const [plans, setPlans] = useState([]);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { slug: '', name: '', plan: '', adminUsername: '', adminFullName: '' } });
+  } = useForm({ defaultValues: { slug: '', name: '', planId: '', adminUsername: '', adminFullName: '' } });
+
+  // Faqat faol rejalar tanlagichda ko'rsatiladi — GET /plans faol/nofaol barchasini
+  // qaytaradi, filtrlash shu yerda, mijoz tomonida.
+  useEffect(() => {
+    let cancelled = false;
+    platformPlanService
+      .list()
+      .then((res) => {
+        if (!cancelled) setPlans(res.data.filter((p) => p.isActive));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onSubmit = async (data) => {
     try {
-      const res = await companyService.create(data);
+      const payload = { ...data, planId: data.planId ? Number(data.planId) : null };
+      const res = await companyService.create(payload);
       setResult(res.data);
     } catch (err) {
       toast.error(err.response?.data?.message || t('superadmin.createError'));
@@ -144,7 +161,14 @@ export default function CompanyCreatePage() {
 
         <div>
           <label className="field-label">{t('superadmin.plan')}</label>
-          <input type="text" className="input-field" placeholder={t('superadmin.planPlaceholder')} {...register('plan')} />
+          <select className="input-field" {...register('planId')}>
+            <option value="">{t('plans.noPlan')}</option>
+            {plans.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="divider" style={{ height: 1, background: 'var(--border-color)', margin: '0.5rem 0' }} />

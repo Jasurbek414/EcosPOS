@@ -11,7 +11,8 @@ public class CreateCompanyRequest {
     @NotBlank(message = "Kompaniya kodi (slug) kiritilishi shart")
     private String slug;
 
-    private String plan;
+    /** Ixtiyoriy — bo'sh qoldirilsa kompaniya rejasiz yaratiladi, keyin PATCH /{id}/plan orqali biriktiriladi. */
+    private Long planId;
 
     /** Bo'sh qoldirilsa "admin" ishlatiladi. */
     private String adminUsername;

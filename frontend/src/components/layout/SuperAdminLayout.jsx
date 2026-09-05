@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSuperAdminAuthContext } from '../../hooks/useSuperAdminAuthContext';
 import { changeLanguage } from '../../i18n';
-import { ShieldCheck, LayoutDashboard, Building2, History, UserCog, Users, LogOut } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Building2, Tag, History, UserCog, Users, LogOut } from 'lucide-react';
 
 export default function SuperAdminLayout() {
   const { t, i18n } = useTranslation();
@@ -12,6 +12,7 @@ export default function SuperAdminLayout() {
   const navItems = [
     { path: '/spd/dashboard', icon: LayoutDashboard, label: t('superadmin.dashboard') },
     { path: '/spd/companies', icon: Building2, label: t('superadmin.companies') },
+    { path: '/spd/plans', icon: Tag, label: t('superadmin.plans') },
     { path: '/spd/admins', icon: Users, label: t('superadmin.admins') },
     { path: '/spd/audit-log', icon: History, label: t('auditLog.title') },
     { path: '/spd/profile', icon: UserCog, label: t('superadmin.profile') },

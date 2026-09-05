@@ -62,6 +62,18 @@ export const companyService = {
   block: (id, data) => platformApi.patch(`/companies/${id}/block`, data),
   unblock: (id) => platformApi.patch(`/companies/${id}/unblock`),
   resetAdminPassword: (id) => platformApi.post(`/companies/${id}/reset-admin-password`),
+  assignPlan: (id, planId) => platformApi.patch(`/companies/${id}/plan`, { planId }),
+};
+
+// Tariflarni boshqarish (Tariflar bo'limi) — platformAdminService bilan bir xil
+// axios instance naqshi. GET /plans faol va nofaol rejalarning barchasini qaytaradi,
+// tanlagichlar (select) uchun chaqiruvchi tomonda isActive bo'yicha filtrlanadi.
+export const platformPlanService = {
+  list: () => platformApi.get('/plans'),
+  create: (data) => platformApi.post('/plans', data),
+  update: (id, data) => platformApi.put(`/plans/${id}`, data),
+  activate: (id) => platformApi.patch(`/plans/${id}/activate`),
+  deactivate: (id) => platformApi.patch(`/plans/${id}/deactivate`),
 };
 
 // Boshqa superadmin hisoblarini boshqarish (hamkasblarni qo'shish/faolsizlantirish) —

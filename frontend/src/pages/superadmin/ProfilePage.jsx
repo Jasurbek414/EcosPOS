@@ -160,7 +160,7 @@ export default function ProfilePage() {
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('superadmin.profileSubtitle')}</p>
       </div>
 
-      <div className="max-w-2xl w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <div className="card overflow-hidden">
           <div className="settings-card-banner settings-card-banner-amber">
             {loading || !profile ? (
@@ -219,9 +219,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="mt-6">
-          <ThemeSettingsCard />
-        </div>
+        <ThemeSettingsCard />
       </div>
     </div>
   );
