@@ -5,6 +5,7 @@ import { Wallet, Layers, ClipboardList, ReceiptText, X } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useUnits } from '../../hooks/useUnits';
 import { branchService, cashShiftService, reportService, saleService } from '../../services/api';
+import DateInput from '../../components/ui/DateInput';
 
 const toISODate = (d) => {
   const tzOffset = d.getTimezoneOffset() * 60000;
@@ -305,11 +306,11 @@ export default function AccountingPage() {
         <div className="flex items-center gap-4 flex-wrap">
           <div>
             <label className="field-label">{t('reports.from')}</label>
-            <input type="date" className="input-field" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
+            <DateInput value={from} max={to} onChange={setFrom} />
           </div>
           <div>
             <label className="field-label">{t('reports.to')}</label>
-            <input type="date" className="input-field" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
+            <DateInput value={to} min={from} onChange={setTo} />
           </div>
           {isOwner && (
             <div>

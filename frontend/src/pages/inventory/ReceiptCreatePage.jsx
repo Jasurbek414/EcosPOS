@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useUnits } from '../../hooks/useUnits';
 import { branchService, goodsReceiptService, productService, supplierService } from '../../services/api';
+import DateInput from '../../components/ui/DateInput';
 
 export default function ReceiptCreatePage() {
   const { t } = useTranslation();
@@ -145,7 +146,11 @@ export default function ReceiptCreatePage() {
           </div>
           <div>
             <label className="field-label">{t('inventory.receipts.date')}</label>
-            <input type="date" className="input-field" {...register('receiptDate')} />
+            <Controller
+              name="receiptDate"
+              control={control}
+              render={({ field }) => <DateInput value={field.value} onChange={field.onChange} />}
+            />
           </div>
         </div>
 

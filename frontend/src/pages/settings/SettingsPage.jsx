@@ -4,14 +4,13 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2,
-  Printer, ReceiptText, Ruler, Palette,
+  Printer, ReceiptText, Ruler, Palette, Pencil,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
 import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 import UnitsSection from './UnitsSection';
 
-const ROLE_BADGE = { OWNER: 'badge-amber', MANAGER: 'badge-blue', CASHIER: 'badge-slate' };
 // ProductsPage.jsx'dagi rasm yuklash validatsiyasi bilan bir xil — alohida umumiy
 // util fayl yo'q bo'lgani uchun shu yerda takrorlanadi.
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -165,16 +164,21 @@ function ProfileCard() {
     <div className="card overflow-hidden">
       <div className="settings-card-banner">
         {loading || !profile ? (
-          <div className="w-14 h-14 rounded-full bg-white/15 shrink-0" />
+          <div className="w-16 h-16 rounded-full bg-white/15 shrink-0" />
         ) : (
-          <div className="settings-avatar">{profile.fullName?.charAt(0)?.toUpperCase() || 'U'}</div>
+          <div className="settings-avatar !w-16 !h-16 !text-2xl ring-4 ring-white/15">
+            {profile.fullName?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
         )}
         <div className="min-w-0">
-          <h2 className="text-white font-bold text-base truncate">{loading || !profile ? t('settings.profileTitle') : profile.fullName}</h2>
+          <h2 className="text-white font-bold text-lg truncate">{loading || !profile ? t('settings.profileTitle') : profile.fullName}</h2>
           {!loading && profile && (
-            <span className={`badge ${ROLE_BADGE[profile.role] || 'badge-slate'} mt-1.5`} style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
-              {t(`staff.roles.${profile.role}`)}
-            </span>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="badge badge-slate" style={{ background: 'rgba(255,255,255,0.18)', color: '#fff' }}>
+                {t(`staff.roles.${profile.role}`)}
+              </span>
+              <span className="text-white/70 text-xs font-mono">@{profile.username}</span>
+            </div>
           )}
         </div>
       </div>
@@ -184,14 +188,18 @@ function ProfileCard() {
           <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
         ) : !profile ? null : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <InfoField icon={Fingerprint} label={t('auth.username')} value={profile.username} />
-              <InfoField icon={ShieldCheck} label={t('staff.role')} value={t(`staff.roles.${profile.role}`)} />
-              {profile.branchName && <InfoField icon={Building2} label={t('inventory.stock.branch')} value={profile.branchName} />}
-            </div>
+            {profile.branchName && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <InfoField icon={Fingerprint} label={t('auth.username')} value={profile.username} />
+                <InfoField icon={Building2} label={t('inventory.stock.branch')} value={profile.branchName} />
+              </div>
+            )}
 
-            <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-4">{t('settings.editNameTitle')}</h3>
+            <div className={profile.branchName ? 'border-t border-slate-100 dark:border-slate-700 pt-6' : ''}>
+              <div className="flex items-center gap-2 mb-4">
+                <Pencil size={15} className="text-slate-400 dark:text-slate-500" />
+                <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('settings.editNameTitle')}</h3>
+              </div>
               <ProfileNameForm profile={profile} onUpdated={setProfile} />
             </div>
 

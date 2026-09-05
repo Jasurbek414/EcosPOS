@@ -25,7 +25,7 @@ export default function InventoryTabs() {
   tabs.push({ path: '/inventory/movements', icon: History, label: t('inventory.tabs.movements') });
 
   return (
-    <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
+    <div className="flex items-center gap-1 flex-wrap border-b border-slate-200 dark:border-slate-700">
       {tabs.map((tab) => (
         <NavLink
           key={tab.path}

@@ -6,6 +6,7 @@ import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useUnits } from '../../hooks/useUnits';
 import { branchService, productService, stockMovementService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
+import DateInput from '../../components/ui/DateInput';
 
 const MOVEMENT_TYPES = ['RECEIPT', 'SALE', 'ADJUSTMENT', 'TRANSFER'];
 
@@ -167,11 +168,11 @@ export default function MovementsPage() {
           </div>
           <div>
             <label className="field-label">{t('reports.from')}</label>
-            <input type="date" className="input-field" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            <DateInput value={from} max={to || undefined} onChange={setFrom} />
           </div>
           <div>
             <label className="field-label">{t('reports.to')}</label>
-            <input type="date" className="input-field" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            <DateInput value={to} min={from || undefined} onChange={setTo} />
           </div>
         </div>
       </div>
