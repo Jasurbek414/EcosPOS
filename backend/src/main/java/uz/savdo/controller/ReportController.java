@@ -7,19 +7,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.savdo.dto.report.DashboardResponse;
+import uz.savdo.dto.report.InventoryValueBranchResponse;
+import uz.savdo.dto.report.InventoryValueResponse;
 import uz.savdo.dto.report.ProfitResponse;
 import uz.savdo.dto.report.SalesSummaryPointResponse;
 import uz.savdo.dto.report.TopProductResponse;
+import uz.savdo.entity.Branch;
 import uz.savdo.entity.Product;
 import uz.savdo.entity.Sale;
 import uz.savdo.entity.SaleItem;
+import uz.savdo.entity.StockLevel;
+import uz.savdo.repository.BranchRepository;
 import uz.savdo.repository.ProductRepository;
+import uz.savdo.repository.StockLevelRepository;
 import uz.savdo.security.CurrentUserService;
 import uz.savdo.service.ReportService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +50,8 @@ public class ReportController {
     private final CurrentUserService currentUserService;
     private final ReportService reportService;
     private final ProductRepository productRepository;
+    private final StockLevelRepository stockLevelRepository;
+    private final BranchRepository branchRepository;
 
     @GetMapping("/dashboard")
     public DashboardResponse dashboard(@RequestParam(required = false) Long branchId) {
@@ -184,6 +193,59 @@ public class ReportController {
                 .totalCost(totalCost)
                 .totalProfit(totalProfit)
                 .profitMarginPercent(profitMarginPercent)
+                .build();
+    }
+
+    @GetMapping("/inventory-value")
+    public InventoryValueResponse inventoryValue(@RequestParam(required = false) Long branchId) {
+        currentUserService.assertCanViewReports();
+        List<Long> branchIds = reportService.resolveBranchIds(branchId);
+        List<Long> resolvedBranchIds = branchIds != null
+                ? branchIds
+                : branchRepository.findAllByIsDeletedFalseOrderByIdAsc().stream().map(Branch::getId).toList();
+
+        Map<Long, List<StockLevel>> stockLevelsByBranch = resolvedBranchIds.stream()
+                .collect(Collectors.toMap(Function.identity(),
+                        id -> stockLevelRepository.findAllByBranchIdAndIsDeletedFalseOrderByIdAsc(id)));
+
+        List<Long> productIds = stockLevelsByBranch.values().stream()
+                .flatMap(List::stream)
+                .map(StockLevel::getProductId)
+                .distinct()
+                .toList();
+        Map<Long, Product> productsById = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        Map<Long, Branch> branchesById = branchRepository.findAllById(resolvedBranchIds).stream()
+                .collect(Collectors.toMap(Branch::getId, Function.identity()));
+
+        BigDecimal totalValue = BigDecimal.ZERO;
+        int totalSkuCount = 0;
+        List<InventoryValueBranchResponse> branches = new ArrayList<>();
+        for (Long id : resolvedBranchIds) {
+            List<StockLevel> stockLevels = stockLevelsByBranch.getOrDefault(id, List.of());
+            BigDecimal branchValue = stockLevels.stream()
+                    .map(sl -> {
+                        Product product = productsById.get(sl.getProductId());
+                        return product == null ? BigDecimal.ZERO : sl.getQuantity().multiply(product.getCostPrice());
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            totalValue = totalValue.add(branchValue);
+            totalSkuCount += stockLevels.size();
+
+            Branch branch = branchesById.get(id);
+            branches.add(InventoryValueBranchResponse.builder()
+                    .branchId(id)
+                    .branchName(branch != null ? branch.getName() : null)
+                    .value(branchValue)
+                    .build());
+        }
+
+        return InventoryValueResponse.builder()
+                .totalValue(totalValue)
+                .totalSkuCount(totalSkuCount)
+                .branches(branches)
                 .build();
     }
 

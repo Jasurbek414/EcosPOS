@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { changeLanguage } from '../../i18n';
 import {
-  LayoutDashboard, Building2, Users, ShoppingCart, Package, BarChart3, LogOut, Store, Settings,
+  LayoutDashboard, Building2, Users, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
@@ -20,6 +20,9 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
     { path: '/pos', icon: ShoppingCart, label: t('sidebar.pos') },
     // Hisobotlar moliyaviy ma'lumot — CASHIER'ga backend ham 403 qaytaradi, shuning uchun bu yerda ham yashiramiz.
     ...(role !== 'CASHIER' ? [{ path: '/reports', icon: BarChart3, label: t('sidebar.reports') }] : []),
+    // Bugalteriya (kassa smenalar tarixi, sotuvlar jurnali, ombor qiymati) — Hisobotlar
+    // bilan bir xil moliyaviy ruxsat darajasi, shuning uchun bir xil rol shartidan foydalanamiz.
+    ...(role !== 'CASHIER' ? [{ path: '/accounting', icon: Calculator, label: t('sidebar.accounting') }] : []),
     // Sozlamalar — har bir foydalanuvchi o'z profilini boshqara oladi, shuning uchun rolga qarab yashirilmaydi.
     { path: '/settings', icon: Settings, label: t('sidebar.settings') },
   ];

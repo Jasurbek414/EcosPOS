@@ -2,6 +2,7 @@ package uz.savdo.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.cashshift.CashShiftResponse;
@@ -14,6 +15,7 @@ import uz.savdo.repository.UserRepository;
 import uz.savdo.security.CurrentUserService;
 import uz.savdo.service.CashShiftService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +59,9 @@ public class CashShiftController {
     }
 
     @GetMapping
-    public List<CashShiftResponse> list(@RequestParam(required = false) Long branchId) {
+    public List<CashShiftResponse> list(@RequestParam(required = false) Long branchId,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         List<CashShift> shifts;
         if (branchId != null) {
             currentUserService.assertCanAccessBranch(branchId);
@@ -72,6 +76,8 @@ public class CashShiftController {
         }
 
         return shifts.stream()
+                .filter(s -> from == null || !s.getOpenedAt().toLocalDate().isBefore(from))
+                .filter(s -> to == null || !s.getOpenedAt().toLocalDate().isAfter(to))
                 .map(s -> CashShiftResponse.from(s, resolveCashierName(s.getCashierId())))
                 .toList();
     }

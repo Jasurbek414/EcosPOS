@@ -23,6 +23,7 @@ import TransfersPage from './pages/inventory/TransfersPage';
 import MovementsPage from './pages/inventory/MovementsPage';
 import POSPage from './pages/pos/POSPage';
 import ReportsPage from './pages/reports/ReportsPage';
+import AccountingPage from './pages/accounting/AccountingPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
 import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
@@ -83,6 +84,7 @@ export default function App() {
                 <Route path="/inventory/movements" element={<MovementsPage />} />
                 <Route path="/pos" element={<POSPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/accounting" element={<AccountingPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 

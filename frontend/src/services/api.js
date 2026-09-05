@@ -183,10 +183,13 @@ export const cashShiftService = {
   current: () => api.get('/cash-shifts/current', { validateStatus: (status) => status === 200 || status === 204 }),
   open: (data) => api.post('/cash-shifts/open', data),
   close: (id, data) => api.post(`/cash-shifts/${id}/close`, data),
+  list: (params) => api.get('/cash-shifts', { params }),
 };
 
 export const saleService = {
   create: (data) => api.post('/sales', data),
+  list: (params) => api.get('/sales', { params }),
+  get: (id) => api.get(`/sales/${id}`),
 };
 
 export const posProductService = {
@@ -199,6 +202,7 @@ export const reportService = {
   salesSummary: (params) => api.get('/reports/sales-summary', { params }),
   topProducts: (params) => api.get('/reports/top-products', { params }),
   profit: (params) => api.get('/reports/profit', { params }),
+  inventoryValue: (params) => api.get('/reports/inventory-value', { params }),
 };
 
 export const profileService = {
