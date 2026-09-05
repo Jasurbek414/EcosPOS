@@ -228,4 +228,34 @@ export const companyInfoService = {
   get: () => api.get('/company/info'),
 };
 
+// Xarajatlar — branchId=null (umumiy/kompaniya bo'ylab) faqat OWNER uchun, aniq filial
+// esa OWNER (istalgan) yoki MANAGER (faqat o'z filiali) uchun; backend 403 bilan cheklaydi.
+export const expenseService = {
+  list: (params) => api.get('/expenses', { params }),
+  create: (data) => api.post('/expenses', data),
+  remove: (id) => api.delete(`/expenses/${id}`),
+};
+
+// Davomat — bulk (upsert) bitta kunlik belgilash uchun.
+export const attendanceService = {
+  list: (params) => api.get('/attendance', { params }),
+  markBulk: (data) => api.post('/attendance/bulk', data),
+  remove: (id) => api.delete(`/attendance/${id}`),
+};
+
+// Ish haqi to'lovlari — yaratish/o'chirish faqat OWNER (backend MANAGER'ga 403 qaytaradi).
+export const salaryPaymentService = {
+  list: (params) => api.get('/salary-payments', { params }),
+  create: (data) => api.post('/salary-payments', data),
+  remove: (id) => api.delete(`/salary-payments/${id}`),
+};
+
+// Xodim avanslari — yaratish/o'chirish faqat OWNER (backend MANAGER'ga 403 qaytaradi).
+export const employeeAdvanceService = {
+  list: (params) => api.get('/employee-advances', { params }),
+  balances: (params) => api.get('/employee-advances/balances', { params }),
+  create: (data) => api.post('/employee-advances', data),
+  remove: (id) => api.delete(`/employee-advances/${id}`),
+};
+
 export default api;

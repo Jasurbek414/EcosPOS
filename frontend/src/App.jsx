@@ -24,6 +24,10 @@ import MovementsPage from './pages/inventory/MovementsPage';
 import POSPage from './pages/pos/POSPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import AccountingPage from './pages/accounting/AccountingPage';
+import ExpensesPage from './pages/accounting/ExpensesPage';
+import AttendancePage from './pages/accounting/AttendancePage';
+import PayrollPage from './pages/accounting/PayrollPage';
+import AdvancesPage from './pages/accounting/AdvancesPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
 import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
@@ -85,6 +89,10 @@ export default function App() {
                 <Route path="/pos" element={<POSPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/accounting" element={<AccountingPage />} />
+                <Route path="/accounting/expenses" element={<ExpensesPage />} />
+                <Route path="/accounting/attendance" element={<AttendancePage />} />
+                <Route path="/accounting/payroll" element={<PayrollPage />} />
+                <Route path="/accounting/advances" element={<AdvancesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 

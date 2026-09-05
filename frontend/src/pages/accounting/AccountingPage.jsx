@@ -6,6 +6,7 @@ import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useUnits } from '../../hooks/useUnits';
 import { branchService, cashShiftService, reportService, saleService } from '../../services/api';
 import DateInput from '../../components/ui/DateInput';
+import AccountingTabs from './AccountingTabs';
 
 const toISODate = (d) => {
   const tzOffset = d.getTimezoneOffset() * 60000;
@@ -289,6 +290,8 @@ export default function AccountingPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <AccountingTabs />
+
       <div>
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('accounting.title')}</h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('accounting.subtitle')}</p>

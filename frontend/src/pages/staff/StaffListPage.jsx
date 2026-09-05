@@ -275,6 +275,7 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
       role: staffMember.role || 'CASHIER',
       branchId: staffMember.branchId || '',
       isActive: staffMember.isActive ?? true,
+      baseSalary: staffMember.baseSalary ?? '',
     },
   });
 
@@ -288,6 +289,7 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
         branchId: data.branchId || null,
         role: isSelf ? staffMember.role : data.role,
         isActive: isSelf ? staffMember.isActive ?? true : data.isActive,
+        baseSalary: data.baseSalary === '' || data.baseSalary == null ? null : Number(data.baseSalary),
       };
       await userService.update(staffMember.id, payload);
       toast.success(t('staff.updateSuccess'));
@@ -339,6 +341,16 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="field-label">{t('staff.baseSalary')}</label>
+            <input
+              type="number"
+              step="0.01"
+              className="input-field"
+              placeholder="0"
+              {...register('baseSalary', { min: 0 })}
+            />
           </div>
           <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
             <input type="checkbox" disabled={isSelf} {...register('isActive')} />
