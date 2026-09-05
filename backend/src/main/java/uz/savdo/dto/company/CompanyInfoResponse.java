@@ -17,6 +17,11 @@ public class CompanyInfoResponse {
     private String address;
     private String phone;
     private String logoUrl;
+    private String receiptPaperWidth;
+    private String receiptFooterText;
+    private Boolean receiptShowLogo;
+    private Boolean receiptShowCashierName;
+    private Boolean receiptAutoPrint;
 
     public static CompanyInfoResponse from(Company c) {
         return CompanyInfoResponse.builder()
@@ -24,6 +29,11 @@ public class CompanyInfoResponse {
                 .address(c.getAddress())
                 .phone(c.getPhone())
                 .logoUrl(c.getLogoUrl())
+                .receiptPaperWidth(c.getReceiptPaperWidth())
+                .receiptFooterText(c.getReceiptFooterText())
+                .receiptShowLogo(c.getReceiptShowLogo())
+                .receiptShowCashierName(c.getReceiptShowCashierName())
+                .receiptAutoPrint(c.getReceiptAutoPrint())
                 .build();
     }
 }

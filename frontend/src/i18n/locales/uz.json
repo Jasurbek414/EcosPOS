@@ -438,7 +438,8 @@
       "amountPaid": "Qabul qilindi",
       "change": "Qaytim",
       "printBtn": "Chop etish",
-      "newSaleBtn": "Yangi sotuv"
+      "newSaleBtn": "Yangi sotuv",
+      "cashier": "Kassir"
     }
   },
   "superadmin": {
@@ -606,7 +607,24 @@
     "plan": "Tarif",
     "companyUpdateSuccess": "Kompaniya ma'lumotlari yangilandi",
     "companyUpdateError": "Kompaniyani yangilashda xatolik",
-    "companyLoadError": "Kompaniya ma'lumotlarini yuklab bo'lmadi"
+    "companyLoadError": "Kompaniya ma'lumotlarini yuklab bo'lmadi",
+    "receiptSettingsTitle": "Chek va printer sozlamalari",
+    "receiptSettingsSubtitle": "POS chekining ko'rinishi va chop etilish tartibi",
+    "paperWidth": "Qog'oz kengligi",
+    "paperWidthHint": "Termal printeringizga mos kenglikni tanlang",
+    "footerText": "Chek pastki matni",
+    "footerTextPlaceholder": "Masalan: Xaridingiz uchun rahmat!",
+    "showLogoOnReceipt": "Chekda logotipni ko'rsatish",
+    "showCashierName": "Chekda kassir ismini ko'rsatish",
+    "autoPrint": "Sotuvdan keyin avtomatik chop etish",
+    "receiptSettingsUpdateSuccess": "Chek sozlamalari yangilandi",
+    "receiptSettingsUpdateError": "Chek sozlamalarini yangilashda xatolik",
+    "receiptPreview": {
+      "title": "Ko'rinish namunasi",
+      "sampleItem": "Coca-Cola 1.5L",
+      "sampleItem2": "Non",
+      "cashierLabel": "Kassir"
+    }
   },
   "theme": {
     "title": "Ko'rinish",

@@ -21,6 +21,11 @@ public class CompanyProfileResponse {
     private String address;
     private String phone;
     private String logoUrl;
+    private String receiptPaperWidth;
+    private String receiptFooterText;
+    private Boolean receiptShowLogo;
+    private Boolean receiptShowCashierName;
+    private Boolean receiptAutoPrint;
     private Long planId;
     private String planName;
     private LocalDateTime createdAt;
@@ -34,6 +39,11 @@ public class CompanyProfileResponse {
                 .address(c.getAddress())
                 .phone(c.getPhone())
                 .logoUrl(c.getLogoUrl())
+                .receiptPaperWidth(c.getReceiptPaperWidth())
+                .receiptFooterText(c.getReceiptFooterText())
+                .receiptShowLogo(c.getReceiptShowLogo())
+                .receiptShowCashierName(c.getReceiptShowCashierName())
+                .receiptAutoPrint(c.getReceiptAutoPrint())
                 .planId(c.getPlanId())
                 .planName(plan != null ? plan.getName() : null)
                 .createdAt(c.getCreatedAt())

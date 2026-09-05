@@ -199,6 +199,7 @@ export const profileService = {
 export const companyProfileService = {
   get: () => api.get('/company'),
   update: (data) => api.put('/company', data),
+  updateReceiptSettings: (data) => api.put('/company/receipt-settings', data),
 };
 
 // Har qanday autentifikatsiya qilingan tenant foydalanuvchisi (OWNER/MANAGER/CASHIER)

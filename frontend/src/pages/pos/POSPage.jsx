@@ -222,12 +222,26 @@ function CloseShiftResult({ result, onDone }) {
   );
 }
 
-function ReceiptView({ receipt, onNewSale, company }) {
+function ReceiptView({ receipt, onNewSale, company, cashierName }) {
   const { t } = useTranslation();
-  const resolvedLogoUrl = resolveFileUrl(company?.logoUrl);
+  const showLogo = company?.receiptShowLogo ?? true;
+  const resolvedLogoUrl = showLogo ? resolveFileUrl(company?.logoUrl) : null;
+  const paperClass = company?.receiptPaperWidth === '58mm' ? 'receipt-slip-58mm' : 'receipt-slip-80mm';
+
+  // Avtomatik chop etish — sozlamalarda yoqilgan bo'lsa, chek render bo'lganda BIR MARTA
+  // window.print() chaqiriladi (receipt.id o'zgarganda qayta ishga tushadi, bir xil chek
+  // uchun ikkinchi marta emas).
+  const autoPrintedRef = useRef(null);
+  useEffect(() => {
+    if (company?.receiptAutoPrint && autoPrintedRef.current !== receipt.id) {
+      autoPrintedRef.current = receipt.id;
+      window.print();
+    }
+  }, [company?.receiptAutoPrint, receipt.id]);
+
   return (
     <div className="flex flex-col items-center gap-5 py-4">
-      <div className="receipt-slip flex flex-col gap-4">
+      <div className={`receipt-slip ${paperClass} flex flex-col gap-4`}>
         <div className="text-center flex flex-col items-center gap-2">
           {resolvedLogoUrl ? (
             <img src={resolvedLogoUrl} alt={company.name || ''} className="w-11 h-11 rounded-xl object-cover" />
@@ -291,6 +305,17 @@ function ReceiptView({ receipt, onNewSale, company }) {
             </>
           )}
         </div>
+        {(company?.receiptShowCashierName ?? true) && cashierName && (
+          <p className="text-slate-400 dark:text-slate-500 text-[11px] text-center">
+            {t('pos.receipt.cashier')}: {cashierName}
+          </p>
+        )}
+        {company?.receiptFooterText && (
+          <>
+            <div className="receipt-divider" />
+            <p className="text-slate-600 dark:text-slate-300 text-xs text-center whitespace-pre-line">{company.receiptFooterText}</p>
+          </>
+        )}
       </div>
       <div className="flex gap-2 print:hidden">
         <button type="button" onClick={() => window.print()} className="btn btn-outline">
@@ -380,6 +405,7 @@ function ProductGrid({ products, categories, onAdd }) {
 
 function POSTerminal({ shift, onRequestCloseShift }) {
   const { t } = useTranslation();
+  const { user } = useTenantAuthContext();
   const inputRef = useRef(null);
 
   const [query, setQuery] = useState('');
@@ -581,7 +607,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
       {receipt ? (
         <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
-          <ReceiptView receipt={receipt} onNewSale={handleNewSale} company={companyInfo} />
+          <ReceiptView receipt={receipt} onNewSale={handleNewSale} company={companyInfo} cashierName={user?.fullName} />
         </div>
       ) : (
         <div className="flex flex-col xl:flex-row gap-4 xl:flex-1 xl:min-h-0 xl:items-stretch">

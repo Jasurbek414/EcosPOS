@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.company.CompanyInfoResponse;
 import uz.savdo.dto.company.CompanyProfileResponse;
 import uz.savdo.dto.company.CompanyProfileUpdateRequest;
+import uz.savdo.dto.company.ReceiptSettingsUpdateRequest;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.platform.entity.Company;
 import uz.savdo.platform.entity.Plan;
@@ -53,6 +54,25 @@ public class CompanyProfileController {
         company.setAddress(request.getAddress());
         company.setPhone(request.getPhone());
         company.setLogoUrl(request.getLogoUrl());
+
+        return CompanyProfileResponse.from(company, resolvePlan(company));
+    }
+
+    /** POS chekining ko'rinishi/chop etilish tartibi — faqat OWNER sozlaydi. */
+    @PutMapping("/receipt-settings")
+    public CompanyProfileResponse updateReceiptSettings(@RequestAttribute("companyId") Long companyId,
+                                                          @Valid @RequestBody ReceiptSettingsUpdateRequest request) {
+        currentUserService.assertIsOwner();
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+
+        companyRepository.updateReceiptSettings(companyId, request.getReceiptPaperWidth(), request.getReceiptFooterText(),
+                request.getReceiptShowLogo(), request.getReceiptShowCashierName(), request.getReceiptAutoPrint());
+        company.setReceiptPaperWidth(request.getReceiptPaperWidth());
+        company.setReceiptFooterText(request.getReceiptFooterText());
+        company.setReceiptShowLogo(request.getReceiptShowLogo());
+        company.setReceiptShowCashierName(request.getReceiptShowCashierName());
+        company.setReceiptAutoPrint(request.getReceiptAutoPrint());
 
         return CompanyProfileResponse.from(company, resolvePlan(company));
     }

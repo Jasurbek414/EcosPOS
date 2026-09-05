@@ -635,12 +635,19 @@ tbody tr:hover td { background: #fafafa; }
 .receipt-divider {
   border-top: 1px dashed #cbd5e1;
 }
+/* Qog'oz kengligi sozlamasi (Sozlamalar > Chek/printer) — ekranda taxminiy nisbat bilan,
+   chop etishda esa haqiqiy mm o'lchamida (issiq (termal) printerlar odatda shu ikki
+   kenglikdan birida bo'ladi). */
+.receipt-slip-80mm { max-width: 22rem; }
+.receipt-slip-58mm { max-width: 15rem; }
 @media print {
   .receipt-slip {
     box-shadow: none;
     border: none;
     max-width: 100%;
   }
+  .receipt-slip-80mm { width: 80mm; max-width: 80mm; padding: 0.5rem 0.4rem; font-size: 11px; }
+  .receipt-slip-58mm { width: 58mm; max-width: 58mm; padding: 0.4rem 0.3rem; font-size: 10px; }
 }
 
 /* ============= SIDEBAR ============= */

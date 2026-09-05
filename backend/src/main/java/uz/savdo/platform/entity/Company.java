@@ -25,6 +25,11 @@ public class Company {
     private String address;
     private String phone;
     private String logoUrl;
+    private String receiptPaperWidth;
+    private String receiptFooterText;
+    private Boolean receiptShowLogo;
+    private Boolean receiptShowCashierName;
+    private Boolean receiptAutoPrint;
     private CompanyStatus status;
     private String blockedReason;
     private LocalDateTime blockedAt;

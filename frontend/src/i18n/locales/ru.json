@@ -438,7 +438,8 @@
       "amountPaid": "Принято",
       "change": "Сдача",
       "printBtn": "Печать",
-      "newSaleBtn": "Новая продажа"
+      "newSaleBtn": "Новая продажа",
+      "cashier": "Кассир"
     }
   },
   "superadmin": {
@@ -606,7 +607,24 @@
     "plan": "Тариф",
     "companyUpdateSuccess": "Данные компании обновлены",
     "companyUpdateError": "Ошибка при обновлении компании",
-    "companyLoadError": "Не удалось загрузить данные компании"
+    "companyLoadError": "Не удалось загрузить данные компании",
+    "receiptSettingsTitle": "Настройки чека и принтера",
+    "receiptSettingsSubtitle": "Внешний вид чека POS и порядок печати",
+    "paperWidth": "Ширина бумаги",
+    "paperWidthHint": "Выберите ширину, подходящую вашему термопринтеру",
+    "footerText": "Нижний текст чека",
+    "footerTextPlaceholder": "Например: Спасибо за покупку!",
+    "showLogoOnReceipt": "Показывать логотип на чеке",
+    "showCashierName": "Показывать имя кассира на чеке",
+    "autoPrint": "Автоматически печатать после продажи",
+    "receiptSettingsUpdateSuccess": "Настройки чека обновлены",
+    "receiptSettingsUpdateError": "Ошибка при обновлении настроек чека",
+    "receiptPreview": {
+      "title": "Пример вида",
+      "sampleItem": "Coca-Cola 1.5L",
+      "sampleItem2": "Хлеб",
+      "cashierLabel": "Кассир"
+    }
   },
   "theme": {
     "title": "Внешний вид",

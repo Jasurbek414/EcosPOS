@@ -35,6 +35,11 @@ public class CompanyRepository {
             .address(rs.getString("address"))
             .phone(rs.getString("phone"))
             .logoUrl(rs.getString("logo_url"))
+            .receiptPaperWidth(rs.getString("receipt_paper_width"))
+            .receiptFooterText(rs.getString("receipt_footer_text"))
+            .receiptShowLogo(rs.getBoolean("receipt_show_logo"))
+            .receiptShowCashierName(rs.getBoolean("receipt_show_cashier_name"))
+            .receiptAutoPrint(rs.getBoolean("receipt_auto_print"))
             .status(CompanyStatus.valueOf(rs.getString("status")))
             .blockedReason(rs.getString("blocked_reason"))
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
@@ -115,6 +120,21 @@ public class CompanyRepository {
     public void updateProfile(Long id, String name, String address, String phone, String logoUrl) {
         jdbc.update("UPDATE companies SET name = ?, address = ?, phone = ?, logo_url = ?, updated_at = now() WHERE id = ?",
                 name, address, phone, logoUrl, id);
+    }
+
+    /**
+     * Chek/printer sozlamalari — POS chekining ko'rinishi (qog'oz kengligi, pastki matn,
+     * logotip/kassir ismini ko'rsatish, avtomatik chop etish). Kompaniya darajasida,
+     * barcha filiallar uchun bir xil.
+     */
+    public void updateReceiptSettings(Long id, String receiptPaperWidth, String receiptFooterText,
+                                       boolean receiptShowLogo, boolean receiptShowCashierName,
+                                       boolean receiptAutoPrint) {
+        jdbc.update("UPDATE companies SET receipt_paper_width = ?, receipt_footer_text = ?, " +
+                        "receipt_show_logo = ?, receipt_show_cashier_name = ?, receipt_auto_print = ?, " +
+                        "updated_at = now() WHERE id = ?",
+                receiptPaperWidth, receiptFooterText, receiptShowLogo, receiptShowCashierName,
+                receiptAutoPrint, id);
     }
 
     /** Kompaniyaga biriktirilgan rejani o'zgartirish/olib tashlash (planId null bo'lsa — rejasiz). */

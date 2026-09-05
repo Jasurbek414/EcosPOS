@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2 } from 'lucide-react';
+import {
+  UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2,
+  Printer, ReceiptText,
+} from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
 import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
@@ -441,6 +444,194 @@ function CompanyCard() {
   );
 }
 
+// Chekning joriy (hali saqlanmagan) forma qiymatlari bilan jonli ko'rinishi — foydalanuvchi
+// qog'oz kengligi/pastki matn/ko'rsatish-yashirish sozlamalarini o'zgartirganda, chop etishdan
+// oldin qanday chiqishini ko'rishi uchun. Haqiqiy POS chekidagi (POSPage.jsx) tuzilishni
+// soddalashtirilgan holda takrorlaydi (o'zgarmas namunaviy ma'lumotlar bilan).
+function ReceiptPreview({ company, values }) {
+  const { t } = useTranslation();
+  const resolvedLogoUrl = resolveFileUrl(company?.logoUrl);
+  const paperClass = values.receiptPaperWidth === '58mm' ? 'receipt-slip-58mm' : 'receipt-slip-80mm';
+
+  return (
+    <div className={`receipt-slip ${paperClass} flex flex-col gap-3 mx-auto`}>
+      <div className="text-center flex flex-col items-center gap-1.5">
+        {values.receiptShowLogo && resolvedLogoUrl ? (
+          <img src={resolvedLogoUrl} alt={company?.name || ''} className="w-9 h-9 rounded-lg object-cover" />
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center">
+            <ReceiptText size={16} className="text-white" />
+          </div>
+        )}
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{company?.name || t('pos.receipt.title')}</h3>
+        {company?.address && <p className="text-slate-500 dark:text-slate-400 text-[11px]">{company.address}</p>}
+        {company?.phone && <p className="text-slate-500 dark:text-slate-400 text-[11px]">{company.phone}</p>}
+      </div>
+      <div className="receipt-divider" />
+      <div className="flex flex-col gap-1 text-xs">
+        <div className="flex justify-between">
+          <span className="text-slate-700 dark:text-slate-300">{t('settings.receiptPreview.sampleItem')} x2</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">24 000</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-700 dark:text-slate-300">{t('settings.receiptPreview.sampleItem2')} x1</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">12 000</span>
+        </div>
+      </div>
+      <div className="receipt-divider" />
+      <div className="flex justify-between text-sm">
+        <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.total')}</span>
+        <span className="font-bold text-slate-900 dark:text-slate-100">36 000</span>
+      </div>
+      {values.receiptShowCashierName && (
+        <p className="text-slate-400 dark:text-slate-500 text-[11px] text-center">{t('settings.receiptPreview.cashierLabel')}: Aliyev A.</p>
+      )}
+      {values.receiptFooterText && (
+        <>
+          <div className="receipt-divider" />
+          <p className="text-slate-600 dark:text-slate-300 text-[11px] text-center whitespace-pre-line">{values.receiptFooterText}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Chek/printer sozlamalari — mustaqil, o'z-o'zini yuklaydigan/saqlaydigan karta (boshqa
+// Sozlamalar kartalari bilan bir xil naqsh). `watch()` orqali forma qiymatlari jonli
+// kuzatiladi va o'ng tomondagi ReceiptPreview'ga uzatiladi — foydalanuvchi saqlashdan
+// oldin natijani ko'radi.
+function ReceiptSettingsCard() {
+  const { t } = useTranslation();
+  const [company, setCompany] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { isSubmitting },
+  } = useForm({
+    defaultValues: {
+      receiptPaperWidth: '80mm',
+      receiptFooterText: '',
+      receiptShowLogo: true,
+      receiptShowCashierName: true,
+      receiptAutoPrint: false,
+    },
+  });
+  const values = watch();
+
+  useEffect(() => {
+    let cancelled = false;
+    companyProfileService
+      .get()
+      .then((res) => {
+        if (cancelled) return;
+        setCompany(res.data);
+        reset({
+          receiptPaperWidth: res.data.receiptPaperWidth || '80mm',
+          receiptFooterText: res.data.receiptFooterText || '',
+          receiptShowLogo: res.data.receiptShowLogo ?? true,
+          receiptShowCashierName: res.data.receiptShowCashierName ?? true,
+          receiptAutoPrint: res.data.receiptAutoPrint ?? false,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) toast.error(t('settings.companyLoadError'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [t, reset]);
+
+  const onSubmit = async (data) => {
+    try {
+      const res = await companyProfileService.updateReceiptSettings({
+        ...data,
+        receiptFooterText: data.receiptFooterText || null,
+      });
+      setCompany(res.data);
+      toast.success(t('settings.receiptSettingsUpdateSuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('settings.receiptSettingsUpdateError'));
+    }
+  };
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="settings-card-banner settings-card-banner-dark">
+        <div className="settings-avatar settings-avatar-square">
+          <Printer size={20} />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-white font-bold text-base truncate">{t('settings.receiptSettingsTitle')}</h2>
+          <span className="text-slate-400 dark:text-slate-500 text-xs">{t('settings.receiptSettingsSubtitle')}</span>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {loading ? (
+          <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+              <div>
+                <label className="field-label">{t('settings.paperWidth')}</label>
+                <select className="input-field max-w-xs" {...register('receiptPaperWidth')}>
+                  <option value="80mm">80mm</option>
+                  <option value="58mm">58mm</option>
+                </select>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{t('settings.paperWidthHint')}</p>
+              </div>
+
+              <div>
+                <label className="field-label">{t('settings.footerText')}</label>
+                <textarea
+                  className="input-field max-w-sm"
+                  rows={2}
+                  placeholder={t('settings.footerTextPlaceholder')}
+                  {...register('receiptFooterText')}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                  <input type="checkbox" {...register('receiptShowLogo')} />
+                  {t('settings.showLogoOnReceipt')}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                  <input type="checkbox" {...register('receiptShowCashierName')} />
+                  {t('settings.showCashierName')}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                  <input type="checkbox" {...register('receiptAutoPrint')} />
+                  {t('settings.autoPrint')}
+                </label>
+              </div>
+
+              <div>
+                <button type="submit" disabled={isSubmitting} className="btn btn-primary w-fit">
+                  {t('settings.saveBtn')}
+                </button>
+              </div>
+            </form>
+
+            <div>
+              <p className="text-slate-400 dark:text-slate-500 text-[11px] font-bold uppercase tracking-wide mb-3 text-center">
+                {t('settings.receiptPreview.title')}
+              </p>
+              <ReceiptPreview company={company} values={values} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { isOwner } = useTenantAuthContext();
@@ -458,6 +649,11 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <ProfileCard />
         {isOwner && <CompanyCard />}
+        {isOwner && (
+          <div className="xl:col-span-2">
+            <ReceiptSettingsCard />
+          </div>
+        )}
         <ThemeSettingsCard />
       </div>
     </div>
