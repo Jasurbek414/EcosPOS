@@ -160,4 +160,18 @@ public class CurrentUserService {
         }
         throw new ForbiddenException("Davomatni boshqarish huquqingiz yo'q");
     }
+
+    /**
+     * Mijoz ma'lumotlarini tahrirlash/deaktivatsiya qilish huquqi — OWNER va MANAGER;
+     * CASHIER faqat yaratishi mumkin (tezkor qo'shish — checkout paytida), lekin
+     * tahrirlay olmaydi. Mijozlar filialga bog'lanmagan (kompaniya bo'ylab umumiy),
+     * shuning uchun branchId parametri kerak emas — assertCanManageCatalog bilan bir xil
+     * shaklda, lekin aniqlik uchun alohida metod sifatida ajratilgan.
+     */
+    public void assertCanManageCustomerInfo() {
+        UserRole role = getCurrentUser().getRole();
+        if (role != UserRole.OWNER && role != UserRole.MANAGER) {
+            throw new ForbiddenException("Mijoz ma'lumotlarini boshqarish huquqi yo'q");
+        }
+    }
 }

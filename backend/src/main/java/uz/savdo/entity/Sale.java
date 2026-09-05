@@ -53,4 +53,12 @@ public class Sale extends BaseEntity {
     @Column(name = "card_amount", nullable = false, precision = 14, scale = 2)
     @Builder.Default
     private BigDecimal cardAmount = BigDecimal.ZERO;
+
+    /**
+     * Faqat paymentMethod == CREDIT bo'lganda to'ldiriladi — nasiyaga sotilgan mijoz
+     * (qarang: SaleService#createSale, CustomerDebtTransaction). Boshqa to'lov
+     * usullarida null.
+     */
+    @Column(name = "customer_id")
+    private Long customerId;
 }

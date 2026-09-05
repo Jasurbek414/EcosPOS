@@ -27,7 +27,7 @@ public class ExpenseResponse {
                 .id(expense.getId())
                 .branchId(expense.getBranchId())
                 .branchName(expense.getBranchId() == null ? "Umumiy" : branchName)
-                .category(expense.getCategory().name())
+                .category(expense.getCategory())
                 .amount(expense.getAmount())
                 .description(expense.getDescription())
                 .expenseDate(expense.getExpenseDate())

@@ -9,11 +9,17 @@ import uz.savdo.dto.sale.SaleItemResponse;
 import uz.savdo.dto.sale.SaleRequest;
 import uz.savdo.dto.sale.SaleResponse;
 import uz.savdo.dto.sale.SaleSummaryResponse;
+import uz.savdo.entity.Customer;
 import uz.savdo.entity.Product;
 import uz.savdo.entity.Sale;
 import uz.savdo.entity.SaleItem;
 import uz.savdo.entity.User;
+import uz.savdo.enums.PaymentMethod;
+import uz.savdo.exception.ForbiddenException;
 import uz.savdo.exception.ResourceNotFoundException;
+import uz.savdo.platform.entity.Company;
+import uz.savdo.platform.repository.CompanyRepository;
+import uz.savdo.repository.CustomerRepository;
 import uz.savdo.repository.ProductRepository;
 import uz.savdo.repository.SaleItemRepository;
 import uz.savdo.repository.SaleRepository;
@@ -29,7 +35,10 @@ import java.util.List;
  * kassirning joriy ochiq kassa smenasidan olinadi (qarang: SaleService), shu sababli
  * bu yerda alohida assertCanAccessBranch/assertCanWriteInventory chaqirilmaydi. Ko'rish —
  * GoodsReceiptController bilan bir xil filial-scoping naqshi (OWNER: barchasi/aniq
- * filial, MANAGER/CASHIER: faqat o'z filiali).
+ * filial, MANAGER/CASHIER: faqat o'z filiali). CREDIT to'lovi uchun kompaniyaning
+ * creditSalesEnabled kaliti bu yerda (SaleService'da emas) tekshiriladi — platform
+ * CompanyRepository'ga to'g'ridan-to'g'ri kirish BranchController#create bilan bir xil
+ * naqsh (qarang: JwtAuthFilter — companyId request attribute sifatida o'rnatiladi).
  */
 @RestController
 @RequestMapping("/api/v1/sales")
@@ -40,6 +49,8 @@ public class SaleController {
     private final SaleItemRepository saleItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+    private final CompanyRepository companyRepository;
     private final CurrentUserService currentUserService;
     private final SaleService saleService;
 
@@ -73,15 +84,24 @@ public class SaleController {
                 .orElseThrow(() -> new ResourceNotFoundException("Sotuv topilmadi: " + id));
         currentUserService.assertCanAccessBranch(sale.getBranchId());
 
-        return SaleResponse.from(sale, resolveCashierName(sale.getCashierId()), loadItemResponses(id));
+        return SaleResponse.from(sale, resolveCashierName(sale.getCashierId()), loadItemResponses(id), resolveCustomerName(sale.getCustomerId()));
     }
 
     @PostMapping
-    public ResponseEntity<SaleResponse> create(@Valid @RequestBody SaleRequest request) {
+    public ResponseEntity<SaleResponse> create(@RequestAttribute("companyId") Long companyId,
+                                                @Valid @RequestBody SaleRequest request) {
+        if (request.getPaymentMethod() == PaymentMethod.CREDIT) {
+            Company company = companyRepository.findById(companyId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+            if (!Boolean.TRUE.equals(company.getCreditSalesEnabled())) {
+                throw new ForbiddenException("Nasiya savdosi bu kompaniya uchun faollashtirilmagan");
+            }
+        }
+
         User currentUser = currentUserService.getCurrentUser();
         Sale sale = saleService.createSale(request, currentUser.getId());
 
-        return ResponseEntity.ok(SaleResponse.from(sale, currentUser.getFullName(), loadItemResponses(sale.getId())));
+        return ResponseEntity.ok(SaleResponse.from(sale, currentUser.getFullName(), loadItemResponses(sale.getId()), resolveCustomerName(sale.getCustomerId())));
     }
 
     private List<SaleItemResponse> loadItemResponses(Long saleId) {
@@ -97,6 +117,14 @@ public class SaleController {
 
     private String resolveCashierName(Long cashierId) {
         return userRepository.findById(cashierId).map(User::getFullName).orElse(null);
+    }
+
+    /** customerId faqat CREDIT sotuvlarda to'ldiriladi — shu sababli oddiy sotuvlarda bekorga so'rov yuborilmaydi. */
+    private String resolveCustomerName(Long customerId) {
+        if (customerId == null) {
+            return null;
+        }
+        return customerRepository.findById(customerId).map(Customer::getFullName).orElse(null);
     }
 
     private int countItems(Long saleId) {

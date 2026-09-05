@@ -35,4 +35,11 @@ public class SaleRequest {
      */
     @DecimalMin(value = "0", inclusive = false, message = "Karta summasi musbat bo'lishi kerak")
     private BigDecimal cardAmount;
+
+    /**
+     * Faqat paymentMethod == CREDIT bo'lganda talab qilinadi — nasiyaga sotib olayotgan
+     * mijoz. Boshqa usullarda e'tiborga olinmaydi (shu sababli @NotNull emas —
+     * SaleService shartli ravishda tekshiradi).
+     */
+    private Long customerId;
 }

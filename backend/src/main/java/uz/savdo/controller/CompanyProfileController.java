@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.company.CompanyInfoResponse;
 import uz.savdo.dto.company.CompanyProfileResponse;
 import uz.savdo.dto.company.CompanyProfileUpdateRequest;
+import uz.savdo.dto.company.CreditSalesSettingsUpdateRequest;
 import uz.savdo.dto.company.ReceiptSettingsUpdateRequest;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.platform.entity.Company;
@@ -77,6 +78,26 @@ public class CompanyProfileController {
         company.setReceiptHeaderText(request.getReceiptHeaderText());
         company.setReceiptShowBranchName(request.getReceiptShowBranchName());
         company.setReceiptCurrencyLabel(request.getReceiptCurrencyLabel());
+
+        return CompanyProfileResponse.from(company, resolvePlan(company));
+    }
+
+    /**
+     * Tenant OWNER'ining o'z-o'ziga xizmat ko'rsatish darajasida "Nasiya savdo" (Credit
+     * sales) funksiyasini yoqish/o'chirishi — bu superadmin boshqaradigan
+     * branchesFeatureEnabled'dan FARQLI: kompaniyaning o'zi qabul qiladigan ixtiyoriy
+     * biznes qarori, shuning uchun bu yerda (superadmin kontrolleridagi kabi emas)
+     * assertIsOwner() orqali tenant OWNER'i tekshiriladi.
+     */
+    @PatchMapping("/credit-sales")
+    public CompanyProfileResponse updateCreditSales(@RequestAttribute("companyId") Long companyId,
+                                                      @Valid @RequestBody CreditSalesSettingsUpdateRequest request) {
+        currentUserService.assertIsOwner();
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
+
+        companyRepository.updateCreditSalesEnabled(companyId, request.getCreditSalesEnabled());
+        company.setCreditSalesEnabled(request.getCreditSalesEnabled());
 
         return CompanyProfileResponse.from(company, resolvePlan(company));
     }

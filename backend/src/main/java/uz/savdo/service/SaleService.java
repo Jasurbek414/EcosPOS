@@ -6,17 +6,22 @@ import org.springframework.transaction.annotation.Transactional;
 import uz.savdo.dto.sale.SaleItemRequest;
 import uz.savdo.dto.sale.SaleRequest;
 import uz.savdo.entity.CashShift;
+import uz.savdo.entity.Customer;
+import uz.savdo.entity.CustomerDebtTransaction;
 import uz.savdo.entity.Product;
 import uz.savdo.entity.Sale;
 import uz.savdo.entity.SaleItem;
 import uz.savdo.entity.StockLevel;
 import uz.savdo.entity.StockMovement;
+import uz.savdo.enums.DebtTransactionType;
 import uz.savdo.enums.MovementType;
 import uz.savdo.enums.PaymentMethod;
 import uz.savdo.enums.ShiftStatus;
 import uz.savdo.exception.BadRequestException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.CashShiftRepository;
+import uz.savdo.repository.CustomerDebtTransactionRepository;
+import uz.savdo.repository.CustomerRepository;
 import uz.savdo.repository.ProductRepository;
 import uz.savdo.repository.SaleItemRepository;
 import uz.savdo.repository.SaleRepository;
@@ -24,6 +29,7 @@ import uz.savdo.repository.StockLevelRepository;
 import uz.savdo.repository.StockMovementRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -46,6 +52,8 @@ public class SaleService {
     private final StockMovementRepository stockMovementRepository;
     private final SaleRepository saleRepository;
     private final SaleItemRepository saleItemRepository;
+    private final CustomerRepository customerRepository;
+    private final CustomerDebtTransactionRepository customerDebtTransactionRepository;
 
     @Transactional
     public Sale createSale(SaleRequest request, Long currentUserId) {
@@ -98,6 +106,21 @@ public class SaleService {
             }
             amountPaid = request.getAmountPaid();
             changeAmount = amountPaid.subtract(cashDue);
+        } else if (request.getPaymentMethod() == PaymentMethod.CREDIT) {
+            // Nasiya savdo — v1'da qisman oldindan to'lov QO'LLAB-QUVVATLANMAYDI: butun
+            // totalAmount mijoz qarziga aylanadi, kassaga hech narsa tushmaydi. Shu
+            // sababli CASH/MIXED validatsiyasi bu tarmoqqa umuman qo'llanilmaydi.
+            if (request.getCustomerId() == null) {
+                throw new BadRequestException("Mijoz tanlanishi shart");
+            }
+            Customer creditCustomer = customerRepository.findByIdAndIsDeletedFalse(request.getCustomerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Mijoz topilmadi: " + request.getCustomerId()));
+            if (!Boolean.TRUE.equals(creditCustomer.getIsActive())) {
+                throw new BadRequestException("Mijoz faol emas: " + creditCustomer.getFullName());
+            }
+            amountPaid = BigDecimal.ZERO;
+            changeAmount = BigDecimal.ZERO;
+            cardAmount = BigDecimal.ZERO;
         } else {
             if (request.getAmountPaid() == null || request.getAmountPaid().compareTo(totalAmount) < 0) {
                 throw new BadRequestException("To'langan summa yetarli emas");
@@ -116,6 +139,7 @@ public class SaleService {
                 .amountPaid(amountPaid)
                 .changeAmount(changeAmount)
                 .cardAmount(cardAmount)
+                .customerId(request.getPaymentMethod() == PaymentMethod.CREDIT ? request.getCustomerId() : null)
                 .build();
         sale = saleRepository.save(sale);
 
@@ -135,6 +159,21 @@ public class SaleService {
             saleItemRepository.save(item);
 
             applyStockSale(product.getId(), branchId, itemRequest.getQuantity(), sale.getId(), currentUserId);
+        }
+
+        if (request.getPaymentMethod() == PaymentMethod.CREDIT) {
+            // Faqat sotuv va zaxira kamayishi muvaffaqiyatli yakunlangandan SO'NG qarz
+            // yozuvi yaratiladi — shu sababli oxirgi qadam sifatida joylashtirilgan.
+            CustomerDebtTransaction debtTransaction = CustomerDebtTransaction.builder()
+                    .customerId(request.getCustomerId())
+                    .branchId(branchId)
+                    .type(DebtTransactionType.CREDIT_SALE)
+                    .amount(sale.getTotalAmount())
+                    .transactionDate(LocalDate.now())
+                    .relatedSaleId(sale.getId())
+                    .createdByUserId(currentUserId)
+                    .build();
+            customerDebtTransactionRepository.save(debtTransaction);
         }
 
         return sale;

@@ -23,10 +23,16 @@ public class SaleResponse {
     private BigDecimal amountPaid;
     private BigDecimal changeAmount;
     private BigDecimal cardAmount;
+    private Long customerId;
+    private String customerName;
     private LocalDateTime createdAt;
     private List<SaleItemResponse> items;
 
     public static SaleResponse from(Sale sale, String cashierName, List<SaleItemResponse> items) {
+        return from(sale, cashierName, items, null);
+    }
+
+    public static SaleResponse from(Sale sale, String cashierName, List<SaleItemResponse> items, String customerName) {
         return SaleResponse.builder()
                 .id(sale.getId())
                 .branchId(sale.getBranchId())
@@ -38,6 +44,8 @@ public class SaleResponse {
                 .amountPaid(sale.getAmountPaid())
                 .changeAmount(sale.getChangeAmount())
                 .cardAmount(sale.getCardAmount())
+                .customerId(sale.getCustomerId())
+                .customerName(customerName)
                 .createdAt(sale.getCreatedAt())
                 .items(items)
                 .build();

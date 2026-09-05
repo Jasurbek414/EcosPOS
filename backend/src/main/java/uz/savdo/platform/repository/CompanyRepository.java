@@ -48,6 +48,7 @@ public class CompanyRepository {
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
             .planId(rs.getObject("plan_id", Long.class))
             .branchesFeatureEnabled(rs.getBoolean("branches_feature_enabled"))
+            .creditSalesEnabled(rs.getBoolean("credit_sales_enabled"))
             .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
             .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
             .isDeleted(rs.getBoolean("is_deleted"))
@@ -155,6 +156,16 @@ public class CompanyRepository {
      */
     public void updateBranchesFeatureEnabled(Long id, boolean enabled) {
         jdbc.update("UPDATE companies SET branches_feature_enabled = ?, updated_at = now() WHERE id = ?",
+                enabled, id);
+    }
+
+    /**
+     * Tenant OWNER'ining o'z-o'ziga xizmat ko'rsatish darajasida "Nasiya savdo" (Credit
+     * sales) funksiyasini yoqish/o'chirishi — superadmin aralashuvisiz, o'zi qabul
+     * qiladigan biznes qarori (branchesFeatureEnabled'dan farqli, u superadmin kaliti).
+     */
+    public void updateCreditSalesEnabled(Long id, boolean enabled) {
+        jdbc.update("UPDATE companies SET credit_sales_enabled = ?, updated_at = now() WHERE id = ?",
                 enabled, id);
     }
 }

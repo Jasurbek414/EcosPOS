@@ -38,6 +38,7 @@ public class Company {
     private LocalDateTime blockedAt;
     private Long planId;
     private Boolean branchesFeatureEnabled;
+    private Boolean creditSalesEnabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted;

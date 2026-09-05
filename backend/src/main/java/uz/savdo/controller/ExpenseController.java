@@ -9,7 +9,6 @@ import uz.savdo.dto.expense.ExpenseRequest;
 import uz.savdo.dto.expense.ExpenseResponse;
 import uz.savdo.entity.Branch;
 import uz.savdo.entity.Expense;
-import uz.savdo.enums.ExpenseCategory;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.BranchRepository;
 import uz.savdo.repository.ExpenseRepository;
@@ -57,11 +56,11 @@ public class ExpenseController {
                             .toList();
         }
 
-        ExpenseCategory categoryFilter = parseCategory(category);
+        String categoryFilter = (category == null || category.isBlank()) ? null : category.trim();
         List<Expense> filtered = expenses.stream()
                 .filter(e -> from == null || !e.getExpenseDate().isBefore(from))
                 .filter(e -> to == null || !e.getExpenseDate().isAfter(to))
-                .filter(e -> categoryFilter == null || e.getCategory() == categoryFilter)
+                .filter(e -> categoryFilter == null || e.getCategory().equalsIgnoreCase(categoryFilter))
                 .toList();
 
         return filtered.stream().map(e -> ExpenseResponse.from(e, resolveBranchName(e.getBranchId()))).toList();
@@ -77,7 +76,7 @@ public class ExpenseController {
 
         Expense expense = Expense.builder()
                 .branchId(request.getBranchId())
-                .category(request.getCategory())
+                .category(request.getCategory().trim().toUpperCase())
                 .amount(request.getAmount())
                 .description(request.getDescription())
                 .expenseDate(request.getExpenseDate())
@@ -112,12 +111,5 @@ public class ExpenseController {
             return null;
         }
         return branchRepository.findById(branchId).map(Branch::getName).orElse(null);
-    }
-
-    private ExpenseCategory parseCategory(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        return ExpenseCategory.valueOf(raw.trim().toUpperCase());
     }
 }

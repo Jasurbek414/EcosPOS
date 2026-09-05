@@ -31,6 +31,7 @@ public class CompanyProfileResponse {
     private String receiptCurrencyLabel;
     private Long planId;
     private String planName;
+    private Boolean creditSalesEnabled;
     private LocalDateTime createdAt;
 
     /** Kompaniyaga reja biriktirilmagan bo'lsa {@code plan} null uzatiladi. */
@@ -52,6 +53,7 @@ public class CompanyProfileResponse {
                 .receiptCurrencyLabel(c.getReceiptCurrencyLabel())
                 .planId(c.getPlanId())
                 .planName(plan != null ? plan.getName() : null)
+                .creditSalesEnabled(c.getCreditSalesEnabled())
                 .createdAt(c.getCreatedAt())
                 .build();
     }
