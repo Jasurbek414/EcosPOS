@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import uz.savdo.entity.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,6 +17,7 @@ public class UserResponse {
     private Long branchId;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private BigDecimal baseSalary;
 
     public static UserResponse from(User u) {
         return UserResponse.builder()
@@ -26,6 +28,7 @@ public class UserResponse {
                 .branchId(u.getBranchId())
                 .isActive(u.getIsActive())
                 .createdAt(u.getCreatedAt())
+                .baseSalary(u.getBaseSalary())
                 .build();
     }
 }

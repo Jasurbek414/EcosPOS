@@ -15,4 +15,8 @@ public class DashboardResponse {
     private BigDecimal monthRevenue;
     private BigDecimal monthProfit;
     private int lowStockCount;
+    /** Joriy oy uchun xarajatlar + to'langan ish haqi yig'indisi (qarang: ReportService#sumExpenses). */
+    private BigDecimal monthExpenses;
+    /** monthProfit - monthExpenses. */
+    private BigDecimal monthNetProfit;
 }

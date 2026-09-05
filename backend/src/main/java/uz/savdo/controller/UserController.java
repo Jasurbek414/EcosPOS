@@ -67,6 +67,7 @@ public class UserController {
                 .role(request.getRole())
                 .branchId(request.getRole() == UserRole.OWNER ? null : request.getBranchId())
                 .isActive(true)
+                .baseSalary(request.getBaseSalary())
                 .build();
         user = userRepository.save(user);
 
@@ -103,6 +104,7 @@ public class UserController {
         user.setRole(request.getRole());
         user.setBranchId(request.getRole() == UserRole.OWNER ? null : request.getBranchId());
         user.setIsActive(request.getIsActive());
+        user.setBaseSalary(request.getBaseSalary());
         user = userRepository.save(user);
 
         return ResponseEntity.ok(UserResponse.from(user));

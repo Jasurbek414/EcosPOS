@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import uz.savdo.enums.UserRole;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -47,4 +48,9 @@ public class User extends BaseEntity {
 
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
+
+    /** Xodimning oylik bazaviy maoshi — HR/payroll moduli uchun ma'lumot maqsadida, haqiqiy
+     * to'lov summasini majburlamaydi (haqiqiy to'lov SalaryPaymentController orqali erkin kiritiladi). */
+    @Column(name = "base_salary", precision = 14, scale = 2)
+    private BigDecimal baseSalary;
 }

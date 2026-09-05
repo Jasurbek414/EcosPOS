@@ -69,13 +69,18 @@ public class ReportController {
         List<SaleItem> monthItems = reportService.fetchItems(monthSales);
         List<SaleItem> todayItems = reportService.fetchItems(todaySales);
 
+        BigDecimal monthProfit = ReportService.sumProfit(monthItems);
+        BigDecimal monthExpenses = reportService.sumExpenses(branchIds, monthStart, today);
+
         return DashboardResponse.builder()
                 .todayRevenue(ReportService.sumRevenue(todaySales))
                 .todayProfit(ReportService.sumProfit(todayItems))
                 .todaySalesCount(todaySales.size())
                 .monthRevenue(ReportService.sumRevenue(monthSales))
-                .monthProfit(ReportService.sumProfit(monthItems))
+                .monthProfit(monthProfit)
                 .lowStockCount(reportService.countLowStock(branchIds))
+                .monthExpenses(monthExpenses)
+                .monthNetProfit(monthProfit.subtract(monthExpenses))
                 .build();
     }
 
@@ -187,12 +192,15 @@ public class ReportController {
         BigDecimal profitMarginPercent = totalRevenue.compareTo(BigDecimal.ZERO) == 0
                 ? BigDecimal.ZERO
                 : totalProfit.multiply(BigDecimal.valueOf(100)).divide(totalRevenue, 2, RoundingMode.HALF_UP);
+        BigDecimal totalExpenses = reportService.sumExpenses(branchIds, resolvedFrom, resolvedTo);
 
         return ProfitResponse.builder()
                 .totalRevenue(totalRevenue)
                 .totalCost(totalCost)
                 .totalProfit(totalProfit)
                 .profitMarginPercent(profitMarginPercent)
+                .totalExpenses(totalExpenses)
+                .netProfit(totalProfit.subtract(totalExpenses))
                 .build();
     }
 

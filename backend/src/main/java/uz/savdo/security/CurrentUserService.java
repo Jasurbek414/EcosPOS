@@ -126,4 +126,38 @@ public class CurrentUserService {
         }
         throw new ForbiddenException("Bu filiallar orasida ko'chirish huquqingiz yo'q");
     }
+
+    /**
+     * Xarajat (expense) yozish huquqi — OWNER istalgan filialda (yoki branchId=null,
+     * kompaniya bo'ylab — bu holni chaqiruvchi controller alohida assertIsOwner() bilan
+     * talab qilishi kerak, bu metod null'ni o'zi rad etmaydi/tekshirmaydi). MANAGER faqat
+     * o'z filialida (branchId!=null va o'ziniki bo'lsa). CASHIER hech qachon yoza olmaydi.
+     * Naqsh assertCanWriteInventory(Long) bilan bir xil.
+     */
+    public void assertCanManageExpenses(Long branchId) {
+        User user = getCurrentUser();
+        if (user.getRole() == UserRole.OWNER) {
+            return;
+        }
+        if (user.getRole() == UserRole.MANAGER && branchId != null && branchId.equals(user.getBranchId())) {
+            return;
+        }
+        throw new ForbiddenException("Xarajatlarni boshqarish huquqingiz yo'q");
+    }
+
+    /**
+     * Davomat (attendance) yozish huquqi — OWNER istalgan filialda, MANAGER faqat o'z
+     * filialida. CASHIER hech qachon yoza olmaydi. Naqsh assertCanWriteInventory(Long)
+     * bilan bir xil.
+     */
+    public void assertCanManageAttendance(Long branchId) {
+        User user = getCurrentUser();
+        if (user.getRole() == UserRole.OWNER) {
+            return;
+        }
+        if (user.getRole() == UserRole.MANAGER && branchId != null && branchId.equals(user.getBranchId())) {
+            return;
+        }
+        throw new ForbiddenException("Davomatni boshqarish huquqingiz yo'q");
+    }
 }

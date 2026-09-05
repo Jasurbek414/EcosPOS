@@ -3,12 +3,16 @@ package uz.savdo.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uz.savdo.entity.Branch;
+import uz.savdo.entity.Expense;
 import uz.savdo.entity.Product;
 import uz.savdo.entity.Sale;
 import uz.savdo.entity.SaleItem;
+import uz.savdo.entity.SalaryPayment;
 import uz.savdo.entity.StockLevel;
 import uz.savdo.repository.BranchRepository;
+import uz.savdo.repository.ExpenseRepository;
 import uz.savdo.repository.ProductRepository;
+import uz.savdo.repository.SalaryPaymentRepository;
 import uz.savdo.repository.SaleItemRepository;
 import uz.savdo.repository.SaleRepository;
 import uz.savdo.repository.StockLevelRepository;
@@ -44,6 +48,8 @@ public class ReportService {
     private final ProductRepository productRepository;
     private final StockLevelRepository stockLevelRepository;
     private final BranchRepository branchRepository;
+    private final ExpenseRepository expenseRepository;
+    private final SalaryPaymentRepository salaryPaymentRepository;
     private final CurrentUserService currentUserService;
 
     /**
@@ -137,5 +143,39 @@ public class ReportService {
                             && sl.getQuantity().compareTo(product.getMinStockLevel()) < 0;
                 })
                 .count();
+    }
+
+    /**
+     * Berilgan davr uchun umumiy "chiqim" — xarajatlar (Expense) + to'langan ish haqi
+     * (SalaryPayment) yig'indisi (ProfitResponse/DashboardResponse'dagi netProfit uchun).
+     * branchIds {@code null} bo'lsa (OWNER, filial ko'rsatilmagan) — filialga tegishli VA
+     * kompaniya bo'ylab (branchId=null) yozuvlarning barchasi hisoblanadi; aks holda faqat
+     * ko'rsatilgan filial(lar)ning o'zi (kompaniya bo'ylab yozuvlar CHIQARIB TASHLANADI —
+     * ExpenseController'dagi bitta-filial ko'rinishi bilan bir xil P&L atributsiya qoidasi).
+     */
+    public BigDecimal sumExpenses(List<Long> branchIds, LocalDate from, LocalDate to) {
+        List<Expense> expenses = branchIds == null
+                ? expenseRepository.findAllByIsDeletedFalse()
+                : branchIds.stream()
+                        .flatMap(id -> expenseRepository.findAllByBranchIdAndIsDeletedFalse(id).stream())
+                        .toList();
+        BigDecimal expenseTotal = expenses.stream()
+                .filter(e -> from == null || !e.getExpenseDate().isBefore(from))
+                .filter(e -> to == null || !e.getExpenseDate().isAfter(to))
+                .map(Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<SalaryPayment> payments = branchIds == null
+                ? salaryPaymentRepository.findAllByIsDeletedFalse()
+                : branchIds.stream()
+                        .flatMap(id -> salaryPaymentRepository.findAllByBranchIdAndIsDeletedFalse(id).stream())
+                        .toList();
+        BigDecimal salaryTotal = payments.stream()
+                .filter(p -> from == null || !p.getPaymentDate().isBefore(from))
+                .filter(p -> to == null || !p.getPaymentDate().isAfter(to))
+                .map(SalaryPayment::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return expenseTotal.add(salaryTotal);
     }
 }

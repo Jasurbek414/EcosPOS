@@ -13,4 +13,8 @@ public class ProfitResponse {
     private BigDecimal totalCost;
     private BigDecimal totalProfit;
     private BigDecimal profitMarginPercent;
+    /** Davr uchun xarajatlar + to'langan ish haqi yig'indisi (qarang: ReportService#sumExpenses). */
+    private BigDecimal totalExpenses;
+    /** totalProfit - totalExpenses. */
+    private BigDecimal netProfit;
 }
