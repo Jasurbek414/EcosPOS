@@ -4,11 +4,10 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Plus, Receipt, Trash2, X } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useExpenseCategories } from '../../hooks/useExpenseCategories';
 import { branchService, expenseService } from '../../services/api';
 import DateInput from '../../components/ui/DateInput';
 import AccountingTabs from './AccountingTabs';
-
-const CATEGORIES = ['RENT', 'UTILITIES', 'TRANSPORT', 'MAINTENANCE', 'MARKETING', 'TAX', 'SUPPLIES', 'OTHER'];
 
 // AccountingPage.jsx'dagi bilan bir xil sana yordamchilari — alohida umumiy util
 // fayl yo'q bo'lgani uchun har bir sahifada shu tarzda takrorlanadi (konvensiya).
@@ -31,7 +30,7 @@ const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 // (branchId: null, kompaniya bo'ylab xarajat) yarata oladi; MANAGER uchun butunlay
 // yashiriladi — backend baribir MANAGER'ning umumiy xarajat yaratishiga yo'l qo'ymaydi
 // (assertIsOwner), shuning uchun 403 ko'rmasin deb select o'zi ko'rsatilmaydi.
-function CreateExpenseModal({ isOwner, userBranchId, branches, onClose, onCreated }) {
+function CreateExpenseModal({ isOwner, userBranchId, branches, categories, onClose, onCreated }) {
   const { t } = useTranslation();
   const {
     register,
@@ -40,7 +39,7 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, onClose, onCreate
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      category: 'RENT',
+      category: categories[0]?.code || '',
       amount: '',
       expenseDate: toISODate(new Date()),
       description: '',
@@ -78,11 +77,13 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, onClose, onCreate
           <div>
             <label className="field-label">{t('expenses.category')}</label>
             <select className="input-field" {...register('category', { required: true })}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {t(`expenses.categories.${c}`)}
-                </option>
-              ))}
+              {categories
+                .filter((c) => c.isActive)
+                .map((c) => (
+                  <option key={c.id} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -139,6 +140,7 @@ function CreateExpenseModal({ isOwner, userBranchId, branches, onClose, onCreate
 export default function ExpensesPage() {
   const { t } = useTranslation();
   const { user, isOwner } = useTenantAuthContext();
+  const { categories, categoryLabel } = useExpenseCategories();
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
@@ -340,7 +342,7 @@ export default function ExpensesPage() {
                 {expenses.map((e) => (
                   <tr key={e.id}>
                     <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">{dateLabel(e.expenseDate)}</td>
-                    <td className="font-medium text-slate-900 dark:text-slate-100">{t(`expenses.categories.${e.category}`)}</td>
+                    <td className="font-medium text-slate-900 dark:text-slate-100">{categoryLabel(e.category)}</td>
                     <td className="text-slate-600 dark:text-slate-300">{e.branchName || '—'}</td>
                     <td className="text-slate-600 dark:text-slate-300 tabular-nums">{money(e.amount)}</td>
                     <td className="text-slate-600 dark:text-slate-300">{e.description || '—'}</td>
@@ -362,6 +364,7 @@ export default function ExpensesPage() {
           isOwner={isOwner}
           userBranchId={user?.branchId}
           branches={branches}
+          categories={categories}
           onClose={() => setCreateOpen(false)}
           onCreated={handleCreated}
         />

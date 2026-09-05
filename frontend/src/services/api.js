@@ -127,6 +127,17 @@ export const unitService = {
   deactivate: (id) => api.patch(`/units/${id}/deactivate`),
 };
 
+// Xarajat toifalari — unitService bilan bir xil naqsh: GET har qanday autentifikatsiya
+// qilingan tenant foydalanuvchisi uchun BARCHASINI (faol+nofaol) qaytaradi, yaratish/
+// tahrirlash/faollashtirish esa faqat OWNER/MANAGER uchun (backend 403 qaytaradi).
+export const expenseCategoryService = {
+  list: () => api.get('/expense-categories'),
+  create: (data) => api.post('/expense-categories', data),
+  update: (id, data) => api.put(`/expense-categories/${id}`, data),
+  activate: (id) => api.patch(`/expense-categories/${id}/activate`),
+  deactivate: (id) => api.patch(`/expense-categories/${id}/deactivate`),
+};
+
 export const categoryService = {
   list: () => api.get('/categories'),
   create: (data) => api.post('/categories', data),
@@ -220,6 +231,7 @@ export const companyProfileService = {
   get: () => api.get('/company'),
   update: (data) => api.put('/company', data),
   updateReceiptSettings: (data) => api.put('/company/receipt-settings', data),
+  updateCreditSales: (data) => api.patch('/company/credit-sales', data),
 };
 
 // Har qanday autentifikatsiya qilingan tenant foydalanuvchisi (OWNER/MANAGER/CASHIER)
@@ -256,6 +268,28 @@ export const employeeAdvanceService = {
   balances: (params) => api.get('/employee-advances/balances', { params }),
   create: (data) => api.post('/employee-advances', data),
   remove: (id) => api.delete(`/employee-advances/${id}`),
+};
+
+// Mijozlar — ro'yxat/bitta/yaratish har qanday autentifikatsiya qilingan tenant
+// foydalanuvchisi uchun (CASHIER ham, checkout paytida tez qo'shish uchun ataylab),
+// tahrirlash/faollashtirish-nofaollashtirish esa faqat OWNER/MANAGER (backend 403 qaytaradi).
+export const customerService = {
+  list: () => api.get('/customers'),
+  get: (id) => api.get(`/customers/${id}`),
+  create: (data) => api.post('/customers', data),
+  update: (id, data) => api.put(`/customers/${id}`, data),
+  activate: (id) => api.patch(`/customers/${id}/activate`),
+  deactivate: (id) => api.patch(`/customers/${id}/deactivate`),
+};
+
+// Mijozlar qarz daftari — CREDIT_SALE turi faqat sotuv (checkout) oqimi orqali avtomatik
+// yaratiladi (bu yerdan to'g'ridan-to'g'ri yuborish 400 bilan rad etiladi). PAYMENT — har
+// qanday rol; WRITE_OFF — faqat OWNER (backend 403); o'chirish (DELETE) ham faqat OWNER.
+export const customerDebtService = {
+  list: (params) => api.get('/customer-debts', { params }),
+  balances: (params) => api.get('/customer-debts/balances', { params }),
+  create: (data) => api.post('/customer-debts', data),
+  remove: (id) => api.delete(`/customer-debts/${id}`),
 };
 
 export default api;

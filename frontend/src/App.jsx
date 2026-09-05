@@ -29,6 +29,9 @@ import AttendancePage from './pages/accounting/AttendancePage';
 import PayrollPage from './pages/accounting/PayrollPage';
 import AdvancesPage from './pages/accounting/AdvancesPage';
 import SettingsPage from './pages/settings/SettingsPage';
+import CustomerListPage from './pages/customers/CustomerListPage';
+import CustomerDebtorsPage from './pages/customers/CustomerDebtorsPage';
+import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 
 import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
 import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
@@ -93,6 +96,9 @@ export default function App() {
                 <Route path="/accounting/attendance" element={<AttendancePage />} />
                 <Route path="/accounting/payroll" element={<PayrollPage />} />
                 <Route path="/accounting/advances" element={<AdvancesPage />} />
+                <Route path="/customers" element={<CustomerListPage />} />
+                <Route path="/customers/debtors" element={<CustomerDebtorsPage />} />
+                <Route path="/customers/:id" element={<CustomerDetailPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 

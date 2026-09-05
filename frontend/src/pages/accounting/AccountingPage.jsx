@@ -110,9 +110,25 @@ function SaleDetailModal({ saleId, onClose, unitLabel }) {
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">{t('accounting.paymentMethod')}</span>
                   <span className="text-slate-900 dark:text-slate-100 font-medium">
-                    {t(`pos.terminal.${sale.paymentMethod === 'CARD' ? 'card' : sale.paymentMethod === 'MIXED' ? 'mixed' : 'cash'}`)}
+                    {t(
+                      `pos.terminal.${
+                        sale.paymentMethod === 'CARD'
+                          ? 'card'
+                          : sale.paymentMethod === 'MIXED'
+                            ? 'mixed'
+                            : sale.paymentMethod === 'CREDIT'
+                              ? 'credit'
+                              : 'cash'
+                      }`
+                    )}
                   </span>
                 </div>
+                {sale.paymentMethod === 'CREDIT' && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">{t('accounting.saleDetail.customer')}</span>
+                    <span className="text-slate-900 dark:text-slate-100 font-medium">{sale.customerName || '—'}</span>
+                  </div>
+                )}
                 {sale.paymentMethod === 'MIXED' && (
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">{t('accounting.saleDetail.cardPortion')}</span>
@@ -286,7 +302,8 @@ export default function AccountingPage() {
   const money = (v) => `${Number(v ?? 0).toLocaleString('uz-UZ')} ${t('reports.currency')}`;
   const dateTime = (v) => (v ? new Date(v).toLocaleString('uz-UZ') : '—');
 
-  const paymentMethodLabel = (method) => t(`pos.terminal.${method === 'CARD' ? 'card' : method === 'MIXED' ? 'mixed' : 'cash'}`);
+  const paymentMethodLabel = (method) =>
+    t(`pos.terminal.${method === 'CARD' ? 'card' : method === 'MIXED' ? 'mixed' : method === 'CREDIT' ? 'credit' : 'cash'}`);
 
   return (
     <div className="flex flex-col gap-6">

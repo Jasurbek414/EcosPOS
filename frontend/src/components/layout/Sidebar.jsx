@@ -5,7 +5,7 @@ import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { changeLanguage } from '../../i18n';
 import { companyInfoService } from '../../services/api';
 import {
-  LayoutDashboard, Building2, Users, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
+  LayoutDashboard, Building2, Users, Users2, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
@@ -44,6 +44,11 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
     // Bugalteriya (kassa smenalar tarixi, sotuvlar jurnali, ombor qiymati) — Hisobotlar
     // bilan bir xil moliyaviy ruxsat darajasi, shuning uchun bir xil rol shartidan foydalanamiz.
     ...(role !== 'CASHIER' ? [{ path: '/accounting', icon: Calculator, label: t('sidebar.accounting') }] : []),
+    // Mijozlar — nasiya savdosi kompaniyada hali yoqilmagan bo'lsa ham mijozlar ro'yxatini
+    // oldindan yuritish mumkin bo'lishi kerak, shuning uchun bu yerda creditSalesEnabled'ga
+    // BOG'LIQ EMAS — faqat Hisobotlar/Bugalteriya bilan bir xil rol chegarasi (CASHIER'ga
+    // qarzdorlik/moliyaviy ma'lumot ko'rsatilmaydi).
+    ...(role !== 'CASHIER' ? [{ path: '/customers', icon: Users2, label: t('sidebar.customers') }] : []),
     // Sozlamalar — har bir foydalanuvchi o'z profilini boshqara oladi, shuning uchun rolga qarab yashirilmaydi.
     { path: '/settings', icon: Settings, label: t('sidebar.settings') },
   ];

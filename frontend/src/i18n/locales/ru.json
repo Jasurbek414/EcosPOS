@@ -42,6 +42,7 @@
     "warehouse": "Склад",
     "reports": "Отчёты",
     "accounting": "Бухгалтерия",
+    "customers": "Клиенты",
     "settings": "Настройки",
     "logout": "Выход",
     "collapse": "Свернуть",
@@ -461,7 +462,8 @@
       "subtotal": "Сумма",
       "amountPaid": "Оплачено",
       "change": "Сдача",
-      "cardPortion": "Картой"
+      "cardPortion": "Картой",
+      "customer": "Клиент"
     },
     "loadError": "Не удалось загрузить данные",
     "empty": "Данные не найдены"
@@ -571,6 +573,70 @@
       "ADVANCE_REPAYMENT": "Вернуть"
     }
   },
+  "customers": {
+    "title": "Клиенты",
+    "subtitle": "Список клиентов и долговая книга",
+    "tabs": {
+      "all": "Все клиенты",
+      "debtors": "Клиенты-должники"
+    },
+    "newCustomer": "Новый клиент",
+    "editCustomer": "Изменить клиента",
+    "fullName": "Ф.И.О.",
+    "fullNamePlaceholder": "Имя Фамилия",
+    "phone": "Телефон",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "address": "Адрес",
+    "addressPlaceholder": "Адрес",
+    "note": "Примечание",
+    "notePlaceholder": "Необязательное примечание",
+    "noPhone": "Телефон не указан",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "createSuccess": "Клиент создан",
+    "createError": "Ошибка при создании клиента",
+    "updateSuccess": "Данные клиента обновлены",
+    "updateError": "Ошибка при обновлении клиента",
+    "activateBtn": "Активировать",
+    "deactivateBtn": "Деактивировать",
+    "loadError": "Не удалось загрузить список клиентов",
+    "detailLoadError": "Не удалось загрузить данные клиента",
+    "notFound": "Клиент не найден",
+    "empty": "Пока нет клиентов",
+    "searchPlaceholder": "Поиск по имени или телефону...",
+    "backToCustomers": "Назад к клиентам",
+    "detail": "Информация о клиенте",
+    "stats": {
+      "total": "Всего клиентов",
+      "active": "Активные клиенты",
+      "totalDebt": "Общая задолженность"
+    },
+    "balance": "Текущий долг",
+    "noDebt": "Долга нет",
+    "debtorsTitle": "Клиенты-должники",
+    "debtorsSubtitle": "Список клиентов с текущим долгом больше 0",
+    "noDebtors": "Пока нет клиентов-должников",
+    "amount": "Сумма",
+    "date": "Дата",
+    "recordPayment": "Принять оплату",
+    "writeOffDebt": "Списать долг",
+    "writeOffConfirm": "Вы действительно хотите списать долг этого клиента? Это действие нельзя отменить.",
+    "paymentSuccess": "Оплата зафиксирована",
+    "paymentError": "Ошибка при фиксации оплаты",
+    "writeOffSuccess": "Долг списан",
+    "writeOffError": "Ошибка при списании долга",
+    "debtTransactions": {
+      "title": "История долговых транзакций",
+      "type": "Тип",
+      "empty": "Пока нет транзакций",
+      "relatedSale": "Продажа",
+      "types": {
+        "CREDIT_SALE": "Продажа в кредит",
+        "PAYMENT": "Оплата",
+        "WRITE_OFF": "Списано"
+      }
+    }
+  },
   "pos": {
     "loadError": "Не удалось загрузить состояние смены",
     "noShift": {
@@ -623,6 +689,7 @@
       "cash": "Наличные",
       "card": "Карта",
       "mixed": "Смешанная",
+      "credit": "В кредит",
       "cardAmount": "Сумма картой",
       "cashDueHint": "Нужно оплатить наличными",
       "mixedCardInvalid": "Сумма картой должна быть больше 0 и меньше общей суммы",
@@ -630,7 +697,9 @@
       "change": "Сдача",
       "checkoutBtn": "Продать",
       "checkoutError": "Ошибка при продаже",
-      "itemsRequired": "В корзине должен быть хотя бы один товар"
+      "itemsRequired": "В корзине должен быть хотя бы один товар",
+      "selectCustomer": "Выберите клиента",
+      "quickAddCustomer": "+ Новый клиент"
     },
     "receipt": {
       "title": "Чек",
@@ -642,7 +711,9 @@
       "printBtn": "Печать",
       "newSaleBtn": "Новая продажа",
       "cashier": "Кассир",
-      "branchLabel": "Филиал"
+      "branchLabel": "Филиал",
+      "creditSale": "Продано в кредит",
+      "debtAmount": "Долг"
     }
   },
   "superadmin": {
@@ -784,6 +855,7 @@
       "company": "Компания",
       "receipt": "Чек и принтер",
       "units": "Единицы измерения",
+      "expenseCategories": "Виды расходов",
       "appearance": "Внешний вид"
     },
     "profileTitle": "Мой профиль",
@@ -858,6 +930,32 @@
       "loadError": "Не удалось загрузить список единиц измерения",
       "empty": "Пока нет единиц измерения",
       "inactiveSuffix": "неактивна"
+    },
+    "expenseCategories": {
+      "title": "Виды расходов",
+      "subtitle": "Управление категориями расходов",
+      "newCategory": "Новый вид",
+      "editCategory": "Изменить вид",
+      "code": "Код",
+      "codePlaceholder": "Например: ARENDA",
+      "name": "Название",
+      "namePlaceholder": "Например: Аренда",
+      "createSuccess": "Вид расхода создан",
+      "createError": "Ошибка при создании вида расхода",
+      "updateSuccess": "Вид расхода обновлён",
+      "updateError": "Ошибка при обновлении вида расхода",
+      "activateConfirm": "Активировать вид расхода",
+      "deactivateConfirm": "Вы действительно хотите деактивировать этот вид расхода?",
+      "loadError": "Не удалось загрузить список видов расходов",
+      "empty": "Пока нет видов расходов",
+      "inactiveSuffix": "неактивен"
+    },
+    "creditSales": {
+      "title": "Продажа в кредит",
+      "description": "Включите или отключите возможность продажи клиентам в долг — при включении на кассе появится вариант оплаты \"В кредит\".",
+      "enable": "Включить продажу в кредит",
+      "saveSuccess": "Настройка продажи в кредит сохранена",
+      "saveError": "Ошибка при сохранении настройки"
     }
   },
   "calendar": {

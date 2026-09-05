@@ -42,6 +42,7 @@
     "warehouse": "Ombor",
     "reports": "Hisobotlar",
     "accounting": "Bugalteriya",
+    "customers": "Mijozlar",
     "settings": "Sozlamalar",
     "logout": "Chiqish",
     "collapse": "Yig'ish",
@@ -461,7 +462,8 @@
       "subtotal": "Summasi",
       "amountPaid": "Qabul qilindi",
       "change": "Qaytim",
-      "cardPortion": "Karta orqali"
+      "cardPortion": "Karta orqali",
+      "customer": "Mijoz"
     },
     "loadError": "Ma'lumotlarni yuklab bo'lmadi",
     "empty": "Ma'lumot topilmadi"
@@ -571,6 +573,70 @@
       "ADVANCE_REPAYMENT": "Qaytarish"
     }
   },
+  "customers": {
+    "title": "Mijozlar",
+    "subtitle": "Mijozlar ro'yxati va qarz daftari",
+    "tabs": {
+      "all": "Barcha mijozlar",
+      "debtors": "Qarzdor mijozlar"
+    },
+    "newCustomer": "Yangi mijoz",
+    "editCustomer": "Mijozni tahrirlash",
+    "fullName": "F.I.O.",
+    "fullNamePlaceholder": "Ism Familiya",
+    "phone": "Telefon",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "address": "Manzil",
+    "addressPlaceholder": "Manzil",
+    "note": "Izoh",
+    "notePlaceholder": "Ixtiyoriy izoh",
+    "noPhone": "Telefon ko'rsatilmagan",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "createSuccess": "Mijoz yaratildi",
+    "createError": "Mijoz yaratishda xatolik",
+    "updateSuccess": "Mijoz ma'lumotlari yangilandi",
+    "updateError": "Mijozni yangilashda xatolik",
+    "activateBtn": "Faollashtirish",
+    "deactivateBtn": "Nofaollashtirish",
+    "loadError": "Mijozlar ro'yxatini yuklab bo'lmadi",
+    "detailLoadError": "Mijoz ma'lumotlarini yuklab bo'lmadi",
+    "notFound": "Mijoz topilmadi",
+    "empty": "Hozircha mijozlar yo'q",
+    "searchPlaceholder": "Ism yoki telefon bo'yicha qidirish...",
+    "backToCustomers": "Mijozlarga qaytish",
+    "detail": "Mijoz ma'lumotlari",
+    "stats": {
+      "total": "Jami mijozlar",
+      "active": "Faol mijozlar",
+      "totalDebt": "Jami qarzdorlik"
+    },
+    "balance": "Joriy qarz",
+    "noDebt": "Qarzi yo'q",
+    "debtorsTitle": "Qarzdor mijozlar",
+    "debtorsSubtitle": "Joriy qarzi 0 dan katta bo'lgan mijozlar ro'yxati",
+    "noDebtors": "Hozircha qarzdor mijozlar yo'q",
+    "amount": "Summa",
+    "date": "Sana",
+    "recordPayment": "To'lov qabul qilish",
+    "writeOffDebt": "Qarzni hisobdan chiqarish",
+    "writeOffConfirm": "Haqiqatan ham bu mijozning qarzini hisobdan chiqarmoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.",
+    "paymentSuccess": "To'lov qayd etildi",
+    "paymentError": "To'lovni qayd etishda xatolik",
+    "writeOffSuccess": "Qarz hisobdan chiqarildi",
+    "writeOffError": "Qarzni hisobdan chiqarishda xatolik",
+    "debtTransactions": {
+      "title": "Qarz tranzaksiyalari tarixi",
+      "type": "Turi",
+      "empty": "Hozircha tranzaksiyalar yo'q",
+      "relatedSale": "Sotuv",
+      "types": {
+        "CREDIT_SALE": "Nasiya savdo",
+        "PAYMENT": "To'lov",
+        "WRITE_OFF": "Hisobdan chiqarildi"
+      }
+    }
+  },
   "pos": {
     "loadError": "Smena holatini yuklab bo'lmadi",
     "noShift": {
@@ -623,6 +689,7 @@
       "cash": "Naqd",
       "card": "Karta",
       "mixed": "Aralash",
+      "credit": "Nasiya",
       "cardAmount": "Karta orqali summa",
       "cashDueHint": "Naqd to'lanishi kerak",
       "mixedCardInvalid": "Karta summasi 0 dan katta va jami summadan kichik bo'lishi kerak",
@@ -630,7 +697,9 @@
       "change": "Qaytim",
       "checkoutBtn": "Sotish",
       "checkoutError": "Sotuvda xatolik",
-      "itemsRequired": "Savatda hech bo'lmaganda bitta mahsulot bo'lishi kerak"
+      "itemsRequired": "Savatda hech bo'lmaganda bitta mahsulot bo'lishi kerak",
+      "selectCustomer": "Mijozni tanlang",
+      "quickAddCustomer": "+ Yangi mijoz"
     },
     "receipt": {
       "title": "Chek",
@@ -642,7 +711,9 @@
       "printBtn": "Chop etish",
       "newSaleBtn": "Yangi sotuv",
       "cashier": "Kassir",
-      "branchLabel": "Filial"
+      "branchLabel": "Filial",
+      "creditSale": "Nasiyaga sotildi",
+      "debtAmount": "Qarz"
     }
   },
   "superadmin": {
@@ -784,6 +855,7 @@
       "company": "Kompaniya",
       "receipt": "Chek va printer",
       "units": "O'lchov birliklari",
+      "expenseCategories": "Xarajat turlari",
       "appearance": "Ko'rinish"
     },
     "profileTitle": "Mening profilim",
@@ -858,6 +930,32 @@
       "loadError": "O'lchov birliklari ro'yxatini yuklab bo'lmadi",
       "empty": "Hozircha o'lchov birliklari yo'q",
       "inactiveSuffix": "nofaol"
+    },
+    "expenseCategories": {
+      "title": "Xarajat turlari",
+      "subtitle": "Xarajatlar uchun toifalarni boshqarish",
+      "newCategory": "Yangi toifa",
+      "editCategory": "Toifani tahrirlash",
+      "code": "Kod",
+      "codePlaceholder": "Masalan: IJARA",
+      "name": "Nomi",
+      "namePlaceholder": "Masalan: Ijara",
+      "createSuccess": "Toifa yaratildi",
+      "createError": "Toifa yaratishda xatolik",
+      "updateSuccess": "Toifa yangilandi",
+      "updateError": "Toifani yangilashda xatolik",
+      "activateConfirm": "Toifani faollashtirish",
+      "deactivateConfirm": "Haqiqatan ham bu toifani faolsizlantirmoqchimisiz?",
+      "loadError": "Xarajat turlari ro'yxatini yuklab bo'lmadi",
+      "empty": "Hozircha xarajat turlari yo'q",
+      "inactiveSuffix": "nofaol"
+    },
+    "creditSales": {
+      "title": "Nasiya savdosi",
+      "description": "Mijozlarga qarzga sotish imkoniyatini yoqing/o'chiring — yoqilganda kassada \"Nasiya\" to'lov varianti paydo bo'ladi.",
+      "enable": "Nasiya savdosini yoqish",
+      "saveSuccess": "Nasiya savdosi sozlamasi saqlandi",
+      "saveError": "Sozlamani saqlashda xatolik"
     }
   },
   "calendar": {

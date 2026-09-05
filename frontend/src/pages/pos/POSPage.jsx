@@ -3,13 +3,13 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   Lock, Unlock, ShoppingCart, Trash2, Printer, CircleDollarSign, CreditCard, Barcode, X,
-  Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2, Layers,
+  Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2, Layers, HandCoins, UserPlus,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useUnits } from '../../hooks/useUnits';
 import {
-  branchService, cashShiftService, categoryService, companyInfoService, posProductService, productService,
-  resolveFileUrl, saleService,
+  branchService, cashShiftService, categoryService, companyInfoService, customerService, posProductService,
+  productService, resolveFileUrl, saleService,
 } from '../../services/api';
 
 const CARD_COLORS = [
@@ -291,9 +291,31 @@ function ReceiptView({ receipt, onNewSale, company, cashierName, branchName, uni
           <div className="flex justify-between">
             <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.paymentMethod')}</span>
             <span className="text-slate-900 dark:text-slate-100 font-medium">
-              {t(`pos.terminal.${receipt.paymentMethod === 'CARD' ? 'card' : receipt.paymentMethod === 'MIXED' ? 'mixed' : 'cash'}`)}
+              {t(
+                `pos.terminal.${
+                  receipt.paymentMethod === 'CARD'
+                    ? 'card'
+                    : receipt.paymentMethod === 'MIXED'
+                      ? 'mixed'
+                      : receipt.paymentMethod === 'CREDIT'
+                        ? 'credit'
+                        : 'cash'
+                }`
+              )}
             </span>
           </div>
+          {receipt.paymentMethod === 'CREDIT' && (
+            <>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.creditSale')}</span>
+                <span className="text-slate-900 dark:text-slate-100 font-medium">{receipt.customerName || '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.debtAmount')}</span>
+                <span className="font-bold text-amber-600 tabular-nums">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
+              </div>
+            </>
+          )}
           {receipt.paymentMethod === 'MIXED' && (
             <div className="flex justify-between">
               <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.cardPortion')}</span>
@@ -333,6 +355,76 @@ function ReceiptView({ receipt, onNewSale, company, cashierName, branchName, uni
         <button type="button" onClick={onNewSale} className="btn btn-primary">
           {t('pos.receipt.newSaleBtn')}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Nasiya (CREDIT) to'lovi tanlanganda mijoz ro'yxatida yo'q yangi mijozni darhol
+// qo'shish uchun qisqartirilgan (fullName + phone) tezkor forma — CustomerListPage.jsx'dagi
+// to'liq CustomerModal'dan ATAYLAB alohida va yengilroq, chunki bu yerda maqsad savdoni
+// to'xtatmasdan bir necha soniyada davom ettirish (address/note kiritilmaydi).
+function QuickAddCustomerModal({ onClose, onCreated }) {
+  const { t } = useTranslation();
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!fullName.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await customerService.create({ fullName: fullName.trim(), phone: phone.trim() || null });
+      toast.success(t('customers.createSuccess'));
+      onCreated(res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('customers.createError'));
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100">{t('pos.terminal.quickAddCustomer')}</h3>
+          <button type="button" onClick={onClose} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer">
+            <X size={18} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+          <div>
+            <label className="field-label">{t('customers.fullName')}</label>
+            <input
+              type="text"
+              className="input-field"
+              placeholder={t('customers.fullNamePlaceholder')}
+              autoFocus
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className="field-label">{t('customers.phone')}</label>
+            <input
+              type="text"
+              className="input-field"
+              placeholder={t('customers.phonePlaceholder')}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <button type="button" onClick={onClose} className="btn btn-outline">
+              {t('common.cancel')}
+            </button>
+            <button type="submit" disabled={submitting} className="btn btn-primary">
+              {t('common.create')}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -428,6 +520,13 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   const [submitting, setSubmitting] = useState(false);
   const [receipt, setReceipt] = useState(null);
 
+  // Nasiya (CREDIT) to'lovi uchun — faol mijozlar ro'yxati va tanlangan mijoz. Kompaniyada
+  // creditSalesEnabled o'chirilgan bo'lsa ham ro'yxat zararsiz yuklanadi (tugma shunchaki
+  // ko'rinmaydi), shuning uchun bu yerda flag bilan shartlanmaydi.
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -451,13 +550,29 @@ function POSTerminal({ shift, onRequestCloseShift }) {
   }, []);
 
   // Kompaniya brend ma'lumotlari (nom/manzil/telefon/logotip) — sahifa ochilganda
-  // bir marta yuklanadi va chek chop etilganda ReceiptView'ga uzatiladi.
+  // bir marta yuklanadi va chek chop etilganda ReceiptView'ga uzatiladi. Shu javobdagi
+  // creditSalesEnabled — "Nasiya" to'lov tugmasini ko'rsatish-ko'rsatmaslikni belgilaydi.
   useEffect(() => {
     let cancelled = false;
     companyInfoService
       .get()
       .then((res) => {
         if (!cancelled) setCompanyInfo(res.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Nasiya uchun mijozlar ro'yxati — faqat faol mijozlar tanlash uchun ko'rsatiladi.
+  // creditSalesEnabled o'chirilgan bo'lsa ham bu so'rov zararsiz (tugma ko'rinmaydi).
+  useEffect(() => {
+    let cancelled = false;
+    customerService
+      .list()
+      .then((res) => {
+        if (!cancelled) setCustomers(res.data.filter((c) => c.isActive));
       })
       .catch(() => {});
     return () => {
@@ -593,9 +708,20 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       toast.error(t('pos.terminal.mixedCardInvalid'));
       return;
     }
-    const paid = paymentMethod === 'CARD' ? total : amountPaidNumeric;
-    const payload = { items, paymentMethod, amountPaid: paid };
-    if (paymentMethod === 'MIXED') payload.cardAmount = cardAmountNumeric;
+    if (paymentMethod === 'CREDIT' && !selectedCustomerId) {
+      toast.error(t('pos.terminal.selectCustomer'));
+      return;
+    }
+    let payload;
+    if (paymentMethod === 'CREDIT') {
+      // Nasiya — qisman naqd to'lov yo'q, butun summa qarzga o'tadi; server baribir
+      // cardAmount/changeAmount'ni e'tiborsiz qoldiradi, shuning uchun yubormaymiz ham.
+      payload = { items, paymentMethod, customerId: Number(selectedCustomerId), amountPaid: 0 };
+    } else {
+      const paid = paymentMethod === 'CARD' ? total : amountPaidNumeric;
+      payload = { items, paymentMethod, amountPaid: paid };
+      if (paymentMethod === 'MIXED') payload.cardAmount = cardAmountNumeric;
+    }
     setSubmitting(true);
     try {
       const res = await saleService.create(payload);
@@ -603,6 +729,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       setCart([]);
       setAmountPaidInput(null);
       setCardAmountInput('');
+      setSelectedCustomerId('');
     } catch (err) {
       toast.error(err.response?.data?.message || t('pos.terminal.checkoutError'));
     } finally {
@@ -755,7 +882,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                 <span className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">{total.toLocaleString('uz-UZ')}</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className={`grid gap-1.5 ${companyInfo?.creditSalesEnabled ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
@@ -780,7 +907,47 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                   <Layers size={17} />
                   {t('pos.terminal.mixed')}
                 </button>
+                {/* Nasiya — faqat kompaniyada creditSalesEnabled yoqilgan bo'lsa ko'rinadi
+                    (company/info javobidan). Backend baribir 403 bilan rad etadi, lekin
+                    tugmani oldindan yashirish yaxshiroq UX. */}
+                {companyInfo?.creditSalesEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('CREDIT')}
+                    className={`pos-pay-option ${paymentMethod === 'CREDIT' ? 'pos-pay-option-active' : ''}`}
+                  >
+                    <HandCoins size={17} />
+                    {t('pos.terminal.credit')}
+                  </button>
+                )}
               </div>
+
+              {paymentMethod === 'CREDIT' && (
+                <div className="flex flex-col gap-2">
+                  <label className="field-label !mb-0">{t('pos.terminal.selectCustomer')}</label>
+                  <select
+                    className="input-field"
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                  >
+                    <option value="">{t('pos.terminal.selectCustomer')}</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.fullName}
+                        {c.phone ? ` · ${c.phone}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setQuickAddOpen(true)}
+                    className="flex items-center gap-1.5 text-amber-700 text-xs font-semibold hover:text-amber-800 cursor-pointer self-start"
+                  >
+                    <UserPlus size={13} />
+                    {t('pos.terminal.quickAddCustomer')}
+                  </button>
+                </div>
+              )}
 
               {paymentMethod === 'MIXED' && (
                 <div className="flex flex-col gap-2">
@@ -830,8 +997,10 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                 disabled={
                   cart.length === 0 ||
                   submitting ||
-                  ((paymentMethod === 'CASH' || paymentMethod === 'MIXED') && change < 0) ||
-                  (paymentMethod === 'MIXED' && !mixedCardValid)
+                  (paymentMethod === 'CREDIT'
+                    ? !selectedCustomerId
+                    : ((paymentMethod === 'CASH' || paymentMethod === 'MIXED') && change < 0) ||
+                      (paymentMethod === 'MIXED' && !mixedCardValid))
                 }
                 className="pos-checkout-btn"
               >
@@ -841,6 +1010,17 @@ function POSTerminal({ shift, onRequestCloseShift }) {
             </div>
           </div>
         </div>
+      )}
+
+      {quickAddOpen && (
+        <QuickAddCustomerModal
+          onClose={() => setQuickAddOpen(false)}
+          onCreated={(created) => {
+            setCustomers((prev) => [...prev, created]);
+            setSelectedCustomerId(String(created.id));
+            setQuickAddOpen(false);
+          }}
+        />
       )}
     </div>
   );

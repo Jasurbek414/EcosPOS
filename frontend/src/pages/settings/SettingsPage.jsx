@@ -4,12 +4,13 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2,
-  Printer, ReceiptText, Ruler, Palette, Pencil,
+  Printer, ReceiptText, Ruler, Palette, Pencil, Tags, HandCoins,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
 import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
 import UnitsSection from './UnitsSection';
+import ExpenseCategoriesSection from './ExpenseCategoriesSection';
 
 // ProductsPage.jsx'dagi rasm yuklash validatsiyasi bilan bir xil — alohida umumiy
 // util fayl yo'q bo'lgani uchun shu yerda takrorlanadi.
@@ -680,11 +681,93 @@ function ReceiptSettingsCard() {
   );
 }
 
+// Nasiya savdosi (kredit) yoqish/o'chirish — kompaniya bo'ylab, faqat OWNER uchun
+// (backend PATCH /company/credit-sales boshqa rollarga 403 qaytaradi). ReceiptSettingsCard
+// bilan bir xil useForm+reset+submit naqshi, lekin faqat bitta checkbox va o'z
+// "Saqlash" tugmasi bilan mustaqil kichik karta sifatida.
+function CreditSalesCard() {
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm({ defaultValues: { creditSalesEnabled: false } });
+
+  useEffect(() => {
+    let cancelled = false;
+    companyProfileService
+      .get()
+      .then((res) => {
+        if (cancelled) return;
+        reset({ creditSalesEnabled: res.data.creditSalesEnabled ?? false });
+      })
+      .catch(() => {
+        if (!cancelled) toast.error(t('settings.companyLoadError'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [t, reset]);
+
+  const onSubmit = async (data) => {
+    try {
+      await companyProfileService.updateCreditSales({ creditSalesEnabled: data.creditSalesEnabled });
+      toast.success(t('settings.creditSales.saveSuccess'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('settings.creditSales.saveError'));
+    }
+  };
+
+  return (
+    <div className="card overflow-hidden">
+      <div className="settings-card-banner settings-card-banner-dark">
+        <div className="settings-avatar settings-avatar-square">
+          <HandCoins size={20} />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-white font-bold text-base truncate">{t('settings.creditSales.title')}</h2>
+          <span className="text-slate-400 dark:text-slate-500 text-xs">{t('settings.creditSales.description')}</span>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {loading ? (
+          <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+              <input type="checkbox" {...register('creditSalesEnabled')} />
+              {t('settings.creditSales.enable')}
+            </label>
+            <div>
+              <button type="submit" disabled={isSubmitting} className="btn btn-primary w-fit">
+                {t('settings.saveBtn')}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Sozlamalar sahifasi bo'limlari — chapda tik ro'yxat (mobil kenglikda gorizontal
 // skroll qilinadigan tab satri), o'ngda tanlangan bo'lim tarkibi. Yagona /settings
 // yo'nalishi saqlanadi (App.jsx/Sidebar.jsx'ga tegilmaydi) — tanlangan bo'lim shu
 // komponentning ichki holati (activeSection) orqali boshqariladi.
-const SECTION_ICONS = { profile: UserCog, company: Building2, receipt: Printer, units: Ruler, appearance: Palette };
+const SECTION_ICONS = {
+  profile: UserCog,
+  company: Building2,
+  receipt: Printer,
+  units: Ruler,
+  expenseCategories: Tags,
+  appearance: Palette,
+};
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -697,6 +780,7 @@ export default function SettingsPage() {
         { id: 'company', label: t('settings.sections.company'), visible: isOwner },
         { id: 'receipt', label: t('settings.sections.receipt'), visible: isOwner },
         { id: 'units', label: t('settings.sections.units'), visible: isManager },
+        { id: 'expenseCategories', label: t('settings.sections.expenseCategories'), visible: isManager },
         { id: 'appearance', label: t('settings.sections.appearance'), visible: true },
       ].filter((s) => s.visible),
     [t, isOwner, isManager]
@@ -745,8 +829,14 @@ export default function SettingsPage() {
         <div className="flex-1 w-full min-w-0">
           {effectiveSection === 'profile' && <ProfileCard />}
           {effectiveSection === 'company' && isOwner && <CompanyCard />}
-          {effectiveSection === 'receipt' && isOwner && <ReceiptSettingsCard />}
+          {effectiveSection === 'receipt' && isOwner && (
+            <div className="flex flex-col gap-6">
+              <ReceiptSettingsCard />
+              <CreditSalesCard />
+            </div>
+          )}
           {effectiveSection === 'units' && isManager && <UnitsSection />}
+          {effectiveSection === 'expenseCategories' && isManager && <ExpenseCategoriesSection />}
           {effectiveSection === 'appearance' && <ThemeSettingsCard />}
         </div>
       </div>
