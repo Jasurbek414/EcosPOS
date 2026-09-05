@@ -5,6 +5,7 @@ import { Wallet, Package, TrendingUp, Percent, BarChart3 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useThemeContext } from '../../hooks/useThemeContext';
+import { useUnits } from '../../hooks/useUnits';
 import { branchService, reportService } from '../../services/api';
 
 const toISODate = (d) => {
@@ -30,6 +31,7 @@ export default function ReportsPage() {
   // mavzuni to'g'ridan-to'g'ri o'qib, mos rangni tanlaymiz.
   const { theme } = useThemeContext();
   const isDark = theme === 'dark';
+  const { unitLabel } = useUnits();
 
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
@@ -276,7 +278,7 @@ export default function ReportsPage() {
                       <tr key={p.productId}>
                         <td className="text-slate-500 dark:text-slate-400">{idx + 1}</td>
                         <td className="font-medium text-slate-900 dark:text-slate-100">{p.productName}</td>
-                        <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${p.unit}`)}</td>
+                        <td className="text-slate-600 dark:text-slate-300">{unitLabel(p.unit)}</td>
                         <td className="text-slate-600 dark:text-slate-300">{p.quantitySold}</td>
                         <td className="text-slate-600 dark:text-slate-300">{Number(p.revenue).toLocaleString('uz-UZ')}</td>
                         <td className="text-slate-600 dark:text-slate-300">{Number(p.profit).toLocaleString('uz-UZ')}</td>

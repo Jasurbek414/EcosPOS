@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeftRight, ArrowRight } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import { branchService, productService, stockTransferService, userService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 
@@ -15,6 +16,7 @@ import InventoryTabs from './InventoryTabs';
 export default function TransfersPage() {
   const { t } = useTranslation();
   const { user, isOwner, isManager } = useTenantAuthContext();
+  const { unitLabel } = useUnits();
   const [branches, setBranches] = useState([]);
   const [products, setProducts] = useState([]);
   const [usersById, setUsersById] = useState({});
@@ -256,7 +258,7 @@ export default function TransfersPage() {
                     </span>
                   </td>
                   <td className="text-slate-600 dark:text-slate-300">
-                    {Number(tr.quantity).toLocaleString('uz-UZ')} {t(`inventory.units.${tr.unit}`)}
+                    {Number(tr.quantity).toLocaleString('uz-UZ')} {unitLabel(tr.unit)}
                   </td>
                   <td className="text-slate-600 dark:text-slate-300">{tr.note || '—'}</td>
                   <td className="text-slate-600 dark:text-slate-300">{usersById[tr.createdByUserId] || '—'}</td>

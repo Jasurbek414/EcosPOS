@@ -28,4 +28,14 @@ public class ReceiptSettingsUpdateRequest {
 
     @NotNull(message = "receiptAutoPrint kiritilishi shart")
     private Boolean receiptAutoPrint;
+
+    @Size(max = 200, message = "Sarlavha matni 200 belgidan oshmasligi kerak")
+    private String receiptHeaderText;
+
+    @NotNull(message = "receiptShowBranchName kiritilishi shart")
+    private Boolean receiptShowBranchName;
+
+    @NotBlank(message = "Valyuta yorlig'i kiritilishi shart")
+    @Size(max = 10, message = "Valyuta yorlig'i 10 belgidan oshmasligi kerak")
+    private String receiptCurrencyLabel;
 }

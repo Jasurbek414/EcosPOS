@@ -2,7 +2,6 @@ package uz.savdo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import uz.savdo.enums.Unit;
 
 import java.math.BigDecimal;
 
@@ -28,9 +27,8 @@ public class Product extends BaseEntity {
     @Column(name = "barcode", unique = true, length = 64)
     private String barcode;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "unit", nullable = false, length = 20)
-    private Unit unit;
+    private String unit;
 
     @Column(name = "cost_price", nullable = false, precision = 14, scale = 2)
     @Builder.Default

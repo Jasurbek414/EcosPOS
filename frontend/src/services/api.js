@@ -111,6 +111,17 @@ export const userService = {
   resetPassword: (id) => api.post(`/users/${id}/reset-password`),
 };
 
+// O'lchov birliklari — har qanday autentifikatsiya qilingan tenant foydalanuvchisi
+// GET bilan BARCHASINI (faol+nofaol) oladi, yaratish/tahrirlash/faollashtirish esa
+// categoryService kabi faqat OWNER/MANAGER uchun (backend 403 qaytaradi).
+export const unitService = {
+  list: () => api.get('/units'),
+  create: (data) => api.post('/units', data),
+  update: (id, data) => api.put(`/units/${id}`, data),
+  activate: (id) => api.patch(`/units/${id}/activate`),
+  deactivate: (id) => api.patch(`/units/${id}/deactivate`),
+};
+
 export const categoryService = {
   list: () => api.get('/categories'),
   create: (data) => api.post('/categories', data),

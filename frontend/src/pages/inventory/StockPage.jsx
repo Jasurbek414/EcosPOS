@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Layers, X, SlidersHorizontal } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import { branchService, productService, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
@@ -80,6 +81,7 @@ function AdjustModal({ target, onClose, onAdjusted }) {
 export default function StockPage() {
   const { t } = useTranslation();
   const { user, isOwner, isManager } = useTenantAuthContext();
+  const { unitLabel } = useUnits();
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
   const [stock, setStock] = useState([]);
@@ -233,7 +235,7 @@ export default function StockPage() {
               {stock.map((s) => (
                 <tr key={s.productId}>
                   <td className="font-medium text-slate-900 dark:text-slate-100">{s.productName}</td>
-                  <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${s.unit}`)}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{unitLabel(s.unit)}</td>
                   <td className="text-slate-600 dark:text-slate-300">{s.quantity}</td>
                   {isManager && (
                     <td>

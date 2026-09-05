@@ -28,7 +28,7 @@ public class ProductResponse {
                 .categoryId(p.getCategoryId())
                 .name(p.getName())
                 .barcode(p.getBarcode())
-                .unit(p.getUnit().name())
+                .unit(p.getUnit())
                 .costPrice(p.getCostPrice())
                 .salePrice(p.getSalePrice())
                 .minStockLevel(p.getMinStockLevel())

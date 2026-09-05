@@ -67,12 +67,16 @@ public class CompanyProfileController {
                 .orElseThrow(() -> new ResourceNotFoundException("Kompaniya topilmadi"));
 
         companyRepository.updateReceiptSettings(companyId, request.getReceiptPaperWidth(), request.getReceiptFooterText(),
-                request.getReceiptShowLogo(), request.getReceiptShowCashierName(), request.getReceiptAutoPrint());
+                request.getReceiptShowLogo(), request.getReceiptShowCashierName(), request.getReceiptAutoPrint(),
+                request.getReceiptHeaderText(), request.getReceiptShowBranchName(), request.getReceiptCurrencyLabel());
         company.setReceiptPaperWidth(request.getReceiptPaperWidth());
         company.setReceiptFooterText(request.getReceiptFooterText());
         company.setReceiptShowLogo(request.getReceiptShowLogo());
         company.setReceiptShowCashierName(request.getReceiptShowCashierName());
         company.setReceiptAutoPrint(request.getReceiptAutoPrint());
+        company.setReceiptHeaderText(request.getReceiptHeaderText());
+        company.setReceiptShowBranchName(request.getReceiptShowBranchName());
+        company.setReceiptCurrencyLabel(request.getReceiptCurrencyLabel());
 
         return CompanyProfileResponse.from(company, resolvePlan(company));
     }

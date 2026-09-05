@@ -26,6 +26,9 @@ public class CompanyProfileResponse {
     private Boolean receiptShowLogo;
     private Boolean receiptShowCashierName;
     private Boolean receiptAutoPrint;
+    private String receiptHeaderText;
+    private Boolean receiptShowBranchName;
+    private String receiptCurrencyLabel;
     private Long planId;
     private String planName;
     private LocalDateTime createdAt;
@@ -44,6 +47,9 @@ public class CompanyProfileResponse {
                 .receiptShowLogo(c.getReceiptShowLogo())
                 .receiptShowCashierName(c.getReceiptShowCashierName())
                 .receiptAutoPrint(c.getReceiptAutoPrint())
+                .receiptHeaderText(c.getReceiptHeaderText())
+                .receiptShowBranchName(c.getReceiptShowBranchName())
+                .receiptCurrencyLabel(c.getReceiptCurrencyLabel())
                 .planId(c.getPlanId())
                 .planName(plan != null ? plan.getName() : null)
                 .createdAt(c.getCreatedAt())

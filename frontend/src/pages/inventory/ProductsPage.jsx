@@ -6,11 +6,11 @@ import {
   Package, Plus, X, Pencil, Trash2, Search, LayoutGrid, List, ImagePlus, Loader2,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import { categoryService, fileService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
 
-const UNITS = ['DONA', 'KG', 'LITR', 'QUTI'];
 const VIEW_STORAGE_KEY = 'savdo_products_view';
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -45,7 +45,7 @@ function ProductThumb({ product, size = 'sm' }) {
   );
 }
 
-function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated }) {
+function ProductModal({ product, categories, units, onClose, onSaved, onCategoryCreated }) {
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || null);
@@ -207,11 +207,13 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
             <div>
               <label className="field-label">{t('inventory.products.unit')}</label>
               <select className="input-field" {...register('unit', { required: true })}>
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {t(`inventory.units.${u}`)}
-                  </option>
-                ))}
+                {units
+                  .filter((u) => u.isActive || u.code === product?.unit)
+                  .map((u) => (
+                    <option key={u.id} value={u.code}>
+                      {u.name}{!u.isActive ? ` (${t('settings.units.inactiveSuffix')})` : ''}
+                    </option>
+                  ))}
               </select>
             </div>
             <div>
@@ -279,6 +281,7 @@ function ProductModal({ product, categories, onClose, onSaved, onCategoryCreated
 export default function ProductsPage() {
   const { t } = useTranslation();
   const { user, isManager } = useTenantAuthContext();
+  const { units, unitLabel } = useUnits();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -547,7 +550,7 @@ export default function ProductsPage() {
                   <td className="font-medium text-slate-900 dark:text-slate-100">{p.name}</td>
                   <td className="text-slate-600 dark:text-slate-300">{p.categoryName || '—'}</td>
                   <td className="text-slate-600 dark:text-slate-300 font-mono text-xs">{p.barcode || '—'}</td>
-                  <td className="text-slate-600 dark:text-slate-300">{t(`inventory.units.${p.unit}`)}</td>
+                  <td className="text-slate-600 dark:text-slate-300">{unitLabel(p.unit)}</td>
                   <td className="text-slate-600 dark:text-slate-300">{Number(p.costPrice).toLocaleString('uz-UZ')}</td>
                   <td className="text-slate-600 dark:text-slate-300">{Number(p.salePrice).toLocaleString('uz-UZ')}</td>
                   <td>
@@ -578,6 +581,7 @@ export default function ProductsPage() {
         <ProductModal
           product={editing}
           categories={categories}
+          units={units}
           onClose={closeModal}
           onSaved={handleSaved}
           onCategoryCreated={handleCategoryCreated}

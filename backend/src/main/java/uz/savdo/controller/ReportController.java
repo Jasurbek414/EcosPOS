@@ -149,7 +149,7 @@ public class ReportController {
                     return TopProductResponse.builder()
                             .productId(product.getId())
                             .productName(product.getName())
-                            .unit(product.getUnit().name())
+                            .unit(product.getUnit())
                             .quantitySold(acc.quantitySold)
                             .revenue(acc.revenue)
                             .profit(acc.profit)

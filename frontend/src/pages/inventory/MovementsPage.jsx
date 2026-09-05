@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { History } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import { branchService, productService, stockMovementService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 
@@ -24,6 +25,7 @@ const REFERENCE_LABEL_KEY = {
 export default function MovementsPage() {
   const { t } = useTranslation();
   const { user, isOwner } = useTenantAuthContext();
+  const { unitLabel } = useUnits();
   const [branches, setBranches] = useState([]);
   const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
   const [products, setProducts] = useState([]);
@@ -211,7 +213,7 @@ export default function MovementsPage() {
                   </td>
                   <td className={`font-semibold ${Number(m.quantity) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                     {Number(m.quantity) >= 0 ? '+' : ''}
-                    {Number(m.quantity).toLocaleString('uz-UZ')} {t(`inventory.units.${m.unit}`)}
+                    {Number(m.quantity).toLocaleString('uz-UZ')} {unitLabel(m.unit)}
                   </td>
                   <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">{referenceLabel(m)}</td>
                   <td className="text-slate-600 dark:text-slate-300">{m.note || '—'}</td>

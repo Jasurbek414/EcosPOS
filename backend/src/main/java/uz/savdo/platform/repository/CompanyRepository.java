@@ -40,6 +40,9 @@ public class CompanyRepository {
             .receiptShowLogo(rs.getBoolean("receipt_show_logo"))
             .receiptShowCashierName(rs.getBoolean("receipt_show_cashier_name"))
             .receiptAutoPrint(rs.getBoolean("receipt_auto_print"))
+            .receiptHeaderText(rs.getString("receipt_header_text"))
+            .receiptShowBranchName(rs.getBoolean("receipt_show_branch_name"))
+            .receiptCurrencyLabel(rs.getString("receipt_currency_label"))
             .status(CompanyStatus.valueOf(rs.getString("status")))
             .blockedReason(rs.getString("blocked_reason"))
             .blockedAt(rs.getTimestamp("blocked_at") != null ? rs.getTimestamp("blocked_at").toLocalDateTime() : null)
@@ -124,17 +127,20 @@ public class CompanyRepository {
 
     /**
      * Chek/printer sozlamalari — POS chekining ko'rinishi (qog'oz kengligi, pastki matn,
-     * logotip/kassir ismini ko'rsatish, avtomatik chop etish). Kompaniya darajasida,
-     * barcha filiallar uchun bir xil.
+     * logotip/kassir ismini ko'rsatish, avtomatik chop etish, sarlavha ustidagi matn,
+     * filial nomini ko'rsatish, valyuta yorlig'i). Kompaniya darajasida, barcha filiallar
+     * uchun bir xil.
      */
     public void updateReceiptSettings(Long id, String receiptPaperWidth, String receiptFooterText,
                                        boolean receiptShowLogo, boolean receiptShowCashierName,
-                                       boolean receiptAutoPrint) {
+                                       boolean receiptAutoPrint, String receiptHeaderText,
+                                       boolean receiptShowBranchName, String receiptCurrencyLabel) {
         jdbc.update("UPDATE companies SET receipt_paper_width = ?, receipt_footer_text = ?, " +
                         "receipt_show_logo = ?, receipt_show_cashier_name = ?, receipt_auto_print = ?, " +
+                        "receipt_header_text = ?, receipt_show_branch_name = ?, receipt_currency_label = ?, " +
                         "updated_at = now() WHERE id = ?",
                 receiptPaperWidth, receiptFooterText, receiptShowLogo, receiptShowCashierName,
-                receiptAutoPrint, id);
+                receiptAutoPrint, receiptHeaderText, receiptShowBranchName, receiptCurrencyLabel, id);
     }
 
     /** Kompaniyaga biriktirilgan rejani o'zgartirish/olib tashlash (planId null bo'lsa — rejasiz). */

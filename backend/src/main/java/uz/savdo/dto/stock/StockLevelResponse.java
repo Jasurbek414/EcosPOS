@@ -25,7 +25,7 @@ public class StockLevelResponse {
         return StockLevelResponse.builder()
                 .productId(product.getId())
                 .productName(product.getName())
-                .unit(product.getUnit().name())
+                .unit(product.getUnit())
                 .branchId(stockLevel.getBranchId())
                 .quantity(stockLevel.getQuantity())
                 .minStockLevel(product.getMinStockLevel())

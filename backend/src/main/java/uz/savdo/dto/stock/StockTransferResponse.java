@@ -39,7 +39,7 @@ public class StockTransferResponse {
                 .toBranchName(toBranch != null ? toBranch.getName() : null)
                 .productId(t.getProductId())
                 .productName(product != null ? product.getName() : null)
-                .unit(product != null ? product.getUnit().name() : null)
+                .unit(product != null ? product.getUnit() : null)
                 .quantity(t.getQuantity())
                 .note(t.getNote())
                 .createdByUserId(t.getCreatedByUserId())

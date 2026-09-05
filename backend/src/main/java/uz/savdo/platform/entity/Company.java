@@ -30,6 +30,9 @@ public class Company {
     private Boolean receiptShowLogo;
     private Boolean receiptShowCashierName;
     private Boolean receiptAutoPrint;
+    private String receiptHeaderText;
+    private Boolean receiptShowBranchName;
+    private String receiptCurrencyLabel;
     private CompanyStatus status;
     private String blockedReason;
     private LocalDateTime blockedAt;

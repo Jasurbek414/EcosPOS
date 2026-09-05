@@ -38,7 +38,7 @@ public class StockMovementResponse {
                 .id(m.getId())
                 .productId(m.getProductId())
                 .productName(product != null ? product.getName() : null)
-                .unit(product != null ? product.getUnit().name() : null)
+                .unit(product != null ? product.getUnit() : null)
                 .branchId(m.getBranchId())
                 .branchName(branch != null ? branch.getName() : null)
                 .type(m.getType())

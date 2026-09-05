@@ -6,6 +6,7 @@ import {
   Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2, Layers,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useUnits } from '../../hooks/useUnits';
 import {
   branchService, cashShiftService, categoryService, companyInfoService, posProductService, productService,
   resolveFileUrl, saleService,
@@ -222,11 +223,12 @@ function CloseShiftResult({ result, onDone }) {
   );
 }
 
-function ReceiptView({ receipt, onNewSale, company, cashierName }) {
+function ReceiptView({ receipt, onNewSale, company, cashierName, branchName, unitLabel }) {
   const { t } = useTranslation();
   const showLogo = company?.receiptShowLogo ?? true;
   const resolvedLogoUrl = showLogo ? resolveFileUrl(company?.logoUrl) : null;
   const paperClass = company?.receiptPaperWidth === '58mm' ? 'receipt-slip-58mm' : 'receipt-slip-80mm';
+  const currencyLabel = company?.receiptCurrencyLabel || "so'm";
 
   // Avtomatik chop etish — sozlamalarda yoqilgan bo'lsa, chek render bo'lganda BIR MARTA
   // window.print() chaqiriladi (receipt.id o'zgarganda qayta ishga tushadi, bir xil chek
@@ -250,12 +252,18 @@ function ReceiptView({ receipt, onNewSale, company, cashierName }) {
               <ReceiptText size={20} className="text-white" />
             </div>
           )}
+          {company?.receiptHeaderText && (
+            <p className="text-slate-500 dark:text-slate-400 text-xs whitespace-pre-line">{company.receiptHeaderText}</p>
+          )}
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-wide">
             {company?.name || t('pos.receipt.title')}
           </h2>
           {company?.name && <p className="text-slate-400 dark:text-slate-500 text-[11px] uppercase tracking-wide -mt-1">{t('pos.receipt.title')}</p>}
           {company?.address && <p className="text-slate-500 dark:text-slate-400 text-xs">{company.address}</p>}
           {company?.phone && <p className="text-slate-500 dark:text-slate-400 text-xs">{company.phone}</p>}
+          {company?.receiptShowBranchName && branchName && (
+            <p className="text-slate-500 dark:text-slate-400 text-xs">{t('pos.receipt.branchLabel')}: {branchName}</p>
+          )}
           <p className="text-slate-400 dark:text-slate-500 text-xs">
             #{receipt.id} · {new Date(receipt.createdAt).toLocaleString('uz-UZ')}
           </p>
@@ -267,7 +275,7 @@ function ReceiptView({ receipt, onNewSale, company, cashierName }) {
               <span className="text-slate-700 dark:text-slate-300">
                 {item.productName}
                 <span className="text-slate-400 dark:text-slate-500">
-                  {' '}x{item.quantity} {t(`inventory.units.${item.unit}`)}
+                  {' '}x{item.quantity} {unitLabel(item.unit)}
                 </span>
               </span>
               <span className="font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap tabular-nums">{Number(item.subtotal).toLocaleString('uz-UZ')}</span>
@@ -278,7 +286,9 @@ function ReceiptView({ receipt, onNewSale, company, cashierName }) {
         <div className="flex flex-col gap-1.5 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.total')}</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-lg tabular-nums">{Number(receipt.totalAmount).toLocaleString('uz-UZ')}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100 text-lg tabular-nums">
+              {Number(receipt.totalAmount).toLocaleString('uz-UZ')} {currencyLabel}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.paymentMethod')}</span>
@@ -342,7 +352,7 @@ function ElapsedTime({ since }) {
   return <span className="tabular-nums">{h > 0 ? `${h}s ${m}d` : `${m}d`}</span>;
 }
 
-function ProductGrid({ products, categories, onAdd }) {
+function ProductGrid({ products, categories, onAdd, unitLabel }) {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState('all');
 
@@ -393,7 +403,7 @@ function ProductGrid({ products, categories, onAdd }) {
               )}
               <span className="pos-product-name">{p.name}</span>
               <span className="pos-product-price">
-                {Number(p.salePrice).toLocaleString('uz-UZ')} <span className="text-slate-400 dark:text-slate-500 font-normal">{t(`inventory.units.${p.unit}`)}</span>
+                {Number(p.salePrice).toLocaleString('uz-UZ')} <span className="text-slate-400 dark:text-slate-500 font-normal">{unitLabel(p.unit)}</span>
               </span>
             </button>
           ))}
@@ -406,7 +416,9 @@ function ProductGrid({ products, categories, onAdd }) {
 function POSTerminal({ shift, onRequestCloseShift }) {
   const { t } = useTranslation();
   const { user } = useTenantAuthContext();
+  const { unitLabel } = useUnits();
   const inputRef = useRef(null);
+  const [branchName, setBranchName] = useState(null);
 
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -454,6 +466,25 @@ function POSTerminal({ shift, onRequestCloseShift }) {
       cancelled = true;
     };
   }, []);
+
+  // Chekda "Filial: X" qatorini ko'rsatish uchun joriy foydalanuvchi filialining
+  // NOMI kerak (faqat branchId emas) — TransfersPage.jsx'dagi kabi /branches/all-names
+  // ishlatiladi, chunki u rolga qaramasdan BARCHA filiallarni qaytaradi.
+  useEffect(() => {
+    if (!user?.branchId) return undefined;
+    let cancelled = false;
+    branchService
+      .listNames()
+      .then((res) => {
+        if (cancelled) return;
+        const match = res.data.find((b) => b.id === user.branchId);
+        setBranchName(match?.name || null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.branchId]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -607,7 +638,14 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
       {receipt ? (
         <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
-          <ReceiptView receipt={receipt} onNewSale={handleNewSale} company={companyInfo} cashierName={user?.fullName} />
+          <ReceiptView
+            receipt={receipt}
+            onNewSale={handleNewSale}
+            company={companyInfo}
+            cashierName={user?.fullName}
+            branchName={branchName}
+            unitLabel={unitLabel}
+          />
         </div>
       ) : (
         <div className="flex flex-col xl:flex-row gap-4 xl:flex-1 xl:min-h-0 xl:items-stretch">
@@ -637,7 +675,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                     >
                       <div className="font-medium text-slate-900 dark:text-slate-100">{p.name}</div>
                       <div className="text-slate-500 dark:text-slate-400 text-xs">
-                        {Number(p.salePrice).toLocaleString('uz-UZ')} · {t(`inventory.units.${p.unit}`)}
+                        {Number(p.salePrice).toLocaleString('uz-UZ')} · {unitLabel(p.unit)}
                       </div>
                     </button>
                   ))}
@@ -649,7 +687,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
               {catalogLoading ? (
                 <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
               ) : (
-                <ProductGrid products={products} categories={categories} onAdd={addToCart} />
+                <ProductGrid products={products} categories={categories} onAdd={addToCart} unitLabel={unitLabel} />
               )}
             </div>
           </div>
@@ -677,7 +715,7 @@ function POSTerminal({ shift, onRequestCloseShift }) {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{item.name}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                        {item.salePrice.toLocaleString('uz-UZ')} × {item.quantity} {t(`inventory.units.${item.unit}`)}
+                        {item.salePrice.toLocaleString('uz-UZ')} × {item.quantity} {unitLabel(item.unit)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">

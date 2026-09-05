@@ -23,7 +23,7 @@ public class GoodsReceiptItemResponse {
                 .id(item.getId())
                 .productId(item.getProductId())
                 .productName(product.getName())
-                .unit(product.getUnit().name())
+                .unit(product.getUnit())
                 .quantity(item.getQuantity())
                 .unitCost(item.getUnitCost())
                 .subtotal(item.getSubtotal())

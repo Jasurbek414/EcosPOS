@@ -22,6 +22,9 @@ public class CompanyInfoResponse {
     private Boolean receiptShowLogo;
     private Boolean receiptShowCashierName;
     private Boolean receiptAutoPrint;
+    private String receiptHeaderText;
+    private Boolean receiptShowBranchName;
+    private String receiptCurrencyLabel;
 
     public static CompanyInfoResponse from(Company c) {
         return CompanyInfoResponse.builder()
@@ -34,6 +37,9 @@ public class CompanyInfoResponse {
                 .receiptShowLogo(c.getReceiptShowLogo())
                 .receiptShowCashierName(c.getReceiptShowCashierName())
                 .receiptAutoPrint(c.getReceiptAutoPrint())
+                .receiptHeaderText(c.getReceiptHeaderText())
+                .receiptShowBranchName(c.getReceiptShowBranchName())
+                .receiptCurrencyLabel(c.getReceiptCurrencyLabel())
                 .build();
     }
 }

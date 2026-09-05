@@ -24,7 +24,7 @@ public class SaleItemResponse {
                 .id(item.getId())
                 .productId(item.getProductId())
                 .productName(product.getName())
-                .unit(product.getUnit().name())
+                .unit(product.getUnit())
                 .quantity(item.getQuantity())
                 .unitPrice(item.getUnitPrice())
                 .costPriceSnapshot(item.getCostPriceSnapshot())

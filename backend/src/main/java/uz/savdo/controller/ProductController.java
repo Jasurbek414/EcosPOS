@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.savdo.dto.product.ProductRequest;
 import uz.savdo.dto.product.ProductResponse;
+import uz.savdo.entity.MeasurementUnit;
 import uz.savdo.entity.Product;
 import uz.savdo.exception.BadRequestException;
 import uz.savdo.exception.ResourceNotFoundException;
+import uz.savdo.repository.MeasurementUnitRepository;
 import uz.savdo.repository.ProductRepository;
 import uz.savdo.security.CurrentUserService;
 
@@ -25,6 +27,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductRepository productRepository;
+    private final MeasurementUnitRepository measurementUnitRepository;
     private final CurrentUserService currentUserService;
 
     @GetMapping
@@ -55,13 +58,14 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         currentUserService.assertCanManageCatalog();
+        String unit = validateUnit(request.getUnit());
         validateBarcodeUnique(request.getBarcode(), null);
 
         Product product = Product.builder()
                 .categoryId(request.getCategoryId())
                 .name(request.getName())
                 .barcode(normalizeBarcode(request.getBarcode()))
-                .unit(request.getUnit())
+                .unit(unit)
                 .costPrice(request.getCostPrice())
                 .salePrice(request.getSalePrice())
                 .minStockLevel(request.getMinStockLevel())
@@ -76,6 +80,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         currentUserService.assertCanManageCatalog();
+        String unit = validateUnit(request.getUnit());
 
         Product product = productRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mahsulot topilmadi: " + id));
@@ -84,7 +89,7 @@ public class ProductController {
         product.setCategoryId(request.getCategoryId());
         product.setName(request.getName());
         product.setBarcode(normalizeBarcode(request.getBarcode()));
-        product.setUnit(request.getUnit());
+        product.setUnit(unit);
         product.setCostPrice(request.getCostPrice());
         product.setSalePrice(request.getSalePrice());
         product.setMinStockLevel(request.getMinStockLevel());
@@ -105,6 +110,16 @@ public class ProductController {
         productRepository.save(product);
 
         return ResponseEntity.noContent().build();
+    }
+
+    private String validateUnit(String rawUnit) {
+        String code = rawUnit.trim().toUpperCase();
+        MeasurementUnit unit = measurementUnitRepository.findByCodeIgnoreCaseAndIsDeletedFalse(code)
+                .orElseThrow(() -> new BadRequestException("Noto'g'ri yoki nofaol o'lchov birligi: " + code));
+        if (!Boolean.TRUE.equals(unit.getIsActive())) {
+            throw new BadRequestException("Noto'g'ri yoki nofaol o'lchov birligi: " + code);
+        }
+        return code;
     }
 
     private String normalizeBarcode(String barcode) {

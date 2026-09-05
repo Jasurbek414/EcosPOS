@@ -439,7 +439,8 @@
       "change": "Сдача",
       "printBtn": "Печать",
       "newSaleBtn": "Новая продажа",
-      "cashier": "Кассир"
+      "cashier": "Кассир",
+      "branchLabel": "Филиал"
     }
   },
   "superadmin": {
@@ -576,6 +577,13 @@
   "settings": {
     "title": "Настройки",
     "subtitle": "Настройки профиля и компании",
+    "sections": {
+      "profile": "Профиль",
+      "company": "Компания",
+      "receipt": "Чек и принтер",
+      "units": "Единицы измерения",
+      "appearance": "Внешний вид"
+    },
     "profileTitle": "Мой профиль",
     "editNameTitle": "Изменить имя",
     "fullName": "Ф.И.О.",
@@ -612,10 +620,15 @@
     "receiptSettingsSubtitle": "Внешний вид чека POS и порядок печати",
     "paperWidth": "Ширина бумаги",
     "paperWidthHint": "Выберите ширину, подходящую вашему термопринтеру",
+    "headerText": "Верхний текст чека",
+    "headerTextPlaceholder": "Например: Добро пожаловать!",
     "footerText": "Нижний текст чека",
     "footerTextPlaceholder": "Например: Спасибо за покупку!",
+    "currencyLabel": "Обозначение валюты",
+    "currencyLabelPlaceholder": "сум",
     "showLogoOnReceipt": "Показывать логотип на чеке",
     "showCashierName": "Показывать имя кассира на чеке",
+    "showBranchName": "Показывать название филиала на чеке",
     "autoPrint": "Автоматически печатать после продажи",
     "receiptSettingsUpdateSuccess": "Настройки чека обновлены",
     "receiptSettingsUpdateError": "Ошибка при обновлении настроек чека",
@@ -624,6 +637,25 @@
       "sampleItem": "Coca-Cola 1.5L",
       "sampleItem2": "Хлеб",
       "cashierLabel": "Кассир"
+    },
+    "units": {
+      "title": "Единицы измерения",
+      "subtitle": "Управление единицами измерения товаров",
+      "newUnit": "Новая единица",
+      "editUnit": "Изменить единицу",
+      "code": "Код",
+      "codePlaceholder": "Например: METR",
+      "name": "Название",
+      "namePlaceholder": "Например: Метр",
+      "createSuccess": "Единица создана",
+      "createError": "Ошибка при создании единицы",
+      "updateSuccess": "Единица обновлена",
+      "updateError": "Ошибка при обновлении единицы",
+      "activateConfirm": "Активировать единицу",
+      "deactivateConfirm": "Вы действительно хотите деактивировать эту единицу?",
+      "loadError": "Не удалось загрузить список единиц измерения",
+      "empty": "Пока нет единиц измерения",
+      "inactiveSuffix": "неактивна"
     }
   },
   "theme": {

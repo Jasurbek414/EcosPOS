@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2,
-  Printer, ReceiptText,
+  Printer, ReceiptText, Ruler, Palette,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
 import ThemeSettingsCard from '../../components/ui/ThemeSettingsCard';
+import UnitsSection from './UnitsSection';
 
 const ROLE_BADGE = { OWNER: 'badge-amber', MANAGER: 'badge-blue', CASHIER: 'badge-slate' };
 // ProductsPage.jsx'dagi rasm yuklash validatsiyasi bilan bir xil — alohida umumiy
@@ -453,6 +454,8 @@ function ReceiptPreview({ company, values }) {
   const resolvedLogoUrl = resolveFileUrl(company?.logoUrl);
   const paperClass = values.receiptPaperWidth === '58mm' ? 'receipt-slip-58mm' : 'receipt-slip-80mm';
 
+  const currencyLabel = values.receiptCurrencyLabel || "so'm";
+
   return (
     <div className={`receipt-slip ${paperClass} flex flex-col gap-3 mx-auto`}>
       <div className="text-center flex flex-col items-center gap-1.5">
@@ -463,9 +466,15 @@ function ReceiptPreview({ company, values }) {
             <ReceiptText size={16} className="text-white" />
           </div>
         )}
+        {values.receiptHeaderText && (
+          <p className="text-slate-500 dark:text-slate-400 text-[11px] whitespace-pre-line">{values.receiptHeaderText}</p>
+        )}
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{company?.name || t('pos.receipt.title')}</h3>
         {company?.address && <p className="text-slate-500 dark:text-slate-400 text-[11px]">{company.address}</p>}
         {company?.phone && <p className="text-slate-500 dark:text-slate-400 text-[11px]">{company.phone}</p>}
+        {values.receiptShowBranchName && (
+          <p className="text-slate-500 dark:text-slate-400 text-[11px]">{t('pos.receipt.branchLabel')}: Bosh filial</p>
+        )}
       </div>
       <div className="receipt-divider" />
       <div className="flex flex-col gap-1 text-xs">
@@ -481,7 +490,7 @@ function ReceiptPreview({ company, values }) {
       <div className="receipt-divider" />
       <div className="flex justify-between text-sm">
         <span className="text-slate-500 dark:text-slate-400">{t('pos.receipt.total')}</span>
-        <span className="font-bold text-slate-900 dark:text-slate-100">36 000</span>
+        <span className="font-bold text-slate-900 dark:text-slate-100">36 000 {currencyLabel}</span>
       </div>
       {values.receiptShowCashierName && (
         <p className="text-slate-400 dark:text-slate-500 text-[11px] text-center">{t('settings.receiptPreview.cashierLabel')}: Aliyev A.</p>
@@ -517,6 +526,9 @@ function ReceiptSettingsCard() {
       receiptShowLogo: true,
       receiptShowCashierName: true,
       receiptAutoPrint: false,
+      receiptHeaderText: '',
+      receiptShowBranchName: false,
+      receiptCurrencyLabel: "so'm",
     },
   });
   const values = watch();
@@ -534,6 +546,9 @@ function ReceiptSettingsCard() {
           receiptShowLogo: res.data.receiptShowLogo ?? true,
           receiptShowCashierName: res.data.receiptShowCashierName ?? true,
           receiptAutoPrint: res.data.receiptAutoPrint ?? false,
+          receiptHeaderText: res.data.receiptHeaderText || '',
+          receiptShowBranchName: res.data.receiptShowBranchName ?? false,
+          receiptCurrencyLabel: res.data.receiptCurrencyLabel || "so'm",
         });
       })
       .catch(() => {
@@ -552,6 +567,7 @@ function ReceiptSettingsCard() {
       const res = await companyProfileService.updateReceiptSettings({
         ...data,
         receiptFooterText: data.receiptFooterText || null,
+        receiptHeaderText: data.receiptHeaderText || null,
       });
       setCompany(res.data);
       toast.success(t('settings.receiptSettingsUpdateSuccess'));
@@ -588,12 +604,32 @@ function ReceiptSettingsCard() {
               </div>
 
               <div>
+                <label className="field-label">{t('settings.headerText')}</label>
+                <input
+                  type="text"
+                  className="input-field max-w-sm"
+                  placeholder={t('settings.headerTextPlaceholder')}
+                  {...register('receiptHeaderText')}
+                />
+              </div>
+
+              <div>
                 <label className="field-label">{t('settings.footerText')}</label>
                 <textarea
                   className="input-field max-w-sm"
                   rows={2}
                   placeholder={t('settings.footerTextPlaceholder')}
                   {...register('receiptFooterText')}
+                />
+              </div>
+
+              <div>
+                <label className="field-label">{t('settings.currencyLabel')}</label>
+                <input
+                  type="text"
+                  className="input-field max-w-xs"
+                  placeholder={t('settings.currencyLabelPlaceholder')}
+                  {...register('receiptCurrencyLabel', { required: true })}
                 />
               </div>
 
@@ -605,6 +641,10 @@ function ReceiptSettingsCard() {
                 <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
                   <input type="checkbox" {...register('receiptShowCashierName')} />
                   {t('settings.showCashierName')}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+                  <input type="checkbox" {...register('receiptShowBranchName')} />
+                  {t('settings.showBranchName')}
                 </label>
                 <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none">
                   <input type="checkbox" {...register('receiptAutoPrint')} />
@@ -632,9 +672,35 @@ function ReceiptSettingsCard() {
   );
 }
 
+// Sozlamalar sahifasi bo'limlari — chapda tik ro'yxat (mobil kenglikda gorizontal
+// skroll qilinadigan tab satri), o'ngda tanlangan bo'lim tarkibi. Yagona /settings
+// yo'nalishi saqlanadi (App.jsx/Sidebar.jsx'ga tegilmaydi) — tanlangan bo'lim shu
+// komponentning ichki holati (activeSection) orqali boshqariladi.
+const SECTION_ICONS = { profile: UserCog, company: Building2, receipt: Printer, units: Ruler, appearance: Palette };
+
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const { isOwner } = useTenantAuthContext();
+  const { isOwner, isManager } = useTenantAuthContext();
+
+  const sections = useMemo(
+    () =>
+      [
+        { id: 'profile', label: t('settings.sections.profile'), visible: true },
+        { id: 'company', label: t('settings.sections.company'), visible: isOwner },
+        { id: 'receipt', label: t('settings.sections.receipt'), visible: isOwner },
+        { id: 'units', label: t('settings.sections.units'), visible: isManager },
+        { id: 'appearance', label: t('settings.sections.appearance'), visible: true },
+      ].filter((s) => s.visible),
+    [t, isOwner, isManager]
+  );
+
+  const [activeSection, setActiveSection] = useState('profile');
+
+  // Tanlangan bo'lim ro'yxatda bo'lmasa (masalan CASHIER "units"ni ko'rmaydi) —
+  // render vaqtida birinchi mavjud bo'limga tushamiz. Bu setState'ni effekt ichida
+  // chaqirishdan ko'ra tozaroq — activeSection holati o'zi o'zgarmaydi, faqat
+  // ko'rsatish uchun hisoblangan qiymat ishlatiladi.
+  const effectiveSection = sections.some((s) => s.id === activeSection) ? activeSection : sections[0]?.id;
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -646,15 +712,35 @@ export default function SettingsPage() {
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('settings.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-        <ProfileCard />
-        {isOwner && <CompanyCard />}
-        {isOwner && (
-          <div className="xl:col-span-2">
-            <ReceiptSettingsCard />
-          </div>
-        )}
-        <ThemeSettingsCard />
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+        <nav className="flex md:flex-col gap-1 w-full md:w-60 shrink-0 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
+          {sections.map((s) => {
+            const Icon = SECTION_ICONS[s.id];
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setActiveSection(s.id)}
+                className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 md:shrink transition-colors cursor-pointer ${
+                  effectiveSection === s.id
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Icon size={16} />
+                {s.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="flex-1 w-full min-w-0">
+          {effectiveSection === 'profile' && <ProfileCard />}
+          {effectiveSection === 'company' && isOwner && <CompanyCard />}
+          {effectiveSection === 'receipt' && isOwner && <ReceiptSettingsCard />}
+          {effectiveSection === 'units' && isManager && <UnitsSection />}
+          {effectiveSection === 'appearance' && <ThemeSettingsCard />}
+        </div>
       </div>
     </div>
   );
