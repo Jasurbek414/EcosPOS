@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Building2, Plus, Trash2, Search, CheckCircle2, X, Gauge } from 'lucide-react';
+import { Building2, Plus, Pencil, Trash2, Search, CheckCircle2, X, Gauge } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { branchService } from '../../services/api';
 
@@ -94,6 +94,7 @@ function BranchModal({ onClose, onCreated }) {
 
 export default function BranchListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { isOwner } = useTenantAuthContext();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -308,6 +309,14 @@ export default function BranchListPage() {
                   {isOwner && (
                     <td>
                       <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/branches/${b.id}`, { state: { autoEdit: true } })}
+                          className="btn-icon"
+                          title={t('common.edit')}
+                        >
+                          <Pencil size={15} />
+                        </button>
                         <button type="button" onClick={() => handleDelete(b)} className="btn-icon danger" title={t('common.delete')}>
                           <Trash2 size={15} />
                         </button>

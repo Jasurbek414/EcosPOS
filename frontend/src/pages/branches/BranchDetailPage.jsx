@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -100,12 +100,15 @@ export default function BranchDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isOwner } = useTenantAuthContext();
   const [branch, setBranch] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [editingInfo, setEditingInfo] = useState(false);
+  // Ro'yxat sahifasidagi qalam (Pencil) tugmasi shu holatni yuborib, profilga
+  // kirilgan zahoti tahrirlash formasi ochiq bo'lishini ta'minlaydi.
+  const [editingInfo, setEditingInfo] = useState(() => Boolean(location.state?.autoEdit));
 
   const reloadStats = useCallback(async () => {
     try {
