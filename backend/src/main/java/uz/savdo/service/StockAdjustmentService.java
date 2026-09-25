@@ -8,6 +8,7 @@ import uz.savdo.entity.Product;
 import uz.savdo.entity.StockLevel;
 import uz.savdo.entity.StockMovement;
 import uz.savdo.enums.MovementType;
+import uz.savdo.exception.BadRequestException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.BranchRepository;
 import uz.savdo.repository.ProductRepository;
@@ -36,13 +37,24 @@ public class StockAdjustmentService {
         Product product = productRepository.findByIdAndIsDeletedFalse(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Mahsulot topilmadi: " + productId));
 
-        StockLevel stockLevel = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(product.getId(), branch.getId())
+        // QULFLANGAN o'qish. Avval bu yerda oddiy findBy... ishlatilardi va bu butun
+        // loyihadagi yagona qulflanmagan qoldiq o'zgartirish yo'li edi: menejer
+        // inventarizatsiya qilayotganda kassir shu mahsulotni sotsa, ikkalasi ham bir
+        // xil eski qiymatni o'qib, keyin yozgani birinchisining o'zgarishini jimgina
+        // bosib ketardi. GoodsReceiptService va SaleService bilan bir xil naqshga
+        // keltirildi.
+        StockLevel stockLevel = stockLevelRepository.findWithLockByProductIdAndBranchIdAndIsDeletedFalse(product.getId(), branch.getId())
                 .orElseGet(() -> StockLevel.builder()
                         .productId(product.getId())
                         .branchId(branch.getId())
                         .quantity(BigDecimal.ZERO)
                         .build());
-        stockLevel.setQuantity(stockLevel.getQuantity().add(quantityDelta));
+        BigDecimal newQty = stockLevel.getQuantity().add(quantityDelta);
+        if (newQty.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Tuzatish qoldiqni manfiyga tushira olmaydi " +
+                    "(mavjud: " + stockLevel.getQuantity() + ", delta: " + quantityDelta + ")");
+        }
+        stockLevel.setQuantity(newQty);
         stockLevel = stockLevelRepository.save(stockLevel);
 
         StockMovement movement = StockMovement.builder()

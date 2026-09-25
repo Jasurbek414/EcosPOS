@@ -30,6 +30,34 @@ public class JwtService {
     private static final String TOKEN_TYPE_REFRESH = "REFRESH";
 
     /**
+     * Repozitoriy bir muddat ochiq bo'lgani uchun quyidagi namunaviy qiymatlar
+     * ommaga ma'lum. Shulardan biri bilan ishga tushsa, istalgan odam istalgan
+     * rol va kompaniya uchun token yasay oladi — shuning uchun ilova umuman
+     * ko'tarilmasligi kerak.
+     */
+    private static final String[] TAQIQLANGAN_KALIT_BELGILARI = {
+            "local-dev-only", "change_me", "changeme", "your-secret", "secret-key"
+    };
+
+    @jakarta.annotation.PostConstruct
+    void kalitniTekshir() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET belgilanmagan — ilova ishga tushirilmaydi.");
+        }
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET juda qisqa (" + jwtSecret.length() + " belgi) — kamida 32 belgi bo'lishi shart.");
+        }
+        String kichik = jwtSecret.toLowerCase();
+        for (String belgi : TAQIQLANGAN_KALIT_BELGILARI) {
+            if (kichik.contains(belgi)) {
+                throw new IllegalStateException(
+                        "JWT_SECRET namunaviy qiymatda qolgan ('" + belgi + "') — tasodifiy kalit bilan almashtiring.");
+            }
+        }
+    }
+
+    /**
      * Access token yaratish. companyId — platform_db'dagi kompaniya ID'si, har bir
      * so'rovda JwtAuthFilter shu claim orqali kompaniya holatini (bloklangan/bloklanmagan)
      * qayta tekshiradi va tegishli tenant bazasiga yo'naltiradi. branchId — faqat

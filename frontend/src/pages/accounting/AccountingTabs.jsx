@@ -16,20 +16,22 @@ export default function AccountingTabs() {
   ];
 
   return (
-    <div className="flex items-center gap-1 flex-wrap border-b border-slate-200 dark:border-slate-700">
+    <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 overflow-x-auto no-scrollbar w-fit max-w-full shadow-2xs">
       {tabs.map((tab) => (
         <NavLink
           key={tab.path}
           to={tab.path}
           end={tab.path === '/accounting'}
           className={({ isActive }) =>
-            `flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors ${
-              isActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              isActive
+                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
             }`
           }
         >
-          <tab.icon size={16} />
-          {tab.label}
+          <tab.icon size={15} className="shrink-0" />
+          <span>{tab.label}</span>
         </NavLink>
       ))}
     </div>

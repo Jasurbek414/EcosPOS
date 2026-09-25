@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   UserCog, Building2, KeyRound, ShieldCheck, Fingerprint, Tag, CalendarDays, ImagePlus, Loader2,
   Printer, ReceiptText, Ruler, Palette, Pencil, Tags, HandCoins,
+  Cable, Scale, CreditCard, Wifi,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { profileService, companyProfileService, fileService, resolveFileUrl } from '../../services/api';
@@ -189,14 +190,11 @@ function ProfileCard() {
           <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
         ) : !profile ? null : (
           <>
-            {profile.branchName && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <InfoField icon={Fingerprint} label={t('auth.username')} value={profile.username} />
-                <InfoField icon={Building2} label={t('inventory.stock.branch')} value={profile.branchName} />
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <InfoField icon={Fingerprint} label={t('auth.username')} value={profile.username} />
+            </div>
 
-            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${profile.branchName ? 'border-t border-slate-100 dark:border-slate-700 pt-6' : ''}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-slate-100 dark:border-slate-700 pt-6">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Pencil size={15} className="text-slate-400 dark:text-slate-500" />
@@ -758,6 +756,145 @@ function CreditSalesCard() {
   );
 }
 
+function IntegrationCard({ icon: Icon, title, subtitle, badge, children }) {
+  return (
+    <div className="card overflow-hidden">
+      <div className="settings-card-banner settings-card-banner-dark">
+        <div className="settings-avatar settings-avatar-square">
+          <Icon size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-white font-bold text-base truncate">{title}</h2>
+            {badge && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wide">
+                {badge}
+              </span>
+            )}
+          </div>
+          <span className="text-slate-400 dark:text-slate-500 text-xs">{subtitle}</span>
+        </div>
+      </div>
+      <div className="p-6">{children}</div>
+    </div>
+  );
+}
+
+function IntegrationsSection() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Elektron tarozilarga integratsiya */}
+      <IntegrationCard
+        icon={Scale}
+        title={t('settings.integrations.scales.title')}
+        subtitle={t('settings.integrations.scales.subtitle')}
+        badge={t('settings.integrations.comingSoon')}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            {t('settings.integrations.scales.description')}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {['CAS', 'Mettler Toledo', 'DIGI', 'A&D'].map((brand) => (
+              <div
+                key={brand}
+                className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                  <Scale size={14} className="text-slate-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{brand}</p>
+                  <p className="text-[11px] text-slate-400">{t('settings.integrations.scales.protocolLabel')}: RS-232 / USB</p>
+                </div>
+                <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-400 uppercase">
+                  {t('settings.integrations.soon')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </IntegrationCard>
+
+      {/* Terminalga integratsiya */}
+      <IntegrationCard
+        icon={CreditCard}
+        title={t('settings.integrations.terminal.title')}
+        subtitle={t('settings.integrations.terminal.subtitle')}
+        badge={t('settings.integrations.comingSoon')}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            {t('settings.integrations.terminal.description')}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { name: 'Uzcard / Humo', detail: 'POS-terminal' },
+              { name: 'Click POS', detail: "QR-to'lov" },
+              { name: 'Payme POS', detail: 'POS-terminal' },
+              { name: 'Oson POS', detail: 'POS-terminal' },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                  <CreditCard size={14} className="text-slate-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{item.name}</p>
+                  <p className="text-[11px] text-slate-400">{item.detail}</p>
+                </div>
+                <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-400 uppercase">
+                  {t('settings.integrations.soon')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </IntegrationCard>
+
+      {/* Click / Paynet / Payme ilovalariga integratsiya */}
+      <IntegrationCard
+        icon={Wifi}
+        title={t('settings.integrations.payment.title')}
+        subtitle={t('settings.integrations.payment.subtitle')}
+        badge={t('settings.integrations.comingSoon')}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            {t('settings.integrations.payment.description')}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { name: 'Click', color: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50', iconBg: 'bg-blue-100 dark:bg-blue-900/50', iconColor: 'text-blue-400' },
+              { name: 'Paynet', color: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50', iconBg: 'bg-emerald-100 dark:bg-emerald-900/50', iconColor: 'text-emerald-400' },
+              { name: 'Payme', color: 'bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/50', iconBg: 'bg-violet-100 dark:bg-violet-900/50', iconColor: 'text-violet-400' },
+            ].map((item) => (
+              <div
+                key={item.name}
+                className={`flex flex-col items-center gap-3 p-4 rounded-xl border ${item.color}`}
+              >
+                <div className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center`}>
+                  <Wifi size={18} className={item.iconColor} />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{t('settings.integrations.payment.apiLabel')}</p>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-400 uppercase">
+                  {t('settings.integrations.soon')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </IntegrationCard>
+    </div>
+  );
+}
+
 // Sozlamalar sahifasi bo'limlari — chapda tik ro'yxat (mobil kenglikda gorizontal
 // skroll qilinadigan tab satri), o'ngda tanlangan bo'lim tarkibi. Yagona /settings
 // yo'nalishi saqlanadi (App.jsx/Sidebar.jsx'ga tegilmaydi) — tanlangan bo'lim shu
@@ -768,6 +905,7 @@ const SECTION_ICONS = {
   receipt: Printer,
   units: Ruler,
   expenseCategories: Tags,
+  integrations: Cable,
   appearance: Palette,
 };
 
@@ -783,6 +921,7 @@ export default function SettingsPage() {
         { id: 'receipt', label: t('settings.sections.receipt'), visible: isOwner },
         { id: 'units', label: t('settings.sections.units'), visible: isManager },
         { id: 'expenseCategories', label: t('settings.sections.expenseCategories'), visible: isManager },
+        { id: 'integrations', label: t('settings.sections.integrations'), visible: isOwner },
         { id: 'appearance', label: t('settings.sections.appearance'), visible: true },
       ].filter((s) => s.visible),
     [t, isOwner, isManager]
@@ -839,6 +978,7 @@ export default function SettingsPage() {
           )}
           {effectiveSection === 'units' && isManager && <UnitsSection />}
           {effectiveSection === 'expenseCategories' && isManager && <ExpenseCategoriesSection />}
+          {effectiveSection === 'integrations' && isOwner && <IntegrationsSection />}
           {effectiveSection === 'appearance' && <ThemeSettingsCard />}
         </div>
       </div>

@@ -10,7 +10,10 @@
 # Backend manzilini o'zgartirish uchun (standart: https://savdo-api.ecos.uz):
 #   docker build --build-arg API_BASE_URL=https://sizning-domeningiz.uz -t savdo-mobile-build .
 
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+# Versiya ATAYLAB qadab qo'yilgan. Avval ":stable" edi va Flutter'ning yangi
+# versiyasi chiqishi bilan, kod umuman o'zgarmagan holda, APK boshqacha yoki
+# buzilgan bo'lib chiqishi mumkin edi.
+FROM ghcr.io/cirruslabs/flutter:3.29.3 AS build
 WORKDIR /app
 
 ARG API_BASE_URL=https://savdo-api.ecos.uz

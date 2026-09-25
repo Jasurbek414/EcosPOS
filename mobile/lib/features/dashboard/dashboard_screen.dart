@@ -80,6 +80,15 @@ class _CashierWelcome extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
+                onPressed: () => context.go('/kassa'),
+                icon: const Icon(Icons.point_of_sale_outlined),
+                label: const Text('Kassa'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
                 onPressed: () => context.go('/stock'),
                 icon: const Icon(Icons.inventory_2_outlined),
                 label: const Text('Kam qolganlar'),

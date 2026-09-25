@@ -5,8 +5,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Platform darajasidagi superadmin foydalanuvchi — hech qaysi kompaniyaga tegishli emas.
- * platform_db'dagi platform_users jadvaliga mos keladi.
+ * Platform darajasidagi superadmin foydalanuvchi -- hech qaysi kompaniyaga tegishli emas.
+ * platform_db dagi platform_users jadvaliga mos keladi.
  */
 @Getter
 @Setter
@@ -20,4 +20,8 @@ public class PlatformUser {
     private String fullName;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    /** Ketma-ket notogri parol urinishlari soni. */
+    private Integer failedLoginAttempts;
+    /** null yoki ushbu vaqtdan keyin hisob yana ochiladi. */
+    private LocalDateTime lockedUntil;
 }

@@ -29,6 +29,7 @@ import uz.savdo.repository.StockLevelRepository;
 import uz.savdo.repository.StockMovementRepository;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -54,6 +55,18 @@ public class SaleService {
     private final SaleItemRepository saleItemRepository;
     private final CustomerRepository customerRepository;
     private final CustomerDebtTransactionRepository customerDebtTransactionRepository;
+
+    /**
+     * Pul summasini 2 kasrga yaxlitlaydi.
+     *
+     * Miqdor 3 kasrli (kg/litr uchun), narx esa 2 kasrli — ko'paytmada 5 kasr
+     * chiqadi. Avval yaxlitlash umuman qilinmas va har bir ustunni Postgres
+     * ALOHIDA yaxlitlardi; natijada chek jami o'z satrlari yig'indisidan bir
+     * tiyinga farq qilib, smena hisob-kitobini buzishi mumkin edi.
+     */
+    private static BigDecimal pulgaYaxlitla(BigDecimal qiymat) {
+        return qiymat.setScale(2, RoundingMode.HALF_UP);
+    }
 
     @Transactional
     public Sale createSale(SaleRequest request, Long currentUserId) {
@@ -95,16 +108,16 @@ public class SaleService {
             // holati (race condition) tufayli qoldiq manfiy bo'lib qolishi oldi olinadi.
             StockLevel stockLevel = stockLevelRepository
                     .findWithLockByProductIdAndBranchIdAndIsDeletedFalse(productId, branchId)
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Zaxira topilmadi: mahsulot=" + productId + ", filial=" + branchId));
-            if (stockLevel.getQuantity().compareTo(requestedQuantity) < 0) {
+                    .orElse(null);
+            BigDecimal availableQty = stockLevel != null ? stockLevel.getQuantity() : BigDecimal.ZERO;
+            if (availableQty.compareTo(requestedQuantity) < 0) {
                 throw new BadRequestException("Omborda yetarli mahsulot yo'q: " + product.getName()
-                        + " (mavjud: " + stockLevel.getQuantity() + ", so'ralgan: " + requestedQuantity + ")");
+                        + " (mavjud: " + availableQty + ", so'ralgan: " + requestedQuantity + ")");
             }
 
             productsById.put(productId, product);
             lockedStockByProductId.put(productId, stockLevel);
-            totalAmount = totalAmount.add(requestedQuantity.multiply(product.getSalePrice()));
+            totalAmount = totalAmount.add(pulgaYaxlitla(requestedQuantity.multiply(product.getSalePrice())));
         }
 
         BigDecimal amountPaid;
@@ -142,6 +155,25 @@ public class SaleService {
             if (!Boolean.TRUE.equals(creditCustomer.getIsActive())) {
                 throw new BadRequestException("Mijoz faol emas: " + creditCustomer.getFullName());
             }
+            // Nasiya chegarasi. Belgilanmagan bo'lsa (NULL) eski xatti-harakat saqlanadi.
+            // Balans CustomerDebtController#balances bilan bir xil formula bo'yicha:
+            // SUM(CREDIT_SALE) - SUM(PAYMENT) - SUM(WRITE_OFF).
+            if (creditCustomer.getCreditLimit() != null) {
+                BigDecimal joriyQarz = customerDebtTransactionRepository
+                        .findAllByCustomerIdAndIsDeletedFalse(creditCustomer.getId())
+                        .stream()
+                        .map(t -> switch (t.getType()) {
+                            case CREDIT_SALE -> t.getAmount();
+                            case PAYMENT, WRITE_OFF -> t.getAmount().negate();
+                        })
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal yangiQarz = joriyQarz.add(totalAmount);
+                if (yangiQarz.compareTo(creditCustomer.getCreditLimit()) > 0) {
+                    throw new BadRequestException(
+                            "Nasiya chegarasidan oshib ketadi. Joriy qarz: " + joriyQarz
+                                    + ", chegara: " + creditCustomer.getCreditLimit());
+                }
+            }
             amountPaid = BigDecimal.ZERO;
             changeAmount = BigDecimal.ZERO;
             cardAmount = BigDecimal.ZERO;
@@ -170,7 +202,7 @@ public class SaleService {
         for (SaleItemRequest itemRequest : request.getItems()) {
             Product product = productsById.get(itemRequest.getProductId());
             BigDecimal unitPrice = product.getSalePrice();
-            BigDecimal subtotal = itemRequest.getQuantity().multiply(unitPrice);
+            BigDecimal subtotal = pulgaYaxlitla(itemRequest.getQuantity().multiply(unitPrice));
 
             SaleItem item = SaleItem.builder()
                     .saleId(sale.getId())
@@ -191,6 +223,10 @@ public class SaleService {
             Long productId = entry.getKey();
             BigDecimal requestedQuantity = entry.getValue();
             StockLevel stockLevel = lockedStockByProductId.get(productId);
+            if (stockLevel == null) {
+                // Texnik jihatdan imkonsiz (yuqorida 400 qaytiladi), lekin null-safe himoya.
+                throw new BadRequestException("Omborda mahsulot zaxirasi topilmadi: " + productId);
+            }
             stockLevel.setQuantity(stockLevel.getQuantity().subtract(requestedQuantity));
             stockLevelRepository.save(stockLevel);
 

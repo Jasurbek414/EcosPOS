@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 import uz.savdo.platform.entity.PlatformUser;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,8 +30,15 @@ public class PlatformUserRepository {
             .password(rs.getString("password"))
             .fullName(rs.getString("full_name"))
             .isActive(rs.getBoolean("is_active"))
+            .failedLoginAttempts(rs.getObject("failed_login_attempts") == null ? 0 : rs.getInt("failed_login_attempts"))
+            .lockedUntil(toLocalDateTime(rs, "locked_until"))
             .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
             .build();
+
+    private static LocalDateTime toLocalDateTime(ResultSet rs, String column) throws SQLException {
+        java.sql.Timestamp ts = rs.getTimestamp(column);
+        return ts == null ? null : ts.toLocalDateTime();
+    }
 
     public Optional<PlatformUser> findByUsername(String username) {
         List<PlatformUser> results = jdbc.query(
@@ -81,5 +91,16 @@ public class PlatformUserRepository {
     /** Boshqa superadmin tomonidan hisobni faol/nofaol qilish. */
     public void updateActive(Long id, boolean isActive) {
         jdbc.update("UPDATE platform_users SET is_active = ? WHERE id = ?", isActive, id);
+    }
+
+    /** Brute-force himoyasi: muvaffaqiyatsiz urinishlar sonini yangilash va kerak bo'lsa hisobni bloklash. */
+    public void updateLoginState(Long id, int attempts, LocalDateTime lockedUntil) {
+        jdbc.update("UPDATE platform_users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?",
+                attempts, lockedUntil, id);
+    }
+
+    /** Brute-force himoyasi: muvaffaqiyatli login paytida hisoblagich va blokni nollash. */
+    public void resetLoginState(Long id) {
+        jdbc.update("UPDATE platform_users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?", id);
     }
 }

@@ -24,6 +24,7 @@ services:
     cpu_shares: 1024
     logging: *default-logging
     environment:
+      - TZ=Asia/Tashkent
       - POSTGRES_DB=postgres
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:?.env faylida DB_PASSWORD belgilanishi shart}
@@ -57,6 +58,9 @@ services:
       # allaqachon 8090'ni band qilgan (docker ps bilan tekshirilgan).
       - "127.0.0.1:8095:8080"
     environment:
+      # Toshkent UTC+5. Bu bo'lmasa JVM UTC'da ishlab, 00:00-05:00 oralig'idagi
+      # savdolar bazaga oldingi kun sanasi bilan tushadi (kunlik hisobot buziladi).
+      - TZ=Asia/Tashkent
       - DB_HOST=db
       - DB_PORT=5432
       - DB_BOOTSTRAP_NAME=postgres
@@ -155,7 +159,6 @@ services:
     # xato berib qayta-qayta restart bo'laveradi (zararsiz, lekin keraksiz log
     # shovqini). Token .env'ga qo'shilgach: "docker compose --profile tunnel
     # up -d --build" (yoki shu qatorni butunlay o'chirib tashlash).
-    profiles: ["tunnel"]
     mem_limit: 128m
     cpu_shares: 512
     logging: *default-logging

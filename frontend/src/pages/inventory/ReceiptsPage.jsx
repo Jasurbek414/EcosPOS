@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, Plus, Search, X } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
+import LoadErrorPanel from '../../components/ui/LoadErrorPanel';
 import { useUnits } from '../../hooks/useUnits';
-import { branchService, goodsReceiptService, supplierService } from '../../services/api';
+import { goodsReceiptService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import DateInput from '../../components/ui/DateInput';
 
-function ReceiptDetailModal({ receipt, branches, onClose }) {
+function ReceiptDetailModal({ receipt, onClose }) {
   const { t } = useTranslation();
-  const { isOwner } = useTenantAuthContext();
   const { unitLabel } = useUnits();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,8 +40,6 @@ function ReceiptDetailModal({ receipt, branches, onClose }) {
     return new Date(value).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
-  const branchName = (branchId) => branches.find((b) => b.id === branchId)?.name || '—';
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -64,12 +63,6 @@ function ReceiptDetailModal({ receipt, branches, onClose }) {
                   <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold uppercase tracking-wide">{t('inventory.receipts.supplier')}</p>
                   <p className="text-slate-900 dark:text-slate-100 font-medium mt-0.5">{detail.supplierName || t('inventory.receipts.noSupplier')}</p>
                 </div>
-                {isOwner && (
-                  <div>
-                    <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold uppercase tracking-wide">{t('inventory.receipts.receiptDetail.branch')}</p>
-                    <p className="text-slate-900 dark:text-slate-100 font-medium mt-0.5">{branchName(detail.branchId)}</p>
-                  </div>
-                )}
                 {detail.note && (
                   <div className="col-span-2 sm:col-span-3">
                     <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold uppercase tracking-wide">{t('inventory.receipts.note')}</p>
@@ -127,9 +120,8 @@ function ReceiptDetailModal({ receipt, branches, onClose }) {
 export default function ReceiptsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isOwner, isManager } = useTenantAuthContext();
-  const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
+  const { isManager } = useTenantAuthContext();
+  const { branchId, error: branchError, retry: retryBranch } = useDefaultBranchId();
   const [suppliers, setSuppliers] = useState([]);
   const [supplierFilter, setSupplierFilter] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -152,27 +144,6 @@ export default function ReceiptsPage() {
       cancelled = true;
     };
   }, []);
-
-  // Faqat OWNER uchun: filiallar ro'yxatini yuklab, birinchisini standart qilib tanlaymiz.
-  useEffect(() => {
-    if (!isOwner) return undefined;
-    let cancelled = false;
-    branchService
-      .list()
-      .then((res) => {
-        if (cancelled) return;
-        setBranches(res.data);
-        const firstId = res.data[0]?.id || '';
-        setBranchId((prev) => prev || firstId);
-        if (!firstId) setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner]);
 
   // Tanlangan filial yoki ta'minotchi filtri o'zgarganda kirimlar ro'yxatini yuklaymiz.
   useEffect(() => {
@@ -228,18 +199,6 @@ export default function ReceiptsPage() {
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
-        {isOwner && (
-          <div>
-            <label className="field-label !mb-0.5">{t('reports.branch')}</label>
-            <select className="input-field max-w-xs" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
@@ -268,7 +227,9 @@ export default function ReceiptsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {branchError ? (
+        <LoadErrorPanel onRetry={retryBranch} />
+      ) : loading ? (
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : filteredReceipts.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
@@ -303,7 +264,7 @@ export default function ReceiptsPage() {
       )}
 
       {selectedReceipt && (
-        <ReceiptDetailModal receipt={selectedReceipt} branches={branches} onClose={() => setSelectedReceipt(null)} />
+        <ReceiptDetailModal receipt={selectedReceipt} onClose={() => setSelectedReceipt(null)} />
       )}
     </div>
   );

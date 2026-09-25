@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,6 +6,7 @@ import {
   Plus, Minus, Search, PackageSearch, Clock, ReceiptText, CheckCircle2, Layers, HandCoins, UserPlus,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
 import { useUnits } from '../../hooks/useUnits';
 import {
   branchService, cashShiftService, categoryService, companyInfoService, customerService, posProductService,
@@ -23,28 +24,11 @@ function initialsForName(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
-function NoShiftPanel({ user, isOwner, onOpened }) {
+function NoShiftPanel({ onOpened }) {
   const { t } = useTranslation();
-  const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
+  const { branchId } = useDefaultBranchId();
   const [openingCash, setOpeningCash] = useState('0');
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isOwner) return undefined;
-    let cancelled = false;
-    branchService
-      .list()
-      .then((res) => {
-        if (cancelled) return;
-        setBranches(res.data);
-        setBranchId((prev) => prev || res.data[0]?.id || '');
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner]);
 
   const handleOpen = async (e) => {
     e.preventDefault();
@@ -71,19 +55,6 @@ function NoShiftPanel({ user, isOwner, onOpened }) {
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5">{t('pos.noShift.subtitle')}</p>
           </div>
         </div>
-
-        {isOwner && (
-          <div>
-            <label className="field-label">{t('pos.noShift.branch')}</label>
-            <select className="input-field" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         <div>
           <label className="field-label">{t('pos.noShift.openingCash')}</label>
@@ -1035,7 +1006,6 @@ function POSTerminal({ shift, onRequestCloseShift }) {
 
 export default function POSPage() {
   const { t } = useTranslation();
-  const { user, isOwner } = useTenantAuthContext();
   const [loading, setLoading] = useState(true);
   const [shift, setShift] = useState(null);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
@@ -1083,7 +1053,7 @@ export default function POSPage() {
   }
 
   if (!shift) {
-    return <NoShiftPanel user={user} isOwner={isOwner} onOpened={handleShiftOpened} />;
+    return <NoShiftPanel onOpened={handleShiftOpened} />;
   }
 
   return (

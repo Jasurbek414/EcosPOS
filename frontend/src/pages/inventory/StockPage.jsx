@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Layers, X, SlidersHorizontal, Search } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
+import LoadErrorPanel from '../../components/ui/LoadErrorPanel';
 import { useUnits } from '../../hooks/useUnits';
-import { branchService, categoryService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
+import { categoryService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
 
@@ -106,15 +107,9 @@ function AdjustModal({ target, onClose, onAdjusted }) {
 
 export default function StockPage() {
   const { t } = useTranslation();
-  const location = useLocation();
-  const { user, isOwner, isManager } = useTenantAuthContext();
+  const { isManager } = useTenantAuthContext();
   const { unitLabel } = useUnits();
-  const [branches, setBranches] = useState([]);
-  // Filial profilidan ("Ombor qoldig'i") kelganda o'sha filial oldindan tanlangan
-  // bo'lishi uchun — BranchDetailPage.jsx navigation state orqali yuboradi.
-  const [branchId, setBranchId] = useState(() =>
-    location.state?.branchId != null ? String(location.state.branchId) : (isOwner ? '' : (user?.branchId ?? ''))
-  );
+  const { branchId, error: branchError, retry: retryBranch } = useDefaultBranchId();
   const [stock, setStock] = useState([]);
   const [productsById, setProductsById] = useState({});
   const [categories, setCategories] = useState([]);
@@ -182,27 +177,6 @@ export default function StockPage() {
       cancelled = true;
     };
   }, [branchId]);
-
-  // Faqat OWNER uchun: filiallar ro'yxatini yuklab, birinchisini standart qilib tanlaymiz.
-  useEffect(() => {
-    if (!isOwner) return undefined;
-    let cancelled = false;
-    branchService
-      .list()
-      .then((res) => {
-        if (cancelled) return;
-        setBranches(res.data);
-        const firstId = res.data[0]?.id || '';
-        setBranchId((prev) => prev || firstId);
-        if (!firstId) setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner]);
 
   // Tanlangan filial yoki "faqat kam qolganlar" belgisi o'zgarganda qoldiqlarni yuklaymiz.
   useEffect(() => {
@@ -279,18 +253,6 @@ export default function StockPage() {
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
-        {isOwner && (
-          <div>
-            <label className="field-label !mb-0.5">{t('reports.branch')}</label>
-            <select className="input-field max-w-xs" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
@@ -315,17 +277,10 @@ export default function StockPage() {
         </label>
       </div>
 
-      {loading ? (
+      {branchError ? (
+        <LoadErrorPanel onRetry={retryBranch} />
+      ) : loading ? (
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
-      ) : isOwner && branches.length === 0 ? (
-        // Umuman filial yo'q holati "ombor bo'sh" degan noto'g'ri taassurot qoldirmasligi
-        // uchun alohida, aniq xabar bilan ajratiladi.
-        <div className="card py-20 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-            <Layers size={24} className="text-slate-400 dark:text-slate-500" />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">{t('inventory.stock.noBranchesHint')}</p>
-        </div>
       ) : filteredStock.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

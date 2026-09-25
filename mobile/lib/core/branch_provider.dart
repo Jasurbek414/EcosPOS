@@ -12,12 +12,24 @@ final branchesProvider = FutureProvider<List<Branch>>((ref) async {
   return (res.data ?? []).map((e) => Branch.fromJson(e as Map<String, dynamic>)).toList();
 });
 
-/// OWNER uchun "hozir qaysi filial bilan ishlayapman" umumiy holati — Qoldiqlar,
-/// Skanerlash va Savdolar ekranlari orasida bir xil tanlov saqlanib turishi uchun
-/// bitta joyda umumlashtirilgan (backend har biriga branchId talab qiladi, chunki
-/// OWNER bir nechta filialga ega bo'lishi mumkin). MANAGER/CASHIER uchun bu shart
-/// emas — backend ularning o'z filialini avtomatik biladi.
-final selectedBranchIdProvider = StateProvider<int?>((ref) {
+/// Joriy foydalanuvchi ishlaydigan filial — MANAGER/CASHIER uchun backend o'zi
+/// biladigan o'z filiali, OWNER uchun esa kompaniyaning birinchi (yagona) filiali
+/// avtomatik ishlatiladi (foydalanuvchiga tanlatilmaydi).
+final selectedBranchIdProvider = Provider<int?>((ref) {
   final session = ref.watch(authControllerProvider).session;
-  return session?.branchId;
+  if (session?.branchId != null) return session!.branchId;
+  final branches = ref.watch(branchesProvider).valueOrNull;
+  return branches != null && branches.isNotEmpty ? branches.first.id : null;
+});
+
+/// Filiallar ro'yxatini yuklab bo'lmadimi.
+///
+/// Busiz `selectedBranchIdProvider` xato holatida ham, yuklanish holatida ham
+/// bir xil `null` qaytaradi va ekranlar farqni bilmay abadiy spinner ko'rsatadi —
+/// foydalanuvchida na sabab, na chiqish yo'li qoladi.
+final branchLoadFailedProvider = Provider<bool>((ref) {
+  final session = ref.watch(authControllerProvider).session;
+  if (session?.branchId != null) return false;
+  final branches = ref.watch(branchesProvider);
+  return branches.hasError || (branches.valueOrNull?.isEmpty ?? false);
 });

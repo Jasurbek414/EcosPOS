@@ -22,3 +22,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.iml
+
+# Flutter generatsiya qiladigan lokal fayllar (mutlaq yo'llar saqlanadi)
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies

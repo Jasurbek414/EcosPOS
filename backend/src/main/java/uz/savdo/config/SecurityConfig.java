@@ -62,8 +62,11 @@ public class SecurityConfig {
                         // FileController#upload'da assertCanManageCatalog orqali himoyalangan
                         // holicha qoladi, chunki bu matcher HttpMethod.GET bilan cheklangan).
                         .requestMatchers(HttpMethod.GET, "/api/v1/files/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        // Swagger va Actuator ATAYLAB ochiq qoldirilmaydi. Avval ular
+                        // permitAll edi va faqat nginx marshrutlashi tufayli tashqaridan
+                        // ko'rinmasdi — ya'ni bitta nginx o'zgarishi butun API sxemasini
+                        // parolsiz ochib yuborardi. Endi ular ham quyidagi
+                        // anyRequest().authenticated() qoidasi ostiga tushadi.
                         // Qolgan barcha endpointlar autentifikatsiya talab qiladi
                         .anyRequest().authenticated()
                 )

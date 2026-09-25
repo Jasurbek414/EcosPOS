@@ -39,4 +39,12 @@ public class Customer extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
+
+    /**
+     * Nasiya chegarasi. NULL — chegara yo'q (eski xatti-harakat saqlanadi). Belgilangan
+     * bo'lsa, SaleService nasiya savdoda "joriy qarz + yangi summa" shu qiymatdan
+     * oshmasligini tekshiradi.
+     */
+    @Column(name = "credit_limit", precision = 14, scale = 2)
+    private java.math.BigDecimal creditLimit;
 }

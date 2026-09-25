@@ -15,6 +15,7 @@ import uz.savdo.exception.BadRequestException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.CustomerDebtTransactionRepository;
 import uz.savdo.repository.CustomerRepository;
+import org.springframework.transaction.annotation.Transactional;
 import uz.savdo.security.CurrentUserService;
 
 import java.math.BigDecimal;
@@ -113,7 +114,14 @@ public class CustomerDebtController {
                 .toList();
     }
 
+    /**
+     * Transactional + qulflangan mijoz qatori ATAYLAB: avval balans tekshiruvi
+     * qulfsiz edi va bir vaqtda kelgan ikkita to'lov ikkalasi ham bir xil eski
+     * balansni o'qib, ikkalasi ham tekshiruvdan o'tib ketardi — natijada qarzdan
+     * ortiq to'lov yozilib, daftar buzilardi.
+     */
     @PostMapping
+    @Transactional
     public ResponseEntity<DebtTransactionResponse> create(@Valid @RequestBody DebtTransactionRequest request) {
         if (request.getType() == DebtTransactionType.CREDIT_SALE) {
             throw new BadRequestException("Bu turdagi tranzaksiya faqat savdo orqali avtomatik yaratiladi");
@@ -122,9 +130,24 @@ public class CustomerDebtController {
             currentUserService.assertIsOwner();
         }
 
-        Customer customer = customerRepository.findByIdAndIsDeletedFalse(request.getCustomerId())
+        Customer customer = customerRepository.findWithLockByIdAndIsDeletedFalse(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mijoz topilmadi: " + request.getCustomerId()));
 
+
+        // PAYMENT miqdori qarzdan oshmasligi kerak.
+        if (request.getType() == DebtTransactionType.PAYMENT) {
+            List<CustomerDebtTransaction> existing =
+                    debtTransactionRepository.findAllByCustomerIdInAndIsDeletedFalse(List.of(customer.getId()));
+            BigDecimal currentBalance = existing.stream()
+                    .map(t -> switch (t.getType()) {
+                        case CREDIT_SALE -> t.getAmount();
+                        case PAYMENT, WRITE_OFF -> t.getAmount().negate();
+                    })
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (request.getAmount().compareTo(currentBalance) > 0) {
+                throw new BadRequestException("Tolov summasi qarzdan oshib ketmoqda");
+            }
+            }
         CustomerDebtTransaction transaction = CustomerDebtTransaction.builder()
                 .customerId(customer.getId())
                 .branchId(null)

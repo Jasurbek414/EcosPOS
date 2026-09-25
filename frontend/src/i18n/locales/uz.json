@@ -9,6 +9,8 @@
     "close": "Yopish",
     "search": "Qidirish",
     "loading": "Yuklanmoqda...",
+    "loadFailed": "Ma'lumotni yuklab bo'lmadi. Aloqani tekshirib, qayta urinib ko'ring.",
+    "retry": "Qayta urinish",
     "noData": "Ma'lumot topilmadi",
     "confirm": "Tasdiqlash",
     "yes": "Ha",
@@ -51,17 +53,36 @@
   },
   "dashboard": {
     "welcome": "Xush kelibsiz",
-    "subtitle": "Savdo — do'koningiz uchun boshqaruv paneli",
+    "subtitle": "Do'koningiz va savdo ko'rsatkichlaringizning umumiy holati",
     "placeholder": "Bu yerda tez orada savdo, ombor va kassa bo'yicha statistika ko'rinadi.",
     "branchesCard": "Filiallar",
     "staffCard": "Xodimlar",
     "roleCard": "Sizning rolingiz",
-    "todayRevenueCard": "Bugungi savdo",
-    "todayProfitCard": "Bugungi foyda",
-    "monthRevenueCard": "Shu oy savdo",
+    "todayRevenueCard": "Bugungi tushum",
+    "todayProfitCard": "Bugungi sof foyda",
+    "monthRevenueCard": "Shu oy tushumi",
     "monthNetProfitCard": "Sof foyda (shu oy)",
     "lowStockCard": "Kam qolgan mahsulotlar",
-    "currency": "so'm"
+    "currency": "so'm",
+    "salesCount": "ta sotuv",
+    "profitMargin": "Rentabellik",
+    "expensesMonth": "Oylik xarajatlar",
+    "quickActions": "Tezkor amallar",
+    "newSale": "Kassada sotuv (POS)",
+    "newProduct": "Mahsulot qo'shish",
+    "newReceipt": "Kirim hujjati",
+    "viewReports": "Batafsil hisobot",
+    "salesDynamics": "Savdo dinamikasi (oxirgi 7 kun)",
+    "recentSales": "Oxirgi sotuvlar",
+    "noRecentSales": "Hozircha sotuvlar amalga oshirilmagan",
+    "viewAllSales": "Barcha sotuvlarni ko'rish",
+    "systemOverview": "Tizim holati",
+    "activeBranches": "Faol filiallar",
+    "totalStaff": "Jami xodimlar",
+    "companyStatus": "Holat",
+    "allSystemsOperational": "Barcha xizmatlar faol",
+    "cashierWelcome": "Kassani oching va xaridorni kutib oling",
+    "openPos": "POS Kassaga o'tish"
   },
   "branches": {
     "title": "Filiallar",
@@ -190,6 +211,23 @@
         "ownBranchTransfer": "Faqat o'z filiali (yoki ko'chirishda kamida bitta tomon o'ziniki)",
         "all": "Barchasi",
         "ownBranchViewOnly": "Faqat o'zinikini ko'radi"
+      },
+      "viewCards": "Rollar bo'yicha",
+      "viewMatrix": "Taqqoslash jadvali",
+      "allRoles": "Barcha rollar",
+      "hide": "Yashirish",
+      "show": "Ko'rsatish",
+      "fullAccess": "To'liq ruxsat",
+      "partialAccess": "Cheklangan",
+      "noAccess": "Ruxsat yo'q",
+      "ownerDesc": "Kompaniya egasi — tizimning barcha imkoniyatlari, barcha filiallar va moliyaga to'liq kirish.",
+      "managerDesc": "Filial boshqaruvchisi — o'z filialidagi kassa, ombor, xodimlar va hisobotlarni nazorat qiladi.",
+      "cashierDesc": "Kassir — faqat POS kassa orqali sotuv amalga oshiradi va mahsulotlar qoldig'ini ko'radi.",
+      "groups": {
+        "sales": "Savdo va Kassa",
+        "stock": "Ombor va Mahsulotlar",
+        "reports": "Hisobotlar va Tahlil",
+        "management": "Boshqaruv va Sozlamalar"
       }
     }
   },
@@ -252,7 +290,15 @@
       "uploadImageHint": "Rasm yuklash uchun bosing",
       "imageInvalidType": "Faqat JPEG, PNG yoki WEBP rasm fayllari qabul qilinadi",
       "imageTooLarge": "Fayl hajmi 5MB dan oshmasligi kerak",
-      "imageUploadError": "Rasmni yuklashda xatolik"
+      "imageUploadError": "Rasmni yuklashda xatolik",
+      "generateBarcode": "Generatsiya",
+      "generateBarcodeHint": "Ichki shtrix-kod yaratish",
+      "expectedProfit": "Kutilayotgan foyda",
+      "marginLabel": "Ustama",
+      "removeImage": "Rasmni o'chirish",
+      "generalInfo": "Asosiy ma'lumotlar",
+      "pricingStock": "Narxlar va Ombor",
+      "minStockHint": "Qoldiq shu miqdorga yetganda ogohlantirish beriladi"
     },
     "categories": {
       "title": "Kategoriyalar",
@@ -432,7 +478,32 @@
     "unit": "O'lchov",
     "quantitySold": "Sotilgan miqdor",
     "loadError": "Hisobot ma'lumotlarini yuklab bo'lmadi",
-    "noData": "Bu davr uchun ma'lumot topilmadi"
+    "noData": "Bu davr uchun ma'lumot topilmadi",
+    "inventoryValueCard": "Ombor umumiy qiymati",
+    "skuCount": "Jami mahsulot turlari",
+    "avgDailyRevenue": "O'rtacha kunlik savdo",
+    "maxDailyRevenue": "Maksimal kunlik savdo",
+    "chartTypeBar": "Ustunli",
+    "chartTypeArea": "Chiziqli",
+    "filterRange": "Oraliq",
+    "daysCount": "kunlik davr",
+    "downloadReport": "Yuklab olish",
+    "downloadExcel": "Excel (CSV)",
+    "printPdf": "Chop etish / PDF",
+    "downloadSuccess": "Hisobot muvaffaqiyatli yuklab olindi",
+    "pnlTitle": "Foyda va zararlar to'g'risidagi buxgalteriya hisoboti (P&L)",
+    "pnlSubtitle": "Davr bo'yicha rasmiy moliyaviy hisobot va moddalar ko'rsatkichlari",
+    "viewAnalytics": "Vizual tahlil",
+    "viewAccountingDoc": "Rasmiy buxgalteriya hujjati",
+    "articleCode": "Satr kodi",
+    "indicatorName": "Ko'rsatkichlar / Moddalar nomi",
+    "amountSum": "Summa (so'm)",
+    "sharePercent": "Ulushi (%)",
+    "directorSign": "Korxona rahbari",
+    "accountantSign": "Bosh buxgalter",
+    "stampPlace": "M.O'. (Muhr o'rni)",
+    "accountingDocumentNo": "Hisobot hujjati №",
+    "confirmedBy": "Tasdiqlayman"
   },
   "accounting": {
     "title": "Bugalteriya",
@@ -866,6 +937,7 @@
       "receipt": "Chek va printer",
       "units": "O'lchov birliklari",
       "expenseCategories": "Xarajat turlari",
+      "integrations": "Integratsiyalar",
       "appearance": "Ko'rinish"
     },
     "profileTitle": "Mening profilim",
@@ -959,6 +1031,27 @@
       "loadError": "Xarajat turlari ro'yxatini yuklab bo'lmadi",
       "empty": "Hozircha xarajat turlari yo'q",
       "inactiveSuffix": "nofaol"
+    },
+    "integrations": {
+      "comingSoon": "Tez kunda",
+      "soon": "Tez kunda",
+      "scales": {
+        "title": "Elektron tarozilarga integratsiya",
+        "subtitle": "Savdo tarozilari bilan avtomatik og'irlik o'qish",
+        "description": "Elektron savdo tarozilari bilan ulaning va mahsulot og'irligini kassaga avtomatik uzating — qo'lda kiritish xatolarini bartaraf eting.",
+        "protocolLabel": "Protokol"
+      },
+      "terminal": {
+        "title": "Terminalga integratsiya",
+        "subtitle": "POS-terminal va QR to'lovlarni kassaga ulash",
+        "description": "To'lov terminallari bilan integratsiya orqali naqd va plastik to'lovlarni bir tizimda boshqaring — har bir tranzaksiya avtomatik qayd etiladi."
+      },
+      "payment": {
+        "title": "Click, Paynet va Payme ilovalariga integratsiya",
+        "subtitle": "Onlayn to'lov tizimlari bilan avtomatik hisob-kitob",
+        "description": "Click, Paynet va Payme orqali kelib tushadigan to'lovlarni tizimga avtomatik bog'lang — to'lov holati real vaqtda yangilanadi va kassirga qo'shimcha qadamlar talab etilmaydi.",
+        "apiLabel": "API integratsiya"
+      }
     },
     "creditSales": {
       "title": "Nasiya savdosi",

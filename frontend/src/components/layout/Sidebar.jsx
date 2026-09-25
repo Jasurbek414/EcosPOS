@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { changeLanguage } from '../../i18n';
-import { companyInfoService } from '../../services/api';
 import {
-  LayoutDashboard, Building2, Users, Users2, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
+  LayoutDashboard, Users, Users2, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
 
@@ -14,28 +12,8 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  // Superadmin "Filiallar funksiyasi"ni kompaniya uchun o'chirib qo'yishi mumkin —
-  // shu holatda menyudagi havola ham yashiriladi. Standart holat `true` (yuklanayotganda
-  // ko'pchilik hol uchun havola darrov ko'rinadi va yuklangach yo'qolib-ketmaydi),
-  // POSPage.jsx'dagi companyInfoService bir martalik yuklash naqshi bilan bir xil.
-  const [branchesFeatureEnabled, setBranchesFeatureEnabled] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    companyInfoService
-      .get()
-      .then((res) => {
-        if (!cancelled && res.data?.branchesFeatureEnabled === false) setBranchesFeatureEnabled(false);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: t('sidebar.dashboard') },
-    ...(branchesFeatureEnabled ? [{ path: '/branches', icon: Building2, label: t('sidebar.branches') }] : []),
     { path: '/staff', icon: Users, label: t('sidebar.staff') },
     { path: '/inventory', icon: Package, label: t('sidebar.warehouse') },
     { path: '/pos', icon: ShoppingCart, label: t('sidebar.pos') },

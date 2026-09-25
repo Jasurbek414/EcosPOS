@@ -39,7 +39,16 @@ public class TenantDataSourceRegistry {
         config.setPassword(password);
         config.setDriverClassName(driverClassName);
         config.setPoolName("tenant-" + dbName);
-        config.setMaximumPoolSize(10);
+        // Har bir kompaniyaga ALOHIDA pool ochiladi, shuning uchun bu sonlar
+        // kompaniyalar soniga ko'paytiriladi. Avval 10 edi va minimumIdle
+        // belgilanmagani uchun Hikari uni ham 10 ga tenglashtirardi — ya'ni har
+        // bir kompaniya hech qanday trafiksiz 10 ta ulanishni band qilardi va
+        // Postgres'ning standart 100 ta chegarasi ~10 kompaniyada to'lardi.
+        config.setMaximumPoolSize(3);
+        config.setMinimumIdle(0);
+        config.setIdleTimeout(60_000);
+        config.setMaxLifetime(1_800_000);
+        config.setConnectionTimeout(10_000);
         return new HikariDataSource(config);
     }
 

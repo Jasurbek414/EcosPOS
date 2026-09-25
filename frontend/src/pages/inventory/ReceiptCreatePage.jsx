@@ -1,22 +1,20 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, useWatch, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
 import { useUnits } from '../../hooks/useUnits';
-import { branchService, goodsReceiptService, productService, supplierService } from '../../services/api';
+import { goodsReceiptService, productService, supplierService } from '../../services/api';
 import DateInput from '../../components/ui/DateInput';
 
 export default function ReceiptCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, isOwner } = useTenantAuthContext();
   const { unitLabel } = useUnits();
 
-  const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
+  const { branchId } = useDefaultBranchId();
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
 
@@ -38,18 +36,11 @@ export default function ReceiptCreatePage() {
 
   useEffect(() => {
     let cancelled = false;
-    const tasks = [supplierService.list(), productService.list({})];
-    if (isOwner) tasks.push(branchService.list());
-
-    Promise.all(tasks)
+    Promise.all([supplierService.list(), productService.list({})])
       .then((results) => {
         if (cancelled) return;
         setSuppliers(results[0].data);
         setProducts(results[1].data.filter((p) => p.isActive));
-        if (isOwner && results[2]) {
-          setBranches(results[2].data);
-          setBranchId((prev) => prev || results[2].data[0]?.id || '');
-        }
       })
       .catch(() => {
         if (!cancelled) toast.error(t('inventory.receipts.loadError'));
@@ -57,7 +48,7 @@ export default function ReceiptCreatePage() {
     return () => {
       cancelled = true;
     };
-  }, [isOwner, t]);
+  }, [t]);
 
   const productsById = products.reduce((acc, p) => {
     acc[p.id] = p;
@@ -121,18 +112,6 @@ export default function ReceiptCreatePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-7 flex flex-col gap-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {isOwner && (
-            <div>
-              <label className="field-label">{t('inventory.receipts.branch')}</label>
-              <select className="input-field" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
           <div>
             <label className="field-label">{t('inventory.receipts.supplier')}</label>
             <select className="input-field" {...register('supplierId')}>

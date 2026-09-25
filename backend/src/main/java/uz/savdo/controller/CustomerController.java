@@ -49,6 +49,9 @@ public class CustomerController {
                 .phone(request.getPhone())
                 .address(request.getAddress())
                 .note(request.getNote())
+                // Standart holat NULL = chegarasiz, shuning uchun chegara belgilash
+                // huquqni kengaytirmaydi — faqat toraytiradi.
+                .creditLimit(request.getCreditLimit())
                 .isActive(true)
                 .build();
         customer = customerRepository.save(customer);
@@ -65,6 +68,7 @@ public class CustomerController {
         customer.setPhone(request.getPhone());
         customer.setAddress(request.getAddress());
         customer.setNote(request.getNote());
+        customer.setCreditLimit(request.getCreditLimit());
         customer = customerRepository.save(customer);
 
         return CustomerResponse.from(customer);

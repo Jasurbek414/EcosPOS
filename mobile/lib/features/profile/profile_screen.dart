@@ -55,10 +55,6 @@ class ProfileScreen extends ConsumerWidget {
                       _InfoTile(icon: Icons.person_outline, label: 'Login', value: session.username),
                       const Divider(height: 1),
                       _InfoTile(icon: Icons.apartment_outlined, label: 'Kompaniya kodi', value: session.companyCode),
-                      if (session.branchId != null) ...[
-                        const Divider(height: 1),
-                        _InfoTile(icon: Icons.store_outlined, label: 'Filial ID', value: '${session.branchId}'),
-                      ],
                     ],
                   ),
                 ),

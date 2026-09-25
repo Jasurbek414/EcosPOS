@@ -12,6 +12,7 @@ import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 /**
@@ -74,22 +75,25 @@ public class GoodsReceiptService {
             goodsReceiptItemRepository.save(item);
 
             applyStockReceipt(itemRequest.getProductId(), branch.getId(), itemRequest.getQuantity(),
-                    receipt.getId(), currentUserId);
+                    itemRequest.getUnitCost(), receipt.getId(), currentUserId);
         }
 
         return receipt;
     }
 
     private void applyStockReceipt(Long productId, Long branchId, BigDecimal quantity,
-                                    Long receiptId, Long currentUserId) {
-        StockLevel stockLevel = stockLevelRepository.findByProductIdAndBranchIdAndIsDeletedFalse(productId, branchId)
+                                    BigDecimal unitCost, Long receiptId, Long currentUserId) {
+        StockLevel stockLevel = stockLevelRepository.findWithLockByProductIdAndBranchIdAndIsDeletedFalse(productId, branchId)
                 .orElseGet(() -> StockLevel.builder()
                         .productId(productId)
                         .branchId(branchId)
                         .quantity(BigDecimal.ZERO)
                         .build());
-        stockLevel.setQuantity(stockLevel.getQuantity().add(quantity));
+        BigDecimal oldingiQoldiq = stockLevel.getQuantity();
+        stockLevel.setQuantity(oldingiQoldiq.add(quantity));
         stockLevelRepository.save(stockLevel);
+
+        tannarxniYangila(productId, oldingiQoldiq, quantity, unitCost);
 
         StockMovement movement = StockMovement.builder()
                 .productId(productId)
@@ -101,5 +105,52 @@ public class GoodsReceiptService {
                 .createdByUserId(currentUserId)
                 .build();
         stockMovementRepository.save(movement);
+    }
+
+    /**
+     * O'rtacha vaznli tannarx (weighted average cost).
+     *
+     * Avval kirim mahsulotning tannarxiga UMUMAN tegmasdi: tovar yangi narxda
+     * kelsa ham foyda qo'lda kiritilgan eski tannarxdan hisoblanardi va barcha
+     * marja ko'rsatkichlari ishonchsiz bo'lib qolardi (SaleService savdo paytida
+     * aynan shu costPrice'ni snapshot qiladi).
+     *
+     * Formula: (eski_qoldiq * eski_tannarx + kelgan_miqdor * kelish_narxi)
+     *          / (eski_qoldiq + kelgan_miqdor)
+     *
+     * Qoldiq nol yoki manfiy bo'lsa (yoki eski tannarx belgilanmagan bo'lsa)
+     * o'rtachani hisoblashning ma'nosi yo'q — kelish narxi to'g'ridan-to'g'ri
+     * yangi tannarx bo'ladi. Fraksion birliklar (kg/litr) uchun oraliq bo'linish
+     * 6 kasrda olib borilib, natija 2 kasrga yaxlitlanadi.
+     */
+    private void tannarxniYangila(Long productId, BigDecimal oldingiQoldiq,
+                                   BigDecimal kelganMiqdor, BigDecimal kelishNarxi) {
+        if (kelishNarxi == null || kelganMiqdor == null || kelganMiqdor.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        Product product = productRepository.findByIdAndIsDeletedFalse(productId).orElse(null);
+        if (product == null) return;
+
+        BigDecimal eskiTannarx = product.getCostPrice();
+        BigDecimal yangiTannarx;
+
+        // Tannarx NOL bo'lishi ham "belgilanmagan" degani: mahsulot qo'lda tannarxsiz
+        // yaratilgan bo'lsa, nolni o'rtachaga qo'shish yangi tannarxni sun'iy ravishda
+        // ikki barobar pasaytirib yuborardi (buni GoodsReceiptServiceTest ushlagan).
+        boolean tannarxYoq = eskiTannarx == null || eskiTannarx.compareTo(BigDecimal.ZERO) <= 0;
+        boolean qoldiqYoq = oldingiQoldiq == null || oldingiQoldiq.compareTo(BigDecimal.ZERO) <= 0;
+
+        if (tannarxYoq || qoldiqYoq) {
+            yangiTannarx = kelishNarxi;
+        } else {
+            BigDecimal eskiQiymat = oldingiQoldiq.multiply(eskiTannarx);
+            BigDecimal yangiQiymat = kelganMiqdor.multiply(kelishNarxi);
+            BigDecimal jamiMiqdor = oldingiQoldiq.add(kelganMiqdor);
+            yangiTannarx = eskiQiymat.add(yangiQiymat)
+                    .divide(jamiMiqdor, 6, RoundingMode.HALF_UP);
+        }
+
+        product.setCostPrice(yangiTannarx.setScale(2, RoundingMode.HALF_UP));
+        productRepository.save(product);
     }
 }

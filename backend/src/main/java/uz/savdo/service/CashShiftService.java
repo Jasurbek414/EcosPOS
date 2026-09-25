@@ -1,13 +1,16 @@
 package uz.savdo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.savdo.entity.Branch;
 import uz.savdo.entity.CashShift;
 import uz.savdo.enums.PaymentMethod;
 import uz.savdo.enums.ShiftStatus;
+import uz.savdo.enums.UserRole;
 import uz.savdo.exception.BadRequestException;
+import uz.savdo.exception.ForbiddenException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.repository.BranchRepository;
 import uz.savdo.repository.CashShiftRepository;
@@ -55,7 +58,15 @@ public class CashShiftService {
                 .status(ShiftStatus.OPEN)
                 .build();
 
-        return cashShiftRepository.save(shift);
+        try {
+            // saveAndFlush — V14 dagi partial unique indeks buzilishi aynan shu yerda
+            // yuzaga chiqsin (commit paytida emas), aks holda foydalanuvchi tushunarsiz
+            // 500 xatosini ko'radi. Yuqoridagi tekshiruv qulflanmagan bo'lgani uchun
+            // ikki tez so'rovda faqat shu indeks ikkinchisini to'xtatib qoladi.
+            return cashShiftRepository.saveAndFlush(shift);
+        } catch (DataIntegrityViolationException e) {
+            throw new BadRequestException("Sizda allaqachon ochiq kassa smenasi mavjud — sahifani yangilang");
+        }
     }
 
     @Transactional
@@ -66,6 +77,17 @@ public class CashShiftService {
         CashShift shift = cashShiftRepository.findWithLockByIdAndIsDeletedFalse(shiftId)
                 .orElseThrow(() -> new ResourceNotFoundException("Kassa smenasi topilmadi: " + shiftId));
         currentUserService.assertCanAccessBranch(shift.getBranchId());
+
+        // Filial tekshiruvining o'zi YETARLI EMAS: bitta kompaniyada hamma bir xil
+        // filialda ishlagani uchun u kassirlar orasida hech nimani cheklamaydi va
+        // kassir hamkasbining ochiq smenasini istalgan summa bilan yopib qo'ya olardi
+        // (kamomad esa noto'g'ri odamga yozilardi). Smenani faqat egasi yoki
+        // rahbariyat yopa oladi.
+        UserRole rol = currentUserService.getCurrentUser().getRole();
+        boolean rahbariyat = rol == UserRole.OWNER || rol == UserRole.MANAGER;
+        if (!rahbariyat && !shift.getCashierId().equals(currentUserId)) {
+            throw new ForbiddenException("Boshqa kassirning smenasini yopish mumkin emas");
+        }
 
         if (shift.getStatus() == ShiftStatus.CLOSED) {
             throw new BadRequestException("Bu kassa smenasi allaqachon yopilgan");

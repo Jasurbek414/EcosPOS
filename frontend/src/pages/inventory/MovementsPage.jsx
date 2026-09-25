@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { History } from 'lucide-react';
-import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
+import LoadErrorPanel from '../../components/ui/LoadErrorPanel';
 import { useUnits } from '../../hooks/useUnits';
-import { branchService, productService, stockMovementService } from '../../services/api';
+import { productService, stockMovementService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import DateInput from '../../components/ui/DateInput';
 
@@ -25,10 +26,8 @@ const REFERENCE_LABEL_KEY = {
 
 export default function MovementsPage() {
   const { t } = useTranslation();
-  const { user, isOwner } = useTenantAuthContext();
   const { unitLabel } = useUnits();
-  const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
+  const { branchId, error: branchError, retry: retryBranch } = useDefaultBranchId();
   const [products, setProducts] = useState([]);
   const [productFilter, setProductFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -37,8 +36,7 @@ export default function MovementsPage() {
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filtr pikerlari uchun: mahsulotlar ro'yxati (barchasi) va, faqat OWNER uchun,
-  // filiallar ro'yxati (birinchisi standart qilib tanlanadi — StockPage.jsx bilan bir xil naqsh).
+  // Filtr pikeri uchun: mahsulotlar ro'yxati (barchasi).
   useEffect(() => {
     let cancelled = false;
     productService
@@ -51,26 +49,6 @@ export default function MovementsPage() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!isOwner) return undefined;
-    let cancelled = false;
-    branchService
-      .list()
-      .then((res) => {
-        if (cancelled) return;
-        setBranches(res.data);
-        const firstId = res.data[0]?.id || '';
-        setBranchId((prev) => prev || firstId);
-        if (!firstId) setLoading(false);
-      })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner]);
 
   // Filtrlar o'zgarganda harakatlar tarixini qayta yuklaymiz.
   useEffect(() => {
@@ -143,18 +121,6 @@ export default function MovementsPage() {
         </div>
 
         <div className="flex items-center gap-4 flex-wrap">
-          {isOwner && (
-            <div>
-              <label className="field-label">{t('inventory.stock.branch')}</label>
-              <select className="input-field min-w-[180px]" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
           <div>
             <label className="field-label">{t('inventory.transfers.product')}</label>
             <select className="input-field min-w-[180px]" value={productFilter} onChange={(e) => setProductFilter(e.target.value)}>
@@ -177,7 +143,9 @@ export default function MovementsPage() {
         </div>
       </div>
 
-      {loading ? (
+      {branchError ? (
+        <LoadErrorPanel onRetry={retryBranch} />
+      ) : loading ? (
         <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
       ) : movements.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
@@ -193,7 +161,6 @@ export default function MovementsPage() {
               <tr>
                 <th>{t('inventory.movements.date')}</th>
                 <th>{t('inventory.transfers.product')}</th>
-                <th>{t('inventory.stock.branch')}</th>
                 <th>{t('inventory.movements.type')}</th>
                 <th>{t('inventory.stock.quantity')}</th>
                 <th>{t('inventory.movements.reference')}</th>
@@ -206,7 +173,6 @@ export default function MovementsPage() {
                 <tr key={m.id}>
                   <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(m.createdAt)}</td>
                   <td className="font-medium text-slate-900 dark:text-slate-100">{m.productName}</td>
-                  <td className="text-slate-600 dark:text-slate-300">{m.branchName}</td>
                   <td>
                     <span className={`badge ${TYPE_BADGE[m.type] || 'badge-slate'}`}>
                       {t(`inventory.movements.types.${m.type}`)}

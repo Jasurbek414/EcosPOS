@@ -1,36 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/role_navigation.dart';
 import '../../theme/app_theme.dart';
+import '../auth/auth_controller.dart';
 
-class _NavTab {
-  const _NavTab({required this.path, required this.icon, required this.activeIcon, required this.label});
-
-  final String path;
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-}
-
-const _tabs = [
-  _NavTab(path: '/dashboard', icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Bosh sahifa'),
-  _NavTab(path: '/stock', icon: Icons.inventory_2_outlined, activeIcon: Icons.inventory_2, label: 'Qoldiqlar'),
-  _NavTab(path: '/scanner', icon: Icons.qr_code_scanner, activeIcon: Icons.qr_code_scanner, label: 'Skanerlash'),
-  _NavTab(path: '/sales', icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long, label: 'Savdolar'),
-  _NavTab(path: '/profile', icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profil'),
-];
-
-/// Pastki navigatsiya paneli — Skanerlash (do'kon ichida eng ko'p ishlatiladigan
-/// funksiya) markazda kattaroq va urg'uli tugma sifatida ajratib ko'rsatiladi.
-class HomeShell extends StatelessWidget {
+/// Pastki navigatsiya paneli.
+///
+/// Bo'limlar ro'yxati ROLGA qarab tuziladi (qarang: core/role_navigation.dart):
+/// kassirga moliyaviy hisobot bo'limi umuman ko'rsatilmaydi, chunki backend
+/// baribir unga ruxsat bermaydi va bo'sh ekran chalkashlik tug'dirardi.
+/// Skanerlash — do'kon ichida eng ko'p ishlatiladigan funksiya — markazda
+/// kattaroq va urg'uli tugma sifatida ajratiladi.
+class HomeShell extends ConsumerWidget {
   const HomeShell({super.key, required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(authControllerProvider).session?.role ?? 'CASHIER';
+    final tabs = tabsForRole(role);
+
     final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _tabs.indexWhere((t) => location.startsWith(t.path));
+    final currentIndex = tabs.indexWhere((t) => location.startsWith(t.path));
 
     return Scaffold(
       body: child,
@@ -44,13 +38,13 @@ class HomeShell extends StatelessWidget {
           ),
           child: Row(
             children: [
-              for (var i = 0; i < _tabs.length; i++)
+              for (var i = 0; i < tabs.length; i++)
                 Expanded(
                   child: _NavButton(
-                    tab: _tabs[i],
+                    tab: tabs[i],
                     selected: i == currentIndex,
-                    prominent: i == 2,
-                    onTap: () => context.go(_tabs[i].path),
+                    prominent: tabs[i].prominent,
+                    onTap: () => context.go(tabs[i].path),
                   ),
                 ),
             ],
@@ -64,7 +58,7 @@ class HomeShell extends StatelessWidget {
 class _NavButton extends StatelessWidget {
   const _NavButton({required this.tab, required this.selected, required this.onTap, required this.prominent});
 
-  final _NavTab tab;
+  final NavTab tab;
   final bool selected;
   final bool prominent;
   final VoidCallback onTap;

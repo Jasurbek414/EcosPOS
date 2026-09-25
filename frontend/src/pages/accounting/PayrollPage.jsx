@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Wallet, X } from 'lucide-react';
+import { Plus, Trash2, Wallet, X, FileSpreadsheet, Layers, Users } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { branchService, salaryPaymentService, userService } from '../../services/api';
+import { salaryPaymentService, userService } from '../../services/api';
 import DateInput from '../../components/ui/DateInput';
 import AccountingTabs from './AccountingTabs';
 
@@ -134,10 +134,8 @@ function CreatePaymentModal({ employees, onClose, onCreated }) {
 
 export default function PayrollPage() {
   const { t } = useTranslation();
-  const { user, isOwner } = useTenantAuthContext();
+  const { isOwner } = useTenantAuthContext();
 
-  const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(isOwner ? '' : (user?.branchId ?? ''));
   const [employees, setEmployees] = useState([]);
   const [employeeFilter, setEmployeeFilter] = useState('');
 
@@ -147,20 +145,6 @@ export default function PayrollPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isOwner) return undefined;
-    let cancelled = false;
-    branchService
-      .list()
-      .then((res) => {
-        if (!cancelled) setBranches(res.data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [isOwner]);
 
   // Xodimlar ro'yxati — filial filtri va (OWNER uchun) to'lov yaratish modalidagi
   // xodim tanlagichi uchun kerak.
@@ -177,24 +161,11 @@ export default function PayrollPage() {
     };
   }, []);
 
-  const employeesInBranch = useMemo(() => {
-    if (!branchId) return employees;
-    return employees.filter((e) => String(e.branchId ?? '') === String(branchId));
-  }, [employees, branchId]);
-
-  // Filial select'ining onChange'ida to'g'ridan-to'g'ri tozalanadi (pastda) — effekt
-  // ichida sinxron setState React Compiler'ning set-state-in-effect qoidasini buzadi.
-  const handleBranchChange = (value) => {
-    setBranchId(value);
-    setEmployeeFilter('');
-  };
-
   const buildParams = useCallback(() => {
     const params = { from, to };
-    if (branchId) params.branchId = branchId;
     if (employeeFilter) params.userId = employeeFilter;
     return params;
-  }, [branchId, from, to, employeeFilter]);
+  }, [from, to, employeeFilter]);
 
   // Diqqat: `loading` filtr o'zgarganda qaytadan `true`ga o'rnatilmaydi (faqat dastlabki
   // useState(true)'dan boshlanadi) — AccountingPage.jsx/ExpensesPage.jsx'dagi bilan bir
@@ -245,97 +216,244 @@ export default function PayrollPage() {
   const money = (v) => `${Number(v ?? 0).toLocaleString('uz-UZ')} ${t('reports.currency')}`;
   const dateLabel = (v) => (v ? new Date(v).toLocaleDateString('uz-UZ') : '—');
 
+  const totalPayroll = useMemo(() => payments.reduce((sum, p) => sum + Number(p.amount ?? 0), 0), [payments]);
+  const daysDiff = useMemo(() => Math.max(1, Math.round((new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24)) + 1), [from, to]);
+  const activeEmployeesCount = useMemo(() => new Set(payments.map((p) => p.userId)).size, [payments]);
+
+  const exportPayrollToCSV = () => {
+    try {
+      const bom = '\uFEFF';
+      let csv = bom;
+      csv += `"XODIMLAR ISH HAQI TO'LOVLARI (BUXGALTERIYA)"\n`;
+      csv += `"Davr:";"${from} dan ${to} gacha (${daysDiff} kun)"\n`;
+      csv += `"Jami to'langan maosh:";"${totalPayroll}"\n`;
+      csv += `"Yaratilgan sana:";"${new Date().toLocaleString('uz-UZ')}"\n\n`;
+
+      csv += `"№";"To'lov sanasi";"Xodim F.I.Sh";"Davr (oy)";"Summa (so'm)";"Izoh"\n`;
+      payments.forEach((p, idx) => {
+        const noteClean = (p.note || '').replace(/"/g, '""');
+        csv += `"${idx + 1}";"${p.paymentDate}";"${(p.userFullName || '').replace(/"/g, '""')}";"${p.periodMonth}";"${p.amount}";"${noteClean}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Ish_Haqi_${from}_${to}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Ish haqi to'lovlari Excel fayli yuklab olindi");
+    } catch {
+      toast.error("Faylni yuklab bo'lmadi");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <AccountingTabs />
 
-      <div className="flex items-center justify-between">
+      {/* 1. SARLAVHA VA AMALLAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('payroll.title')}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-sm shrink-0">
+              <Wallet size={20} />
+            </div>
+            {t('payroll.title')}
+          </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t('payroll.subtitle')}</p>
         </div>
-        {isOwner && (
-          <button type="button" onClick={() => setCreateOpen(true)} className="btn btn-primary">
-            <Plus size={16} />
-            {t('payroll.newPayment')}
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={exportPayrollToCSV}
+            disabled={payments.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+            title="Excel formatida yuklab olish"
+          >
+            <FileSpreadsheet size={14} />
+            <span>Excel yuklab olish</span>
           </button>
-        )}
+
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="btn btn-primary !text-xs !py-2 !px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Plus size={15} />
+              <span>{t('payroll.newPayment')}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {!isOwner && <p className="text-slate-500 dark:text-slate-400 text-sm">{t('payroll.ownerOnlyHint')}</p>}
 
-      <div className="card p-4 flex flex-col gap-4">
+      {/* 2. FILTRLAR PANELI */}
+      <div className="card p-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4 flex-wrap">
-          <div>
-            <label className="field-label">{t('reports.from')}</label>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 font-medium">{t('reports.from')}:</span>
             <DateInput value={from} max={to} onChange={setFrom} />
           </div>
-          <div>
-            <label className="field-label">{t('reports.to')}</label>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 font-medium">{t('reports.to')}:</span>
             <DateInput value={to} min={from} onChange={setTo} />
           </div>
-          {isOwner && (
-            <div>
-              <label className="field-label">{t('reports.branch')}</label>
-              <select className="input-field min-w-[200px]" value={branchId} onChange={(e) => handleBranchChange(e.target.value)}>
-                <option value="">{t('reports.allBranches')}</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
+          <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+            {daysDiff} {t('reports.daysCount', 'kunlik davr')}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400 font-medium">{t('payroll.employee')}:</span>
+          <select
+            className="input-field !py-1.5 !text-xs min-w-[200px]"
+            value={employeeFilter}
+            onChange={(e) => setEmployeeFilter(e.target.value)}
+          >
+            <option value="">{t('payroll.allEmployeesOption')}</option>
+            {employees.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.fullName}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* 3. KPI CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 1) Jami ish haqi */}
+        <div className="card p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Jami to'langan ish haqi
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Wallet size={18} />
             </div>
-          )}
-          <div>
-            <label className="field-label">{t('payroll.employee')}</label>
-            <select className="input-field min-w-[200px]" value={employeeFilter} onChange={(e) => setEmployeeFilter(e.target.value)}>
-              <option value="">{t('payroll.allEmployeesOption')}</option>
-              {employeesInBranch.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.fullName}
-                </option>
-              ))}
-            </select>
+          </div>
+          <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+            {money(totalPayroll)}
+          </p>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2">
+            <span>Davr bo'yicha to'lovlar summasi</span>
+          </div>
+        </div>
+
+        {/* 2) To'lovlar soni */}
+        <div className="card p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              To'lovlar soni
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0">
+              <Layers size={18} />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {payments.length}
+            </p>
+            <span className="text-xs text-slate-400 font-medium">ta to'lov</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2">
+            <span>Amalga oshirilgan tranzaksiyalar</span>
+          </div>
+        </div>
+
+        {/* 3) Xodimlar qamrovi */}
+        <div className="card p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Qamrab olingan xodimlar
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <Users size={18} />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              {activeEmployeesCount}
+            </p>
+            <span className="text-xs text-slate-400 font-medium">nafar xodim</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-2">
+            <span>Maosh olgan xodimlar soni</span>
           </div>
         </div>
       </div>
 
-      <div className="card p-6">
+      {/* 4. TO'LOVLAR JADVALI */}
+      <div className="card p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Wallet size={18} className="text-indigo-600 dark:text-indigo-400" />
+              Ish haqi to'lovlari jurnali
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Xodimlarga to'langan oylik ish haqi va mukofotlar hisobi
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            {payments.length} ta yozuv
+          </span>
+        </div>
+
         {loading ? (
-          <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+          <div className="py-12 flex flex-col items-center justify-center text-slate-400 text-sm gap-2">
+            <Wallet size={24} className="animate-spin text-indigo-500" />
+            <span>{t('common.loading')}</span>
+          </div>
         ) : payments.length === 0 ? (
-          <div className="py-16 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-              <Wallet size={24} className="text-slate-400 dark:text-slate-500" />
+          <div className="py-16 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+              <Wallet size={26} />
             </div>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">{t('payroll.empty')}</p>
+            <p className="text-sm font-medium">{t('payroll.empty')}</p>
           </div>
         ) : (
           <div className="table-wrap">
-            <table>
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr>
-                  <th>{t('payroll.date')}</th>
-                  <th>{t('payroll.employee')}</th>
-                  <th>{t('payroll.periodMonth')}</th>
-                  <th>{t('payroll.amount')}</th>
-                  <th>{t('payroll.note')}</th>
-                  {isOwner && <th>{t('common.actions')}</th>}
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 text-slate-500 uppercase tracking-wider font-semibold">
+                  <th className="py-2.5 px-3 w-28">{t('payroll.date')}</th>
+                  <th className="py-2.5 px-3">{t('payroll.employee')}</th>
+                  <th className="py-2.5 px-3 w-28 text-center">{t('payroll.periodMonth')}</th>
+                  <th className="py-2.5 px-3 text-right">{t('payroll.amount')}</th>
+                  <th className="py-2.5 px-3">{t('payroll.note')}</th>
+                  {isOwner && <th className="py-2.5 px-3 text-center w-16">{t('common.actions')}</th>}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                 {payments.map((p) => (
-                  <tr key={p.id}>
-                    <td className="text-slate-600 dark:text-slate-300 whitespace-nowrap">{dateLabel(p.paymentDate)}</td>
-                    <td className="font-medium text-slate-900 dark:text-slate-100">{p.userFullName}</td>
-                    <td className="text-slate-600 dark:text-slate-300">{p.periodMonth}</td>
-                    <td className="text-slate-600 dark:text-slate-300 tabular-nums">{money(p.amount)}</td>
-                    <td className="text-slate-600 dark:text-slate-300">{p.note || '—'}</td>
+                  <tr key={p.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="py-3 px-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{dateLabel(p.paymentDate)}</td>
+                    <td className="py-3 px-3 font-semibold text-slate-900 dark:text-slate-100">{p.userFullName}</td>
+                    <td className="py-3 px-3 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {p.periodMonth}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                      {money(p.amount)}
+                    </td>
+                    <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{p.note || '—'}</td>
                     {isOwner && (
-                      <td>
-                        <button type="button" onClick={() => handleDelete(p)} className="btn-icon danger" title={t('common.delete')}>
-                          <Trash2 size={15} />
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p)}
+                          className="btn-icon danger !w-7 !h-7 inline-flex items-center justify-center cursor-pointer"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     )}
@@ -348,7 +466,7 @@ export default function PayrollPage() {
       </div>
 
       {createOpen && (
-        <CreatePaymentModal employees={employeesInBranch} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
+        <CreatePaymentModal employees={employees} onClose={() => setCreateOpen(false)} onCreated={handleCreated} />
       )}
     </div>
   );

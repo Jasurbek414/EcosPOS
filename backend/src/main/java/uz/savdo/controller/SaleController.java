@@ -15,6 +15,7 @@ import uz.savdo.entity.Sale;
 import uz.savdo.entity.SaleItem;
 import uz.savdo.entity.User;
 import uz.savdo.enums.PaymentMethod;
+import uz.savdo.enums.UserRole;
 import uz.savdo.exception.ForbiddenException;
 import uz.savdo.exception.ResourceNotFoundException;
 import uz.savdo.platform.entity.Company;
@@ -71,11 +72,27 @@ public class SaleController {
                             .toList();
         }
 
+        // Filial tekshiruvining o'zi kassirni HECH NIMADAN cheklamaydi: bitta
+        // kompaniyada hamma bir xil filialda ishlaydi, ya'ni kassir butun do'kon
+        // tushumini ko'ra olardi — bu esa unga hisobotlar bo'limi orqali ataylab
+        // berilmagan moliyaviy ma'lumot. Kassirga faqat O'Z savdolari ko'rinadi
+        // (chekni tekshirish/qayta ko'rish uchun shuning o'zi yetarli).
+        Long faqatShuKassir = kassirFiltri();
+
         return sales.stream()
+                .filter(s -> faqatShuKassir == null || faqatShuKassir.equals(s.getCashierId()))
                 .filter(s -> from == null || !s.getCreatedAt().toLocalDate().isBefore(from))
                 .filter(s -> to == null || !s.getCreatedAt().toLocalDate().isAfter(to))
                 .map(s -> SaleSummaryResponse.from(s, resolveCashierName(s.getCashierId()), countItems(s.getId())))
                 .toList();
+    }
+
+    /**
+     * CASHIER uchun uning o'z ID'si, OWNER/MANAGER uchun {@code null} (cheklov yo'q).
+     */
+    private Long kassirFiltri() {
+        User joriy = currentUserService.getCurrentUser();
+        return joriy.getRole() == UserRole.CASHIER ? joriy.getId() : null;
     }
 
     @GetMapping("/{id}")
@@ -83,6 +100,11 @@ public class SaleController {
         Sale sale = saleRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sotuv topilmadi: " + id));
         currentUserService.assertCanAccessBranch(sale.getBranchId());
+
+        Long faqatShuKassir = kassirFiltri();
+        if (faqatShuKassir != null && !faqatShuKassir.equals(sale.getCashierId())) {
+            throw new ForbiddenException("Bu savdo boshqa kassirga tegishli");
+        }
 
         return SaleResponse.from(sale, resolveCashierName(sale.getCashierId()), loadItemResponses(id), resolveCustomerName(sale.getCustomerId()));
     }

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { TenantAuthProvider } from './hooks/useTenantAuthContext';
@@ -5,43 +6,55 @@ import { SuperAdminAuthProvider } from './hooks/useSuperAdminAuthContext';
 import { ThemeProvider } from './hooks/useThemeContext';
 import ProtectedRoute from './components/ui/ProtectedRoute';
 import PlatformProtectedRoute from './components/ui/PlatformProtectedRoute';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import MainLayout from './components/layout/MainLayout';
-import SuperAdminLayout from './components/layout/SuperAdminLayout';
 
+// Kirish sahifasi va boshqaruv paneli darhol kerak — ular to'g'ridan-to'g'ri yuklanadi.
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import BranchListPage from './pages/branches/BranchListPage';
-import BranchDetailPage from './pages/branches/BranchDetailPage';
-import StaffListPage from './pages/staff/StaffListPage';
-import ProductsPage from './pages/inventory/ProductsPage';
-import CategoriesPage from './pages/inventory/CategoriesPage';
-import SuppliersPage from './pages/inventory/SuppliersPage';
-import StockPage from './pages/inventory/StockPage';
-import ReceiptsPage from './pages/inventory/ReceiptsPage';
-import ReceiptCreatePage from './pages/inventory/ReceiptCreatePage';
-import TransfersPage from './pages/inventory/TransfersPage';
-import MovementsPage from './pages/inventory/MovementsPage';
-import POSPage from './pages/pos/POSPage';
-import ReportsPage from './pages/reports/ReportsPage';
-import AccountingPage from './pages/accounting/AccountingPage';
-import ExpensesPage from './pages/accounting/ExpensesPage';
-import AttendancePage from './pages/accounting/AttendancePage';
-import PayrollPage from './pages/accounting/PayrollPage';
-import AdvancesPage from './pages/accounting/AdvancesPage';
-import SettingsPage from './pages/settings/SettingsPage';
-import CustomerListPage from './pages/customers/CustomerListPage';
-import CustomerDebtorsPage from './pages/customers/CustomerDebtorsPage';
-import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 
-import SuperAdminLoginPage from './pages/superadmin/SuperAdminLoginPage';
-import SuperAdminDashboardPage from './pages/superadmin/DashboardPage';
-import CompanyListPage from './pages/superadmin/CompanyListPage';
-import CompanyCreatePage from './pages/superadmin/CompanyCreatePage';
-import CompanyDetailPage from './pages/superadmin/CompanyDetailPage';
-import PlansPage from './pages/superadmin/PlansPage';
-import AdminsPage from './pages/superadmin/AdminsPage';
-import AuditLogPage from './pages/superadmin/AuditLogPage';
-import SuperAdminProfilePage from './pages/superadmin/ProfilePage';
+// Qolgan hamma narsa KECHIKTIRIB yuklanadi. Avval barcha 35 sahifa, grafik
+// kutubxonasi va butun superadmin paneli bitta 1.14 MB faylga yig'ilardi —
+// kassir hech qachon ochmaydigan kodni ham har safar yuklab olardi.
+const StaffListPage = lazy(() => import('./pages/staff/StaffListPage'));
+const ProductsPage = lazy(() => import('./pages/inventory/ProductsPage'));
+const CategoriesPage = lazy(() => import('./pages/inventory/CategoriesPage'));
+const SuppliersPage = lazy(() => import('./pages/inventory/SuppliersPage'));
+const StockPage = lazy(() => import('./pages/inventory/StockPage'));
+const ReceiptsPage = lazy(() => import('./pages/inventory/ReceiptsPage'));
+const ReceiptCreatePage = lazy(() => import('./pages/inventory/ReceiptCreatePage'));
+const MovementsPage = lazy(() => import('./pages/inventory/MovementsPage'));
+const POSPage = lazy(() => import('./pages/pos/POSPage'));
+const ReportsPage = lazy(() => import('./pages/reports/ReportsPage'));
+const AccountingPage = lazy(() => import('./pages/accounting/AccountingPage'));
+const ExpensesPage = lazy(() => import('./pages/accounting/ExpensesPage'));
+const AttendancePage = lazy(() => import('./pages/accounting/AttendancePage'));
+const PayrollPage = lazy(() => import('./pages/accounting/PayrollPage'));
+const AdvancesPage = lazy(() => import('./pages/accounting/AdvancesPage'));
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
+const CustomerListPage = lazy(() => import('./pages/customers/CustomerListPage'));
+const CustomerDebtorsPage = lazy(() => import('./pages/customers/CustomerDebtorsPage'));
+const CustomerDetailPage = lazy(() => import('./pages/customers/CustomerDetailPage'));
+
+// Superadmin paneli — oddiy foydalanuvchi uni umuman ochmaydi.
+const SuperAdminLayout = lazy(() => import('./components/layout/SuperAdminLayout'));
+const SuperAdminLoginPage = lazy(() => import('./pages/superadmin/SuperAdminLoginPage'));
+const SuperAdminDashboardPage = lazy(() => import('./pages/superadmin/DashboardPage'));
+const CompanyListPage = lazy(() => import('./pages/superadmin/CompanyListPage'));
+const CompanyCreatePage = lazy(() => import('./pages/superadmin/CompanyCreatePage'));
+const CompanyDetailPage = lazy(() => import('./pages/superadmin/CompanyDetailPage'));
+const PlansPage = lazy(() => import('./pages/superadmin/PlansPage'));
+const AdminsPage = lazy(() => import('./pages/superadmin/AdminsPage'));
+const AuditLogPage = lazy(() => import('./pages/superadmin/AuditLogPage'));
+const SuperAdminProfilePage = lazy(() => import('./pages/superadmin/ProfilePage'));
+
+function SahifaYuklanmoqda() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
+      Yuklanmoqda...
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -58,6 +71,8 @@ export default function App() {
         />
         <TenantAuthProvider>
           <SuperAdminAuthProvider>
+            <ErrorBoundary>
+            <Suspense fallback={<SahifaYuklanmoqda />}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
 
@@ -77,8 +92,6 @@ export default function App() {
               {/* Tenant (do'kon) ilovasi */}
               <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/branches" element={<BranchListPage />} />
-                <Route path="/branches/:id" element={<BranchDetailPage />} />
                 <Route path="/staff" element={<StaffListPage />} />
                 <Route path="/inventory" element={<Navigate to="/inventory/products" replace />} />
                 <Route path="/inventory/products" element={<ProductsPage />} />
@@ -87,7 +100,6 @@ export default function App() {
                 <Route path="/inventory/stock" element={<StockPage />} />
                 <Route path="/inventory/receipts" element={<ReceiptsPage />} />
                 <Route path="/inventory/receipts/new" element={<ReceiptCreatePage />} />
-                <Route path="/inventory/transfers" element={<TransfersPage />} />
                 <Route path="/inventory/movements" element={<MovementsPage />} />
                 <Route path="/pos" element={<POSPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
@@ -105,6 +117,8 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+            </Suspense>
+            </ErrorBoundary>
           </SuperAdminAuthProvider>
         </TenantAuthProvider>
       </ThemeProvider>

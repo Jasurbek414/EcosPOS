@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import {
   Users, Plus, X, Pencil, Trash2, KeyRound, ShieldAlert, Copy, Search, ShieldCheck, Check, Minus,
+  ChevronDown, ChevronUp, Crown, Briefcase, ShoppingBag, LayoutGrid, Table,
 } from 'lucide-react';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
-import { branchService, userService } from '../../services/api';
+import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
+import { userService } from '../../services/api';
 import StaffStatsHeader from '../../components/ui/StaffStatsHeader';
 
 const ROLES = ['OWNER', 'MANAGER', 'CASHIER'];
@@ -31,7 +33,7 @@ const PERMISSION_ROWS = [
   {
     key: 'stockManage',
     owner: { level: 'full', note: 'allBranches' },
-    manager: { level: 'partial', note: 'ownBranchTransfer' },
+    manager: { level: 'partial', note: 'ownBranch' },
     cashier: { level: 'none' },
   },
   {
@@ -65,12 +67,6 @@ const PERMISSION_ROWS = [
     cashier: { level: 'none' },
   },
   {
-    key: 'branchManage',
-    owner: { level: 'full' },
-    manager: { level: 'none', note: 'ownBranchViewOnly' },
-    cashier: { level: 'none' },
-  },
-  {
     key: 'companySettings',
     owner: { level: 'full' },
     manager: { level: 'none' },
@@ -84,92 +80,366 @@ const PERMISSION_ROWS = [
   },
 ];
 
-// Ruxsat darajasini ({level, note}) ikonka + matn sifatida ko'rsatuvchi katak —
-// full = yashil belgi, none = xira X, partial = amber chiziqcha + qisqartirilgan izoh.
-function PermissionCell({ cell }) {
-  const { t } = useTranslation();
-  if (!cell) return <span className="text-slate-300 dark:text-slate-600">—</span>;
+const ROLE_CONFIGS = [
+  {
+    role: 'OWNER',
+    icon: Crown,
+    gradient: 'from-amber-500 to-orange-500',
+    lightBg: 'bg-amber-500/10',
+    badgeClass: 'badge-amber',
+    borderActive: 'border-amber-500 ring-2 ring-amber-500/20',
+    accentText: 'text-amber-600 dark:text-amber-400',
+    descKey: 'ownerDesc',
+    score: 10,
+    maxScore: 10,
+  },
+  {
+    role: 'MANAGER',
+    icon: Briefcase,
+    gradient: 'from-blue-500 to-indigo-600',
+    lightBg: 'bg-blue-500/10',
+    badgeClass: 'badge-blue',
+    borderActive: 'border-blue-500 ring-2 ring-blue-500/20',
+    accentText: 'text-blue-600 dark:text-blue-400',
+    descKey: 'managerDesc',
+    score: 7,
+    maxScore: 10,
+  },
+  {
+    role: 'CASHIER',
+    icon: ShoppingBag,
+    gradient: 'from-emerald-500 to-teal-600',
+    lightBg: 'bg-emerald-500/10',
+    badgeClass: 'badge-slate',
+    borderActive: 'border-emerald-500 ring-2 ring-emerald-500/20',
+    accentText: 'text-emerald-600 dark:text-emerald-400',
+    descKey: 'cashierDesc',
+    score: 3,
+    maxScore: 10,
+  },
+];
+
+const PERMISSION_GROUPS = [
+  {
+    groupKey: 'sales',
+    keys: ['pos'],
+  },
+  {
+    groupKey: 'stock',
+    keys: ['stockView', 'stockManage', 'catalogView', 'catalogManage'],
+  },
+  {
+    groupKey: 'reports',
+    keys: ['reports'],
+  },
+  {
+    groupKey: 'management',
+    keys: ['staffView', 'staffManage', 'companySettings', 'ownProfile'],
+  },
+];
+
+function PermissionStatusChip({ cell, t }) {
+  if (!cell) return <span className="text-slate-300 dark:text-slate-600 text-xs">—</span>;
 
   const noteText = cell.note ? t(`staff.rolesPermissions.notes.${cell.note}`) : null;
 
   if (cell.level === 'full') {
     return (
-      <div className="flex items-center gap-1.5 text-emerald-600">
-        <Check size={15} className="shrink-0" />
-        <span className="text-xs font-semibold">{noteText || t('staff.rolesPermissions.yes')}</span>
-      </div>
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40">
+        <Check size={12} className="stroke-[2.5]" />
+        <span>{noteText || t('staff.rolesPermissions.yes')}</span>
+      </span>
     );
   }
   if (cell.level === 'none') {
     return (
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
-          <X size={15} className="shrink-0" />
-          <span className="text-xs font-semibold">{t('staff.rolesPermissions.no')}</span>
-        </div>
-        {noteText && <span className="text-slate-400 dark:text-slate-500 text-[11px] pl-[1.375rem]">{noteText}</span>}
-      </div>
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100/80 text-slate-400 dark:bg-slate-800/80 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50">
+        <X size={12} className="stroke-[2.5]" />
+        <span>{t('staff.rolesPermissions.no')}</span>
+      </span>
     );
   }
   return (
-    <div className="flex items-center gap-1.5 text-amber-600">
-      <Minus size={15} className="shrink-0" />
-      <span className="text-xs font-semibold">{noteText || t('staff.rolesPermissions.no')}</span>
-    </div>
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40">
+      <Minus size={12} className="stroke-[2.5]" />
+      <span>{noteText || t('staff.rolesPermissions.partialAccess')}</span>
+    </span>
   );
 }
 
-// Rollarning nima qila olishi haqidagi statik ma'lumot kartochkasi — sof ma'lumotnoma,
-// hech qanday tahrirlash imkoniyati yo'q. Backend kodidan tasdiqlangan haqiqiy huquqlar
-// (PERMISSION_ROWS) asosida.
 function RolesPermissionsCard() {
   const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(true);
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'matrix'
+  const [selectedRole, setSelectedRole] = useState('OWNER');
+
+  const selectedConfig = useMemo(
+    () => ROLE_CONFIGS.find((c) => c.role === selectedRole) || ROLE_CONFIGS[0],
+    [selectedRole]
+  );
+
   return (
-    <div className="card p-6 flex flex-col gap-4">
-      <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-          <ShieldCheck size={17} />
+    <div className="card overflow-hidden border border-slate-200 dark:border-slate-800 transition-all shadow-sm">
+      {/* Kartochka sarlavhasi */}
+      <div className="px-5 py-4 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 shrink-0">
+            <ShieldCheck size={20} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm md:text-base">
+                {t('staff.rolesPermissions.title')}
+              </h3>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40">
+                3 ta rol
+              </span>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-xs truncate mt-0.5">
+              {t('staff.rolesPermissions.subtitle')}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{t('staff.rolesPermissions.title')}</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{t('staff.rolesPermissions.subtitle')}</p>
+
+        <div className="flex items-center gap-2">
+          {/* Ko'rinish rejimi tanlash (Karta / Matritsa) */}
+          <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode('cards');
+                setIsOpen(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'cards' && isOpen
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <LayoutGrid size={13} />
+              <span className="hidden sm:inline">{t('staff.rolesPermissions.viewCards')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode('matrix');
+                setIsOpen(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'matrix' && isOpen
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <Table size={13} />
+              <span className="hidden sm:inline">{t('staff.rolesPermissions.viewMatrix')}</span>
+            </button>
+          </div>
+
+          {/* Yashirish / Ko'rsatish toggle */}
+          <button
+            type="button"
+            onClick={() => setIsOpen((prev) => !prev)}
+            className="btn-icon !w-8 !h-8 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 cursor-pointer"
+            title={isOpen ? t('staff.rolesPermissions.hide') : t('staff.rolesPermissions.show')}
+          >
+            {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
         </div>
       </div>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>{t('staff.rolesPermissions.action')}</th>
-              <th>{t('staff.roles.OWNER')}</th>
-              <th>{t('staff.roles.MANAGER')}</th>
-              <th>{t('staff.roles.CASHIER')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {PERMISSION_ROWS.map((row) => (
-              <tr key={row.key}>
-                <td className="font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                  {t(`staff.rolesPermissions.rows.${row.key}`)}
-                </td>
-                <td>
-                  <PermissionCell cell={row.owner} />
-                </td>
-                <td>
-                  <PermissionCell cell={row.manager} />
-                </td>
-                <td>
-                  <PermissionCell cell={row.cashier} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+      {/* Kontent qismi */}
+      {isOpen && (
+        <div className="p-5 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col gap-5">
+          {/* 3 ta Rol tezkor kartasi */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {ROLE_CONFIGS.map((c) => {
+              const RoleIcon = c.icon;
+              const isSelected = viewMode === 'cards' && selectedRole === c.role;
+              const percentage = Math.round((c.score / c.maxScore) * 100);
+
+              return (
+                <button
+                  key={c.role}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole(c.role);
+                    setViewMode('cards');
+                  }}
+                  className={`text-left p-4 rounded-2xl border transition-all cursor-pointer bg-white dark:bg-slate-800/90 hover:shadow-md ${
+                    isSelected
+                      ? `${c.borderActive} shadow-sm`
+                      : 'border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.gradient} flex items-center justify-center text-white shadow-xs`}>
+                        <RoleIcon size={17} />
+                      </div>
+                      <div>
+                        <span className={`badge ${c.badgeClass} font-bold text-xs`}>
+                          {t(`staff.roles.${c.role}`)}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 font-mono">
+                      {c.score}/{c.maxScore}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mb-3">
+                    {t(`staff.rolesPermissions.${c.descKey}`)}
+                  </p>
+
+                  {/* Progress bar */}
+                  <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${c.gradient} transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* VIEW MODE 1: Rollar bo'yicha batafsil */}
+          {viewMode === 'cards' && (
+            <div className="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-5 shadow-xs flex flex-col gap-5">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 pb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <span className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${selectedConfig.gradient}`} />
+                  <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    {t(`staff.roles.${selectedRole}`)} {t('staff.rolesPermissions.title').toLowerCase()}
+                  </h4>
+                </div>
+                <span className="text-xs text-slate-400 font-medium">
+                  {selectedConfig.score} ta ruxsat berilgan
+                </span>
+              </div>
+
+              {/* Guruhlangan huquqlar grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {PERMISSION_GROUPS.map((grp) => {
+                  const roleKey = selectedRole.toLowerCase();
+
+                  return (
+                    <div
+                      key={grp.groupKey}
+                      className="rounded-xl border border-slate-100 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-900/30 p-3.5 flex flex-col gap-2.5"
+                    >
+                      <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        {t(`staff.rolesPermissions.groups.${grp.groupKey}`)}
+                      </span>
+
+                      <div className="flex flex-col gap-2">
+                        {grp.keys.map((permKey) => {
+                          const row = PERMISSION_ROWS.find((r) => r.key === permKey);
+                          if (!row) return null;
+                          const cell = row[roleKey];
+
+                          return (
+                            <div
+                              key={permKey}
+                              className="flex items-center justify-between gap-3 py-1.5 px-2 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/40"
+                            >
+                              <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                                {t(`staff.rolesPermissions.rows.${permKey}`)}
+                              </span>
+                              <PermissionStatusChip cell={cell} t={t} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* VIEW MODE 2: Taqqoslash matritsasi */}
+          {viewMode === 'matrix' && (
+            <div className="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden shadow-xs">
+              <div className="table-wrap">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-slate-100/70 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                      <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        {t('staff.rolesPermissions.action')}
+                      </th>
+                      {ROLE_CONFIGS.map((c) => (
+                        <th key={c.role} className="py-3 px-4 text-center">
+                          <span className={`badge ${c.badgeClass} font-bold text-xs`}>
+                            {t(`staff.roles.${c.role}`)}
+                          </span>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                    {PERMISSION_GROUPS.map((grp) => (
+                      <Fragment key={grp.groupKey}>
+                        <tr className="bg-slate-50 dark:bg-slate-800/40">
+                          <td
+                            colSpan={4}
+                            className="py-2 px-4 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+                          >
+                            {t(`staff.rolesPermissions.groups.${grp.groupKey}`)}
+                          </td>
+                        </tr>
+                        {grp.keys.map((key) => {
+                          const row = PERMISSION_ROWS.find((r) => r.key === key);
+                          if (!row) return null;
+
+                          return (
+                            <tr key={key} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                              <td className="py-2.5 px-4 text-xs font-medium text-slate-800 dark:text-slate-200">
+                                {t(`staff.rolesPermissions.rows.${key}`)}
+                              </td>
+                              <td className="py-2.5 px-4 text-center">
+                                <PermissionStatusChip cell={row.owner} t={t} />
+                              </td>
+                              <td className="py-2.5 px-4 text-center">
+                                <PermissionStatusChip cell={row.manager} t={t} />
+                              </td>
+                              <td className="py-2.5 px-4 text-center">
+                                <PermissionStatusChip cell={row.cashier} t={t} />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Legenda */}
+              <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span>{t('staff.rolesPermissions.fullAccess')}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span>{t('staff.rolesPermissions.partialAccess')}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-slate-400" />
+                  <span>{t('staff.rolesPermissions.noAccess')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function CreateStaffModal({ branches, defaultBranchId, defaultRole, onClose, onCreated }) {
+function CreateStaffModal({ defaultBranchId, defaultRole, onClose, onCreated }) {
   const { t } = useTranslation();
   const {
     register,
@@ -181,13 +451,12 @@ function CreateStaffModal({ branches, defaultBranchId, defaultRole, onClose, onC
       password: '',
       fullName: '',
       role: defaultRole || 'CASHIER',
-      branchId: defaultBranchId != null ? String(defaultBranchId) : '',
     },
   });
 
   const onSubmit = async (data) => {
     try {
-      await userService.create({ ...data, branchId: data.branchId || null });
+      await userService.create({ ...data, branchId: defaultBranchId ?? null });
       toast.success(t('staff.createSuccess'));
       onCreated();
     } catch (err) {
@@ -241,17 +510,6 @@ function CreateStaffModal({ branches, defaultBranchId, defaultRole, onClose, onC
               ))}
             </select>
           </div>
-          <div>
-            <label className="field-label">{t('staff.branch')}</label>
-            <select className="input-field" {...register('branchId')}>
-              <option value="">{t('staff.selectBranch')}</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
           <div className="flex justify-end gap-2 mt-2">
             <button type="button" onClick={onClose} className="btn btn-outline">
               {t('common.cancel')}
@@ -272,7 +530,7 @@ function CreateStaffModal({ branches, defaultBranchId, defaultRole, onClose, onC
 // bunday holda backend baribir o'z rolini/faolligini o'zgartirishga yo'l qo'ymaydi, shuning
 // uchun keraksiz so'rov yubormaslik uchun rol/faollik maydonlari shu yerda oldindan bloklanadi
 // (asosiy tekshiruv baribir backendda — bu faqat UX yaxshilash).
-function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
+function EditStaffModal({ staffMember, isSelf, onClose, onSaved }) {
   const { t } = useTranslation();
   const {
     register,
@@ -282,7 +540,6 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
     defaultValues: {
       fullName: staffMember.fullName || '',
       role: staffMember.role || 'CASHIER',
-      branchId: staffMember.branchId || '',
       isActive: staffMember.isActive ?? true,
       baseSalary: staffMember.baseSalary ?? '',
     },
@@ -295,7 +552,7 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
       // maydonlar baribir o'zgarmasligi kerak bo'lgani uchun asl qiymatga qaytariladi.
       const payload = {
         ...data,
-        branchId: data.branchId || null,
+        branchId: staffMember.branchId ?? null,
         role: isSelf ? staffMember.role : data.role,
         isActive: isSelf ? staffMember.isActive ?? true : data.isActive,
         baseSalary: data.baseSalary === '' || data.baseSalary == null ? null : Number(data.baseSalary),
@@ -339,17 +596,6 @@ function EditStaffModal({ staffMember, branches, isSelf, onClose, onSaved }) {
               ))}
             </select>
             {isSelf && <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{t('staff.editSelfHint')}</p>}
-          </div>
-          <div>
-            <label className="field-label">{t('staff.branch')}</label>
-            <select className="input-field" {...register('branchId')}>
-              <option value="">{t('staff.selectBranch')}</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
           </div>
           <div>
             <label className="field-label">{t('staff.baseSalary')}</label>
@@ -439,19 +685,11 @@ export default function StaffListPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isOwner } = useTenantAuthContext();
+  const { branchId: defaultBranchId } = useDefaultBranchId();
   const [staff, setStaff] = useState([]);
-  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Filial profilidagi "Yangi login yaratish" tugmasi shu holatni yuborib, kelgan
-  // zahoti xodim yaratish oynasini filial+MANAGER rol oldindan tanlangan holda ochadi.
-  // Standart qiymatlar BIR MARTA (mount paytida) o'qib olinadi va alohida state'da
-  // saqlanadi (location.state'ni to'g'ridan-to'g'ri JSX'da o'qish EMAS) — aks holda
-  // keyinroq oddiy "+ Yangi xodim" tugmasi bosilganda ham shu eski filial/rol
-  // qiymatlari sirtqi qayta ishlatilib qolar edi (foydalanuvchi buni sezmasdan).
-  const [createOpen, setCreateOpen] = useState(() => Boolean(location.state?.autoCreate));
-  const [createDefaults, setCreateDefaults] = useState(() =>
-    location.state?.autoCreate ? { branchId: location.state.branchId, role: 'MANAGER' } : null
-  );
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createDefaults, setCreateDefaults] = useState(null);
 
   // Navigatsiya holatini (location.state) BIR MARTA ishlatilgach darhol tozalaymiz —
   // aks holda orqaga/oldinga tugmasi bilan shu sahifaga qaytilganda autoCreate qayta
@@ -466,18 +704,12 @@ export default function StaffListPage() {
   const [resetResult, setResetResult] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  // Filial profilidan ("Xodimlarni ko'rish") kelganda o'sha filial oldindan
-  // tanlangan bo'lishi uchun — BranchDetailPage.jsx navigation state orqali yuboradi.
-  const [branchFilter, setBranchFilter] = useState(() =>
-    location.state?.branchId != null ? String(location.state.branchId) : ''
-  );
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [staffRes, branchesRes] = await Promise.all([userService.list(), branchService.list()]);
-      setStaff(staffRes.data);
-      setBranches(branchesRes.data);
+      const res = await userService.list();
+      setStaff(res.data);
     } catch {
       toast.error(t('staff.loadError'));
     } finally {
@@ -487,11 +719,10 @@ export default function StaffListPage() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([userService.list(), branchService.list()])
-      .then(([staffRes, branchesRes]) => {
-        if (cancelled) return;
-        setStaff(staffRes.data);
-        setBranches(branchesRes.data);
+    userService
+      .list()
+      .then((res) => {
+        if (!cancelled) setStaff(res.data);
       })
       .catch(() => {
         if (!cancelled) toast.error(t('staff.loadError'));
@@ -544,8 +775,6 @@ export default function StaffListPage() {
     }
   };
 
-  const branchName = (id) => branches.find((b) => b.id === id)?.name || '—';
-
   const roleBadgeClass = (role) => {
     if (role === 'OWNER') return 'badge badge-amber';
     if (role === 'MANAGER') return 'badge badge-blue';
@@ -560,10 +789,9 @@ export default function StaffListPage() {
     return staff.filter((s) => {
       const matchesQuery = !q || s.fullName?.toLowerCase().includes(q) || s.username?.toLowerCase().includes(q);
       const matchesRole = !roleFilter || s.role === roleFilter;
-      const matchesBranch = !branchFilter || String(s.branchId ?? '') === branchFilter;
-      return matchesQuery && matchesRole && matchesBranch;
+      return matchesQuery && matchesRole;
     });
-  }, [staff, searchInput, roleFilter, branchFilter]);
+  }, [staff, searchInput, roleFilter]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -606,14 +834,6 @@ export default function StaffListPage() {
               </option>
             ))}
           </select>
-          <select className="input-field max-w-xs" value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)}>
-            <option value="">{t('staff.filterAll')}</option>
-            {branches.map((b) => (
-              <option key={b.id} value={String(b.id)}>
-                {b.name}
-              </option>
-            ))}
-          </select>
         </div>
       )}
 
@@ -641,7 +861,6 @@ export default function StaffListPage() {
                 <th>{t('staff.fullName')}</th>
                 <th>{t('staff.username')}</th>
                 <th>{t('staff.role')}</th>
-                <th>{t('staff.branch')}</th>
                 <th>{t('common.status')}</th>
                 {isOwner && <th>{t('common.actions')}</th>}
               </tr>
@@ -654,7 +873,6 @@ export default function StaffListPage() {
                   <td>
                     <span className={roleBadgeClass(s.role)}>{t(`staff.roles.${s.role}`)}</span>
                   </td>
-                  <td className="text-slate-600 dark:text-slate-300">{s.branchName || branchName(s.branchId)}</td>
                   <td>
                     <span className={s.isActive ?? true ? 'badge badge-green' : 'badge badge-slate'}>
                       {(s.isActive ?? true) ? t('staff.active') : t('staff.inactive')}
@@ -689,8 +907,7 @@ export default function StaffListPage() {
 
       {createOpen && (
         <CreateStaffModal
-          branches={branches}
-          defaultBranchId={createDefaults?.branchId}
+          defaultBranchId={defaultBranchId}
           defaultRole={createDefaults?.role}
           onClose={() => {
             setCreateOpen(false);
@@ -702,7 +919,6 @@ export default function StaffListPage() {
       {editing && (
         <EditStaffModal
           staffMember={editing}
-          branches={branches}
           isSelf={!!user?.username && user.username === editing.username}
           onClose={() => setEditing(null)}
           onSaved={handleSaved}

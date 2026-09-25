@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/branch_provider.dart';
+import '../../widgets/branch_load_error.dart';
 import '../../core/formatters.dart';
 import '../../models/models.dart';
-import '../../widgets/branch_picker.dart';
 import '../auth/auth_controller.dart';
 import 'adjust_stock_sheet.dart';
 import 'stock_providers.dart';
@@ -21,12 +21,7 @@ class StockScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Kam qolgan mahsulotlar')),
       body: session == null
           ? const SizedBox.shrink()
-          : Column(
-              children: [
-                if (session.isOwner) const BranchPicker(),
-                Expanded(child: _StockList(isManager: session.isManager, isOwner: session.isOwner)),
-              ],
-            ),
+          : _StockList(isManager: session.isManager, isOwner: session.isOwner),
     );
   }
 }
@@ -40,12 +35,10 @@ class _StockList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (isOwner && ref.watch(selectedBranchIdProvider) == null) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('Ro\'yxatni ko\'rish uchun avval filialni tanlang', textAlign: TextAlign.center),
-        ),
-      );
+      if (ref.watch(branchLoadFailedProvider)) {
+        return BranchLoadError(onRetry: () => ref.invalidate(branchesProvider));
+      }
+      return const Center(child: CircularProgressIndicator());
     }
 
     final itemsAsync = ref.watch(lowStockProvider);

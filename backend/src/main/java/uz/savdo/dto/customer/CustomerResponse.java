@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import uz.savdo.entity.Customer;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -15,6 +16,7 @@ public class CustomerResponse {
     private String address;
     private String note;
     private Boolean isActive;
+    private BigDecimal creditLimit;
     private LocalDateTime createdAt;
 
     public static CustomerResponse from(Customer c) {
@@ -25,6 +27,7 @@ public class CustomerResponse {
                 .address(c.getAddress())
                 .note(c.getNote())
                 .isActive(c.getIsActive())
+                .creditLimit(c.getCreditLimit())
                 .createdAt(c.getCreatedAt())
                 .build();
     }

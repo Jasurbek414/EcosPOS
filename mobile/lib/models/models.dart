@@ -159,6 +159,7 @@ class Product {
     required this.salePrice,
     required this.costPrice,
     this.minStockLevel,
+    this.barcode,
   });
 
   final int id;
@@ -168,6 +169,11 @@ class Product {
   final double costPrice;
   final double? minStockLevel;
 
+  /// Kassa ekranidagi qidiruv shtrix-kod bo'yicha ham ishlashi uchun. Backend
+  /// ProductResponse buni allaqachon qaytaradi, lekin modelda tushib qolgan edi —
+  /// natijada mobil ilova umuman kompilyatsiya bo'lmayotgan edi.
+  final String? barcode;
+
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: _toInt(json['id']),
         name: json['name'] as String,
@@ -175,6 +181,7 @@ class Product {
         salePrice: _toDouble(json['salePrice']),
         costPrice: _toDouble(json['costPrice']),
         minStockLevel: json['minStockLevel'] == null ? null : _toDouble(json['minStockLevel']),
+        barcode: json['barcode'] as String?,
       );
 }
 
@@ -226,5 +233,66 @@ class SaleSummary {
         totalAmount: _toDouble(json['totalAmount']),
         paymentMethod: (json['paymentMethod'] as String?) ?? '',
         itemCount: json['itemCount'] == null ? 0 : _toInt(json['itemCount']),
+      );
+}
+
+class CashShift {
+  const CashShift({
+    required this.id,
+    required this.branchId,
+    required this.cashierId,
+    required this.cashierName,
+    required this.openedAt,
+    this.closedAt,
+    required this.openingCash,
+    this.closingCash,
+    this.expectedCash,
+    this.cashDifference,
+    required this.status,
+    this.note,
+  });
+
+  final int id;
+  final int branchId;
+  final int cashierId;
+  final String cashierName;
+  final DateTime openedAt;
+  final DateTime? closedAt;
+  final double openingCash;
+  final double? closingCash;
+  final double? expectedCash;
+  final double? cashDifference;
+  final String status;
+  final String? note;
+
+  bool get isOpen => status == 'OPEN';
+
+  factory CashShift.fromJson(Map<String, dynamic> json) => CashShift(
+        id: _toInt(json['id']),
+        branchId: _toInt(json['branchId']),
+        cashierId: _toInt(json['cashierId']),
+        cashierName: (json['cashierName'] as String?) ?? '',
+        openedAt: DateTime.tryParse((json['openedAt'] as String?) ?? '')?.toLocal() ?? DateTime.now(),
+        closedAt: json['closedAt'] == null ? null : DateTime.tryParse(json['closedAt'] as String)?.toLocal(),
+        openingCash: _toDouble(json['openingCash']),
+        closingCash: json['closingCash'] == null ? null : _toDouble(json['closingCash']),
+        expectedCash: json['expectedCash'] == null ? null : _toDouble(json['expectedCash']),
+        cashDifference: json['cashDifference'] == null ? null : _toDouble(json['cashDifference']),
+        status: (json['status'] as String?) ?? 'OPEN',
+        note: json['note'] as String?,
+      );
+}
+
+class CartItem {
+  const CartItem({required this.product, required this.quantity});
+
+  final Product product;
+  final double quantity;
+
+  double get subtotal => product.salePrice * quantity;
+
+  CartItem copyWith({double? quantity}) => CartItem(
+        product: product,
+        quantity: quantity ?? this.quantity,
       );
 }

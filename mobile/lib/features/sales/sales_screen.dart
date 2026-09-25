@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/branch_provider.dart';
+import '../../widgets/branch_load_error.dart';
 import '../../core/formatters.dart';
 import '../../core/providers.dart';
 import '../../models/models.dart';
-import '../../widgets/branch_picker.dart';
 import '../auth/auth_controller.dart';
 
 /// So'nggi savdolar — tezkor "nima sotilyapti" nazari uchun, tafsilot ekransiz.
@@ -33,16 +33,15 @@ class SalesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(authControllerProvider).session;
 
+    // Kassirga backend faqat o'z savdolarini qaytaradi — sarlavha ham shuni
+    // aniq aytib tursin, aks holda u "boshqalarniki qani?" deb o'ylaydi.
+    final sarlavha = session != null && session.isCashier
+        ? 'Mening savdolarim'
+        : 'So\'nggi savdolar';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('So\'nggi savdolar')),
-      body: session == null
-          ? const SizedBox.shrink()
-          : Column(
-              children: [
-                if (session.isOwner) const BranchPicker(),
-                Expanded(child: _SalesList(isOwner: session.isOwner)),
-              ],
-            ),
+      appBar: AppBar(title: Text(sarlavha)),
+      body: session == null ? const SizedBox.shrink() : _SalesList(isOwner: session.isOwner),
     );
   }
 }
@@ -55,12 +54,10 @@ class _SalesList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (isOwner && ref.watch(selectedBranchIdProvider) == null) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('Ro\'yxatni ko\'rish uchun avval filialni tanlang', textAlign: TextAlign.center),
-        ),
-      );
+      if (ref.watch(branchLoadFailedProvider)) {
+        return BranchLoadError(onRetry: () => ref.invalidate(branchesProvider));
+      }
+      return const Center(child: CircularProgressIndicator());
     }
 
     final salesAsync = ref.watch(salesProvider);
