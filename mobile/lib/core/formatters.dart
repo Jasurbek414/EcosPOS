@@ -1,7 +1,6 @@
-/// intl paketiga ehtiyoj qoldirmaslik uchun qo'lda yozilgan kichik formatlagichlar
-/// (APK hajmini kichik saqlash siyosati — faqat haqiqatan zarur paketlar qo'shiladi).
+/// Formatlash yordamchilari
 
-/// Pul summasini "1 234 567" ko'rinishida guruhlab formatlaydi (o'nlik qismsiz).
+/// Pul summasini "1 234 567" ko'rinishida guruhlab formatlaydi (so'm).
 String formatMoney(num value) {
   final rounded = value.round();
   final isNegative = rounded < 0;
@@ -15,6 +14,9 @@ String formatMoney(num value) {
   return (isNegative ? '-' : '') + buffer.toString();
 }
 
+/// Pul summasini "1 234 567 so'm" ko'rinishida formatlaydi.
+String formatCurrency(num value) => '${formatMoney(value)} so\'m';
+
 /// Miqdorni butun bo'lsa butun, aks holda 2 xonali kasr bilan ko'rsatadi (masalan 12 yoki 12.50).
 String formatQuantity(num value) {
   if (value == value.roundToDouble()) return value.toInt().toString();
@@ -23,7 +25,13 @@ String formatQuantity(num value) {
 
 String _two(int n) => n.toString().padLeft(2, '0');
 
-/// "04.09.2026 14:35" ko'rinishida sana/vaqt.
+/// "04.11.2026" ko'rinishida sana.
+String formatDate(DateTime dt) {
+  final local = dt.toLocal();
+  return '${_two(local.day)}.${_two(local.month)}.${local.year}';
+}
+
+/// "04.11.2026 14:35" ko'rinishida sana va vaqt.
 String formatDateTime(DateTime dt) {
   final local = dt.toLocal();
   return '${_two(local.day)}.${_two(local.month)}.${local.year} ${_two(local.hour)}:${_two(local.minute)}';

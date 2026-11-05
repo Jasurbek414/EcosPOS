@@ -11,6 +11,7 @@ import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { useDefaultBranchId } from '../../hooks/useDefaultBranchId';
 import { userService } from '../../services/api';
 import StaffStatsHeader from '../../components/ui/StaffStatsHeader';
+import TableSkeleton from '../../components/ui/TableSkeleton';
 
 const ROLES = ['OWNER', 'MANAGER', 'CASHIER'];
 
@@ -838,7 +839,7 @@ export default function StaffListPage() {
       )}
 
       {loading ? (
-        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        <TableSkeleton rows={5} cols={5} />
       ) : staff.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

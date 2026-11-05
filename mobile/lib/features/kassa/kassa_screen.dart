@@ -1,15 +1,18 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/api_client.dart';
 import '../../core/branch_provider.dart';
-import '../../widgets/branch_load_error.dart';
 import '../../core/formatters.dart';
 import '../../core/providers.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/branch_load_error.dart';
 import '../auth/auth_controller.dart';
+import '../customers/customers_providers.dart';
 
 // ---------------------------------------------------------------------------
 // Providers
@@ -47,6 +50,7 @@ class KassaScreen extends ConsumerWidget {
     final session = ref.watch(authControllerProvider).session;
     if (session == null) return const SizedBox.shrink();
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Kassa')),
       body: _ShiftBody(isOwner: session.isOwner),
     );
@@ -163,8 +167,8 @@ class _OpenShiftViewState extends ConsumerState<_OpenShiftView> {
           children: [
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFDBEAFE),
+              decoration: const BoxDecoration(
+                color: Color(0xFFDBEAFE),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.point_of_sale, size: 48, color: Color(0xFF2563EB)),
@@ -181,28 +185,19 @@ class _OpenShiftViewState extends ConsumerState<_OpenShiftView> {
               controller: _cashController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.,]'))],
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
-                hintText: '0',
-                suffixText: 'so\'m',
+              decoration: InputDecoration(
+                labelText: 'Boshlang\'ich naqd pul (so\'m)',
+                prefixIcon: const Icon(Icons.payments_outlined),
+                errorText: _error,
               ),
             ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: AppTheme.danger)),
-            ],
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: _submitting ? null : _openShift,
                 child: _submitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Text('Smenani ochish'),
               ),
             ),
@@ -214,7 +209,7 @@ class _OpenShiftViewState extends ConsumerState<_OpenShiftView> {
 }
 
 // ---------------------------------------------------------------------------
-// Faol smena — POS ekrani
+// Faol smena va savat ekrani
 // ---------------------------------------------------------------------------
 
 class _ActiveShiftView extends ConsumerStatefulWidget {
@@ -230,72 +225,122 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
   String _searchQuery = '';
   bool _submitting = false;
 
-  double get _total => _cart.fold(0, (sum, item) => sum + item.subtotal);
+  double get _total => _cart.fold(0, (sum, i) => sum + i.subtotal);
 
   void _addToCart(Product product) {
     setState(() {
-      final idx = _cart.indexWhere((c) => c.product.id == product.id);
-      if (idx >= 0) {
-        _cart[idx] = _cart[idx].copyWith(quantity: _cart[idx].quantity + 1);
+      final index = _cart.indexWhere((c) => c.product.id == product.id);
+      if (index >= 0) {
+        _cart[index] = _cart[index].copyWith(quantity: _cart[index].quantity + 1);
       } else {
         _cart.add(CartItem(product: product, quantity: 1));
       }
     });
   }
 
-  void _removeFromCart(int index) {
-    setState(() => _cart.removeAt(index));
+  void _updateQuantity(int index, double quantity) {
+    setState(() {
+      if (quantity <= 0) {
+        _cart.removeAt(index);
+      } else {
+        _cart[index] = _cart[index].copyWith(quantity: quantity);
+      }
+    });
   }
 
-  void _updateQuantity(int index, double qty) {
-    if (qty <= 0) {
-      _removeFromCart(index);
-      return;
+  Future<void> _scanBarcodeForCart() async {
+    final products = await ref.read(productsSearchProvider.future);
+    if (!mounted) return;
+
+    final scanned = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (ctx) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          title: const Text('Shtrix-kodni skanerlang', style: TextStyle(color: Colors.white)),
+          leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(ctx).pop()),
+        ),
+        body: Stack(
+          alignment: Alignment.center,
+          children: [
+            MobileScanner(
+              onDetect: (capture) {
+                final barcode = capture.barcodes.firstOrNull;
+                if (barcode?.rawValue != null && barcode!.rawValue!.isNotEmpty) {
+                  Navigator.of(ctx).pop(barcode.rawValue);
+                }
+              },
+            ),
+            Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (scanned != null && scanned.isNotEmpty && mounted) {
+      final found = products.where((p) => p.barcode == scanned).firstOrNull;
+      if (found != null) {
+        _addToCart(found);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${found.name} savatga qo\'shildi'),
+            backgroundColor: AppTheme.success,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Shtrix-kod bo\'yicha mahsulot topilmadi: $scanned'), backgroundColor: AppTheme.warning),
+        );
+      }
     }
-    setState(() => _cart[index] = _cart[index].copyWith(quantity: qty));
   }
 
-  /// Aralash to'lov uchun karta summasini so'raydi. Bekor qilinsa null qaytaradi.
   Future<double?> _askCardAmount() async {
     final controller = TextEditingController();
-    String? xato;
+    String? error;
     return showDialog<double>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Aralash to\'lov'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          title: const Text('Karta summasini kiriting'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Jami: ${formatMoney(_total)} so\'m'),
+              Text('Jami to\'lov: ${formatMoney(_total)} so\'m'),
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
                 autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.,]'))],
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Karta orqali',
-                  suffixText: 'so\'m',
-                  errorText: xato,
+                  labelText: 'Karta orqali to\'lanadigan qismi',
+                  errorText: error,
                 ),
               ),
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Bekor qilish'),
-            ),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(null), child: const Text('Bekor qilish')),
             FilledButton(
               onPressed: () {
-                final karta = double.tryParse(controller.text.replaceAll(',', '.'));
-                if (karta == null || karta <= 0 || karta >= _total) {
-                  setDialogState(() => xato = '0 dan katta va jamidan kichik bo\'lsin');
+                final val = double.tryParse(controller.text) ?? 0;
+                if (val <= 0 || val >= _total) {
+                  setDlgState(() => error = 'Summa 0 va jami summa orasida bo\'lishi kerak');
                   return;
                 }
-                Navigator.of(dialogContext).pop(karta);
+                Navigator.of(ctx).pop(val);
               },
               child: const Text('Davom etish'),
             ),
@@ -305,48 +350,171 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
     );
   }
 
+  Future<Customer?> _pickCustomerModal() async {
+    final customers = await ref.read(customersListProvider(null).future);
+    if (!mounted) return null;
+
+    return showModalBottomSheet<Customer>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        String q = '';
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filtered = customers.where((c) {
+              if (q.isEmpty) return true;
+              return c.fullName.toLowerCase().contains(q.toLowerCase()) ||
+                  (c.phone != null && c.phone!.contains(q));
+            }).toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.8,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (_, scrollCtrl) => Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const Text('Nasiya uchun mijozni tanlang', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      decoration: const InputDecoration(hintText: 'Mijoz qidirish...', prefixIcon: Icon(Icons.search)),
+                      onChanged: (val) => setModalState(() => q = val),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: ListView.separated(
+                      controller: scrollCtrl,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, idx) {
+                        final c = filtered[idx];
+                        return ListTile(
+                          leading: CircleAvatar(child: Text(c.fullName.isNotEmpty ? c.fullName[0].toUpperCase() : 'M')),
+                          title: Text(c.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          subtitle: Text(c.phone ?? 'Telefon yo\'q'),
+                          onTap: () => Navigator.of(ctx).pop(c),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showReceiptDialog(double totalAmount, String method, List<CartItem> items, String? customerName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Center(
+          child: Column(
+            children: [
+              Icon(Icons.check_circle, color: AppTheme.success, size: 54),
+              SizedBox(height: 8),
+              Text('Savdo muvaffaqiyatli!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            ],
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${formatMoney(totalAmount)} so\'m',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.primary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'To\'lov usuli: ${method == "CASH" ? "Naqd pul" : method == "CARD" ? "Plastik karta" : method == "CREDIT" ? "Nasiya (Qarz)" : "Aralash"}',
+              style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+            ),
+            if (customerName != null) ...[
+              const SizedBox(height: 4),
+              Text('Mijoz: $customerName', style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+            const Divider(height: 24),
+            Text('${items.length} xil mahsulot sotildi', style: const TextStyle(fontSize: 13, color: AppTheme.muted)),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Tayyor'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submitSale(String method) async {
     if (_cart.isEmpty) return;
 
-    // Aralash to'lovda karta qismini SO'RASH SHART: backend cardAmount'siz MIXED
-    // so'rovini rad etadi (0 < cardAmount < jami bo'lishi kerak), shuning uchun
-    // avval bu tugma har doim xato berardi.
     double? cardAmount;
+    Customer? selectedCustomer;
+
     if (method == 'MIXED') {
       cardAmount = await _askCardAmount();
-      if (cardAmount == null) return; // foydalanuvchi bekor qildi
+      if (cardAmount == null) return;
+    } else if (method == 'CREDIT') {
+      selectedCustomer = await _pickCustomerModal();
+      if (selectedCustomer == null) return; // bekor qilindi
     }
 
-    setState(() {
-      _submitting = true;
-    });
+    setState(() => _submitting = true);
 
     try {
       final api = ref.read(apiClientProvider);
+      final saleTotal = _total;
+      final cartCopy = List<CartItem>.from(_cart);
+
       final data = <String, dynamic>{
-        'items': _cart
-            .map((c) => {'productId': c.product.id, 'quantity': c.quantity})
-            .toList(),
+        'items': _cart.map((c) => {'productId': c.product.id, 'quantity': c.quantity}).toList(),
         'paymentMethod': method,
-        // MIXED'da kassaga faqat naqd qismi tushadi, karta qismi drawer'ga tegmaydi.
-        'amountPaid': method == 'CARD' ? 0 : (method == 'MIXED' ? _total - cardAmount! : _total),
+        'amountPaid': method == 'CARD' || method == 'CREDIT'
+            ? 0
+            : (method == 'MIXED' ? _total - cardAmount! : _total),
         if (method == 'MIXED') 'cardAmount': cardAmount,
+        if (method == 'CREDIT') 'customerId': selectedCustomer!.id,
       };
+
       await api.post<Map<String, dynamic>>('/sales', data: data);
+
       setState(() {
         _cart.clear();
         _submitting = false;
       });
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sotuv amalga oshirildi!'), backgroundColor: AppTheme.success),
-        );
+        _showReceiptDialog(saleTotal, method, cartCopy, selectedCustomer?.fullName);
+        ref.invalidate(currentShiftProvider);
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(apiErrorMessage(e, fallback: 'Sotuvni amalga oshirib bo\'lmadi')), backgroundColor: AppTheme.danger),
+        SnackBar(
+          content: Text(apiErrorMessage(e, fallback: 'Sotuvni amalga oshirib bo\'lmadi')),
+          backgroundColor: AppTheme.danger,
+        ),
       );
     }
   }
@@ -383,7 +551,8 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
                 ),
@@ -510,8 +679,8 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
                         children: [
                           Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                           Text(
-                            '${formatMoney(item.product.salePrice)} x ${formatQuantity(item.quantity)} = ${formatMoney(item.subtotal)} so\'m',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            '${formatMoney(item.product.salePrice)} so\'m × ${formatQuantity(item.quantity)} = ${formatMoney(item.subtotal)} so\'m',
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                           ),
                         ],
                       ),
@@ -572,19 +741,34 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: TextField(
-            onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-            decoration: InputDecoration(
-              hintText: 'Mahsulot qidirish...',
-              prefixIcon: const Icon(Icons.search, size: 20),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              filled: true,
-              fillColor: const Color(0xFFF1F5F9),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                  decoration: InputDecoration(
+                    hintText: 'Mahsulot qidirish...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    filled: true,
+                    fillColor: const Color(0xFFF1F5F9),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: _scanBarcodeForCart,
+                icon: const Icon(Icons.qr_code_scanner),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -648,7 +832,7 @@ class _ActiveShiftViewState extends ConsumerState<_ActiveShiftView> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                '${formatQuantity(qty)}',
+                                formatQuantity(qty),
                                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                             )
@@ -690,7 +874,8 @@ class _PaymentSheet extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
             ),
@@ -704,16 +889,23 @@ class _PaymentSheet extends StatelessWidget {
           const SizedBox(height: 20),
           _PaymentButton(
             icon: Icons.payments_outlined,
-            label: 'Naqd',
+            label: 'Naqd pul',
             color: AppTheme.success,
             onPressed: submitting ? null : () => onPay('CASH'),
           ),
           const SizedBox(height: 12),
           _PaymentButton(
             icon: Icons.credit_card,
-            label: 'Karta',
+            label: 'Plastik karta',
             color: const Color(0xFF2563EB),
             onPressed: submitting ? null : () => onPay('CARD'),
+          ),
+          const SizedBox(height: 12),
+          _PaymentButton(
+            icon: Icons.person_pin_outlined,
+            label: 'Nasiya (Qarzga sotish)',
+            color: AppTheme.danger,
+            onPressed: submitting ? null : () => onPay('CREDIT'),
           ),
           const SizedBox(height: 12),
           _PaymentButton(

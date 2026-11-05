@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Users2, Plus, Search, CheckCircle2, Wallet, X } from 'lucide-react';
 import { customerService, customerDebtService } from '../../services/api';
 import CustomerTabs from './CustomerTabs';
+import TableSkeleton from '../../components/ui/TableSkeleton';
 
 // Faqat yaratish uchun — tahrirlash CustomerDetailPage.jsx'da joyida (inline) amalga
 // oshiriladi (EditCustomerInfoForm), BranchListPage.jsx/BranchModal bilan bir xil
@@ -242,7 +243,7 @@ export default function CustomerListPage() {
       )}
 
       {loading ? (
-        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        <TableSkeleton rows={6} cols={5} />
       ) : customers.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTenantAuthContext } from '../../hooks/useTenantAuthContext';
 import { changeLanguage } from '../../i18n';
+import { preloadRoute } from '../../utils/routePreloader';
 import {
   LayoutDashboard, Users, Users2, ShoppingCart, Package, BarChart3, Calculator, LogOut, Store, Settings,
   ChevronLeft, ChevronRight,
@@ -90,11 +91,13 @@ export default function Sidebar({ collapsed, onToggleCollapsed }) {
             <NavLink
               key={item.path}
               to={item.path}
+              onMouseEnter={() => preloadRoute(item.path)}
+              onTouchStart={() => preloadRoute(item.path)}
               title={collapsed ? item.label : undefined}
               className={({ isActive }) => `sidebar-link ${collapsed ? 'sidebar-link-collapsed' : ''} ${isActive ? 'sidebar-link-active' : ''}`}
             >
               <span className="sidebar-link-icon">
-                <item.icon size={17} strokeWidth={2.1} />
+                <item.icon size={19} strokeWidth={2.25} />
               </span>
               {!collapsed && <span>{item.label}</span>}
             </NavLink>

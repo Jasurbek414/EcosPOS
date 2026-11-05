@@ -11,6 +11,7 @@ import { useUnits } from '../../hooks/useUnits';
 import { categoryService, fileService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
+import TableSkeleton from '../../components/ui/TableSkeleton';
 
 const VIEW_STORAGE_KEY = 'savdo_products_view';
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -761,7 +762,7 @@ export default function ProductsPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        <TableSkeleton rows={7} cols={6} />
       ) : products.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

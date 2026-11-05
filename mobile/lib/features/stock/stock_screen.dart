@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/branch_provider.dart';
@@ -6,11 +6,13 @@ import '../../widgets/branch_load_error.dart';
 import '../../core/formatters.dart';
 import '../../models/models.dart';
 import '../auth/auth_controller.dart';
+import '../../widgets/app_drawer.dart';
 import 'adjust_stock_sheet.dart';
 import 'stock_providers.dart';
 
 class StockScreen extends ConsumerWidget {
-  const StockScreen({super.key});
+  const StockScreen({super.key, this.isTab = false});
+  final bool isTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,7 +20,8 @@ class StockScreen extends ConsumerWidget {
     final session = auth.session;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Kam qolgan mahsulotlar')),
+      drawer: isTab ? null : const AppDrawer(),
+      appBar: isTab ? null : AppBar(title: const Text('Kam qolgan mahsulotlar')),
       body: session == null
           ? const SizedBox.shrink()
           : _StockList(isManager: session.isManager, isOwner: session.isOwner),

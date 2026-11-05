@@ -24,20 +24,38 @@ const _dashboard = NavTab(
   path: '/dashboard',
   icon: Icons.insights_outlined,
   activeIcon: Icons.insights,
-  label: 'Hisobot',
+  label: 'Bosh sahifa',
 );
+
+const _kassa = NavTab(
+  path: '/kassa',
+  icon: Icons.point_of_sale_outlined,
+  activeIcon: Icons.point_of_sale,
+  label: 'Kassa',
+  prominent: true,
+);
+
+const _inventory = NavTab(
+  path: '/inventory',
+  icon: Icons.inventory_2_outlined,
+  activeIcon: Icons.inventory_2,
+  label: 'Ombor',
+);
+
+const _customers = NavTab(
+  path: '/customers',
+  icon: Icons.groups_outlined,
+  activeIcon: Icons.groups,
+  label: 'Mijozlar',
+);
+
 const _stock = NavTab(
   path: '/stock',
   icon: Icons.inventory_2_outlined,
   activeIcon: Icons.inventory_2,
   label: 'Qoldiqlar',
 );
-const _kassa = NavTab(
-  path: '/kassa',
-  icon: Icons.point_of_sale_outlined,
-  activeIcon: Icons.point_of_sale,
-  label: 'Kassa',
-);
+
 const _scanner = NavTab(
   path: '/scanner',
   icon: Icons.qr_code_scanner,
@@ -45,12 +63,14 @@ const _scanner = NavTab(
   label: 'Skanerlash',
   prominent: true,
 );
+
 const _sales = NavTab(
   path: '/sales',
   icon: Icons.receipt_long_outlined,
   activeIcon: Icons.receipt_long,
   label: 'Savdolar',
 );
+
 const _profile = NavTab(
   path: '/profile',
   icon: Icons.person_outline,
@@ -58,37 +78,40 @@ const _profile = NavTab(
   label: 'Profil',
 );
 
-/// Rolga qarab pastki menyu bo'limlari.
-///
-/// Avval BARCHA bo'limlar hamma rolga ko'rsatilardi. Natijada kassir "Hisobot"
-/// bo'limini ochsa backend 403 qaytarardi va ekran bo'sh qolardi — foydalanuvchi
-/// esa nima uchunligini tushunmasdi. Endi har bir rol faqat o'zi ishlatadigan
-/// bo'limlarni ko'radi.
+/// Rolga qarab pastki menyu bo'limlari (Asosiy tezkor amallar).
+/// Qolgan barcha bo'limlar (Ombor, Mijozlar, Sozlamalar) Yon panelda (Sidebar).
 List<NavTab> tabsForRole(String role) {
   switch (role) {
-    // Kassir — faqat savdo qilish uchun. Moliyaviy hisobot unga berilmaydi
-    // (backend ham bermaydi), shuning uchun "Hisobot" bo'limi umuman yo'q.
     case 'CASHIER':
-      return const [_kassa, _stock, _scanner, _sales, _profile];
+      return const [_kassa, _scanner, _sales, _stock];
 
-    // Menejer va ega — to'liq operatsion ko'rinish.
     case 'MANAGER':
     case 'OWNER':
     default:
-      return const [_dashboard, _stock, _kassa, _scanner, _sales, _profile];
+      return const [_dashboard, _kassa, _scanner, _sales];
   }
 }
 
-/// Tizimga kirgandan keyin yoki ruxsatsiz sahifaga urinilganda ochiladigan sahifa.
-/// Kassir uchun bu — Kassa, chunki uning butun ishi shu yerda.
+/// Tizimga kirgandan keyin ochiladigan bosh sahifa
 String homePathForRole(String role) => role == 'CASHIER' ? '/kassa' : '/dashboard';
 
-/// Foydalanuvchi shu manzilni ocha oladimi.
-///
-/// Bu tekshiruv menyuni yashirishdan TASHQARI kerak: chuqur havola (deep link)
-/// yoki eski marshrut menyuni chetlab o'tib, sahifani to'g'ridan-to'g'ri ochishi
-/// mumkin. Asosiy himoya baribir backendda; bu esa foydalanuvchiga tushunarsiz
-/// bo'sh ekran ko'rsatmaslik uchun.
+/// Foydalanuvchi shu manzilni ocha oladimi
 bool canAccess(String role, String location) {
-  return tabsForRole(role).any((t) => location.startsWith(t.path));
+  // Profil, bildirishnomalar, kassa, skaner, savdolar barchaga ochiq
+  if (location.startsWith('/profile') ||
+      location.startsWith('/notifications') ||
+      location.startsWith('/kassa') ||
+      location.startsWith('/scanner') ||
+      location.startsWith('/sales') ||
+      location.startsWith('/stock')) {
+    return true;
+  }
+
+  // Menejer va ega uchun hamma narsa ochiq
+  if (role == 'OWNER' || role == 'MANAGER') {
+    return true;
+  }
+
+  // Kassir uchun qolgan sahifalar yopiq
+  return false;
 }

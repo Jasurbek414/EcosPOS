@@ -1,31 +1,25 @@
-# Flutter SDK/Android SDK bu noutbukda o'rnatilmagan — shuning uchun APK shu Docker
-# image ichida quriladi (maktab_davomad va inventarizatsiya loyihalaridagi bir xil usul).
-#
-# Ishlatish:
-#   docker build -t savdo-mobile-build .
-#   docker create --name savdo-mobile-extract savdo-mobile-build
-#   docker cp savdo-mobile-extract:/app/build/app/outputs/flutter-apk/app-release.apk ./app-release.apk
-#   docker rm savdo-mobile-extract
-#
-# Backend manzilini o'zgartirish uchun (standart: https://savdo-api.ecos.uz):
-#   docker build --build-arg API_BASE_URL=https://sizning-domeningiz.uz -t savdo-mobile-build .
-
-# Versiya ATAYLAB qadab qo'yilgan. Avval ":stable" edi va Flutter'ning yangi
-# versiyasi chiqishi bilan, kod umuman o'zgarmagan holda, APK boshqacha yoki
-# buzilgan bo'lib chiqishi mumkin edi.
-FROM ghcr.io/cirruslabs/flutter:3.29.3 AS build
+FROM savdo-mobile-build:latest AS build
 WORKDIR /app
 
-ARG API_BASE_URL=https://savdo-api.ecos.uz
+COPY lib/ ./lib/
+COPY assets/ ./assets/
+COPY pubspec.yaml ./
 
-# Repo'da faqat lib/ va pubspec.yaml bor — android/ papkasi (native Gradle loyihasi)
-# hali generatsiya qilinmagan, chunki buni faqat Flutter SDK o'zi qila oladi.
-COPY . .
-RUN flutter create --platforms=android --org uz.ecos.savdo .
+# Ilova nomini EcosPOS ga o'zgartirish va round icon sozlash
+RUN sed -i 's/android:label="[^"]*"/android:label="EcosPOS"/g' android/app/src/main/AndroidManifest.xml && \
+    sed -i 's/android:icon="@mipmap\/ic_launcher"/android:icon="@mipmap\/ic_launcher" android:roundIcon="@mipmap\/ic_launcher_round"/g' android/app/src/main/AndroidManifest.xml
 
-# mobile_scanner (shtrix-kod skaneri) uchun kamera ruxsati kerak — android/ har build'da
-# qaytadan generatsiya qilingani uchun bu qatorni generatsiyadan KEYIN qo'shamiz.
-RUN sed -i '/<manifest /a\    <uses-permission android:name="android.permission.CAMERA"/>' android/app/src/main/AndroidManifest.xml
+# EcosPOS logotipini ilova ikonkasi sifatida o'rnatish
+RUN cp assets/res/mipmap-mdpi/ic_launcher.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png && \
+    cp assets/res/mipmap-hdpi/ic_launcher.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png && \
+    cp assets/res/mipmap-xhdpi/ic_launcher.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png && \
+    cp assets/res/mipmap-xxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png && \
+    cp assets/res/mipmap-xxxhdpi/ic_launcher.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png && \
+    cp assets/res/mipmap-mdpi/ic_launcher_round.png android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png && \
+    cp assets/res/mipmap-hdpi/ic_launcher_round.png android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png && \
+    cp assets/res/mipmap-xhdpi/ic_launcher_round.png android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png && \
+    cp assets/res/mipmap-xxhdpi/ic_launcher_round.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png && \
+    cp assets/res/mipmap-xxxhdpi/ic_launcher_round.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
 
 RUN flutter pub get
-RUN flutter build apk --release --dart-define=API_BASE_URL=${API_BASE_URL}
+RUN flutter build apk --release --dart-define=API_BASE_URL=https://savdo-api.ecos.uz

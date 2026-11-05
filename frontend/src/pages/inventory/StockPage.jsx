@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { useUnits } from '../../hooks/useUnits';
 import { categoryService, productService, resolveFileUrl, stockService, supplierService } from '../../services/api';
 import InventoryTabs from './InventoryTabs';
 import InventoryStatsHeader from '../../components/ui/InventoryStatsHeader';
+import TableSkeleton from '../../components/ui/TableSkeleton';
 
 // ProductsPage.jsx'dagi "rasm yo'q bo'lsa rangli bosh harf" naqshi bilan bir xil —
 // alohida umumiy util fayl yo'q bo'lgani uchun shu yerda takrorlanadi.
@@ -280,7 +281,7 @@ export default function StockPage() {
       {branchError ? (
         <LoadErrorPanel onRetry={retryBranch} />
       ) : loading ? (
-        <div className="text-slate-500 dark:text-slate-400 text-sm">{t('common.loading')}</div>
+        <TableSkeleton rows={7} cols={5} />
       ) : filteredStock.length === 0 ? (
         <div className="card py-20 flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">

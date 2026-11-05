@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/role_navigation.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/app_drawer.dart';
 import '../auth/auth_controller.dart';
 
 /// Pastki navigatsiya paneli.
@@ -27,6 +28,7 @@ class HomeShell extends ConsumerWidget {
     final currentIndex = tabs.indexWhere((t) => location.startsWith(t.path));
 
     return Scaffold(
+      drawer: const AppDrawer(),
       body: child,
       bottomNavigationBar: SafeArea(
         top: false,

@@ -7,6 +7,7 @@ import '../../core/branch_provider.dart';
 import '../../core/formatters.dart';
 import '../../core/providers.dart';
 import '../../models/models.dart';
+import '../../widgets/app_drawer.dart';
 import '../auth/auth_controller.dart';
 import '../stock/adjust_stock_sheet.dart';
 
@@ -85,6 +86,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     final session = ref.watch(authControllerProvider).session;
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(title: const Text('Shtrix-kod skaneri')),
       body: Stack(
         children: [

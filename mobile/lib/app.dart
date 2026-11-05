@@ -11,7 +11,7 @@ class SavdoApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'Savdo',
+      title: 'EcosPOS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme(),
       routerConfig: router,

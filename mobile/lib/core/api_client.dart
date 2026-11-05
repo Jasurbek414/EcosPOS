@@ -103,12 +103,14 @@ class ApiClient {
     }
   }
 
-  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) =>
-      _dio.get<T>(path, queryParameters: query);
+  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query, Map<String, dynamic>? queryParameters}) =>
+      _dio.get<T>(path, queryParameters: queryParameters ?? query);
 
   Future<Response<T>> post<T>(String path, {Object? data}) => _dio.post<T>(path, data: data);
 
   Future<Response<T>> put<T>(String path, {Object? data}) => _dio.put<T>(path, data: data);
+
+  Future<Response<T>> patch<T>(String path, {Object? data}) => _dio.patch<T>(path, data: data);
 
   Future<Response<T>> delete<T>(String path, {Object? data}) => _dio.delete<T>(path, data: data);
 }

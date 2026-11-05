@@ -1,5 +1,5 @@
 name: savdo_mobile
-description: Savdo — do'kon egasi/menejeri uchun hamroh mobil ilova
+description: EcosPOS — Aqlli Kassa va Savdo Boshqaruvi mobil ilovasi
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -22,6 +22,9 @@ dependencies:
   # JWT tokenlarni xavfsiz saqlash
   flutter_secure_storage: ^9.2.2
 
+  # Formatlash (pul, sana)
+  intl: ^0.19.0
+
   # Shtrix-kod skaneri (do'kon ichida qoldiqni tekshirish uchun asosiy funksiya)
   mobile_scanner: ^5.2.3
 
@@ -34,3 +37,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/logo.png

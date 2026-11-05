@@ -57,6 +57,10 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  void updateSession(AuthSession session) {
+    state = state.copyWith(session: session);
+  }
+
   Future<void> logout() async {
     await _storage.clear();
     state = const AuthState(status: AuthStatus.unauthenticated);

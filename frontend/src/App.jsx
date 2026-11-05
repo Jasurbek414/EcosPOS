@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ui/ProtectedRoute';
 import PlatformProtectedRoute from './components/ui/PlatformProtectedRoute';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import MainLayout from './components/layout/MainLayout';
+import PageSkeletonLoader from './components/ui/PageSkeletonLoader';
 
 // Kirish sahifasi va boshqaruv paneli darhol kerak — ular to'g'ridan-to'g'ri yuklanadi.
 import LoginPage from './pages/LoginPage';
@@ -48,14 +49,6 @@ const AdminsPage = lazy(() => import('./pages/superadmin/AdminsPage'));
 const AuditLogPage = lazy(() => import('./pages/superadmin/AuditLogPage'));
 const SuperAdminProfilePage = lazy(() => import('./pages/superadmin/ProfilePage'));
 
-function SahifaYuklanmoqda() {
-  return (
-    <div className="min-h-[50vh] flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
-      Yuklanmoqda...
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <BrowserRouter>
@@ -72,7 +65,7 @@ export default function App() {
         <TenantAuthProvider>
           <SuperAdminAuthProvider>
             <ErrorBoundary>
-            <Suspense fallback={<SahifaYuklanmoqda />}>
+            <Suspense fallback={<PageSkeletonLoader />}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
 

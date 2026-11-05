@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/branch_provider.dart';
+import '../../widgets/app_drawer.dart';
 import '../../widgets/branch_load_error.dart';
 import '../../core/formatters.dart';
 import '../../core/providers.dart';
@@ -40,6 +41,7 @@ class SalesScreen extends ConsumerWidget {
         : 'So\'nggi savdolar';
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(title: Text(sarlavha)),
       body: session == null ? const SizedBox.shrink() : _SalesList(isOwner: session.isOwner),
     );

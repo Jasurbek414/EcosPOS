@@ -141,6 +141,27 @@ services:
       retries: 3
       start_period: 10s
 
+
+  bot:
+    build: ./bot
+    container_name: savdo-bot
+    mem_limit: 128m
+    cpu_shares: 512
+    logging: *default-logging
+    restart: always
+    environment:
+      - TZ=Asia/Tashkent
+      - TELEGRAM_BOT_TOKEN=8890616601:AAEwhpSiD6VcP7Z6WYecl4kJpqvF6-knZS4
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=local_dev_pw_9f3a7c2e
+      - TENANT_DB=tenant_test_market
+      - PLATFORM_DB=platform_db
+    depends_on:
+      db:
+        condition: service_healthy
+
   # 7-bosqich: tashqi domenga chiqarish. CLOUDFLARE_TUNNEL_TOKEN .env'da
   # bo'lmasa bu xizmat oddiygina ishga tushmay qoladi (compose xato bermaydi,
   # faqat bu bitta konteyner health-check kutmasdan qulab tushadi va restart:

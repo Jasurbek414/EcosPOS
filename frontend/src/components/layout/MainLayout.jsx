@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import PageSkeletonLoader from '../ui/PageSkeletonLoader';
+import { preloadAllMainRoutes } from '../../utils/routePreloader';
 
 const COLLAPSE_KEY = 'savdo_sidebar_collapsed';
 
@@ -12,6 +14,14 @@ export default function MainLayout() {
       return false;
     }
   });
+
+  useEffect(() => {
+    try {
+      preloadAllMainRoutes();
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -29,8 +39,10 @@ export default function MainLayout() {
     <div className="flex min-h-screen" style={{ background: 'var(--bg-main)' }}>
       <Sidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
       <main className={`flex-1 min-h-screen px-8 py-7 transition-[margin] duration-200 ${collapsed ? 'ml-[4.75rem]' : 'ml-64'}`}>
-        <div className="animate-fade-in w-full">
-          <Outlet />
+        <div className="w-full">
+          <Suspense fallback={<PageSkeletonLoader />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>
