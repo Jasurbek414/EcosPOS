@@ -1,3 +1,5 @@
+name: EcosPOS
+
 # "savdo" - do'kon/supermarketlar uchun POS ekotizimi.
 #
 # MUHIM: bu server (192.168.100.10) da allaqachon "service-core" (telefoniya)
@@ -199,7 +201,11 @@ services:
 
 volumes:
   savdo_postgres_data:
+    name: savdo_savdo_postgres_data
+    external: true
   savdo_uploads:
+    name: savdo_savdo_uploads
+    external: true
 
 networks:
   default:
